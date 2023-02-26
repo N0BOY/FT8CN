@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/callListHolderConstraintLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="1dp"
+    android:layout_marginTop="1dp"
+    android:layout_marginRight="1dp"
+    android:layout_marginBottom="1dp"
+    android:background="@drawable/calling_list_cell_style"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    tools:ignore="TouchTargetSizeCheck">
+
+    <TextView
+        android:id="@+id/callListMessageTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="CQ BG7YOY BG7YOZ" />
+
+    <TextView
+        android:id="@+id/callingListIdBTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintEnd_toStartOf="@+id/guideline9"
+        app:layout_constraintStart_toStartOf="@+id/guideline9"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:text="-12" />
+
+    <TextView
+        android:id="@+id/callListDtTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintEnd_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:text="-1.2" />
+
+    <TextView
+        android:id="@+id/callingListFreqTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintStart_toStartOf="@+id/guideline7"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:text="1234" />
+
+    <TextView
+        android:id="@+id/bandItemTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:text="14.074Hz" />
+
+    <TextView
+        android:id="@+id/callingListDistTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/linearLayout"
+        tools:ignore="SmallSp"
+        tools:text="12345公里" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="110dp" />
+
+    <TextView
+        android:id="@+id/callingListSequenceTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:text="0" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="55dp" />
+
+    <TextView
+        android:id="@+id/callingUtcTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/linearLayout"
+        tools:ignore="SmallSp"
+        tools:text="123456" />
+
+    <TextView
+        android:id="@+id/callingListCommandIInfoTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="1dp"
+        android:textSize="9sp"
+        app:layout_constraintBottom_toBottomOf="@+id/callingUtcTextView"
+        app:layout_constraintEnd_toStartOf="@+id/guideline2"
+        app:layout_constraintStart_toEndOf="@+id/callingUtcTextView"
+        app:layout_constraintTop_toTopOf="@+id/callingUtcTextView"
+        tools:ignore="SmallSp"
+        tools:text="4.0:非标准消息" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="70dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="28dp" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/dxccFromImageView"
+        app:layout_constraintStart_toEndOf="@+id/cqToImageView"
+        app:layout_constraintTop_toBottomOf="@+id/callListMessageTextView">
+
+        <TextView
+            android:id="@+id/callToItemTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:textAlignment="textStart"
+            android:textSize="10sp"
+            tools:ignore="RtlCompat,SmallSp"
+            tools:text="TOOOOO" />
+
+        <TextView
+            android:id="@+id/callingListCallsignFromTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:textAlignment="textStart"
+            android:textSize="10sp"
+            android:textStyle="normal"
+            tools:ignore="RtlCompat,SmallSp"
+            tools:text="FROMMMMM" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/dxccToImageView"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginStart="1dp"
+        android:contentDescription="@string/dxcc_image"
+        app:layout_constraintBottom_toBottomOf="@+id/callingListCommandIInfoTextView"
+        app:layout_constraintStart_toStartOf="@+id/guideline2"
+        app:layout_constraintTop_toTopOf="@+id/callingListCommandIInfoTextView"
+        app:srcCompat="@drawable/dxcc" />
+
+    <ImageView
+        android:id="@+id/ituToImageView"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginStart="2dp"
+        android:contentDescription="@string/count_dxcc_proportion"
+        app:layout_constraintBottom_toBottomOf="@+id/dxccToImageView"
+        app:layout_constraintStart_toEndOf="@+id/dxccToImageView"
+        app:layout_constraintTop_toTopOf="@+id/dxccToImageView"
+        app:srcCompat="@drawable/itu" />
+
+    <ImageView
+        android:id="@+id/cqToImageView"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginStart="2dp"
+        android:contentDescription="@string/cqzone"
+        app:layout_constraintBottom_toBottomOf="@+id/ituToImageView"
+        app:layout_constraintStart_toEndOf="@+id/ituToImageView"
+        app:layout_constraintTop_toTopOf="@+id/ituToImageView"
+        app:srcCompat="@drawable/cqzone" />
+
+    <ImageView
+        android:id="@+id/cqFromImageView"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="1dp"
+        android:contentDescription="@string/cqzone"
+        app:layout_constraintBottom_toBottomOf="@+id/callingListDistTextView"
+        app:layout_constraintEnd_toStartOf="@+id/guideline4"
+        app:layout_constraintTop_toTopOf="@+id/callingListDistTextView"
+        app:srcCompat="@drawable/cqzone" />
+
+    <ImageView
+        android:id="@+id/ituFromImageView"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="2dp"
+        android:contentDescription="@string/itu_image"
+        app:layout_constraintBottom_toBottomOf="@+id/cqFromImageView"
+        app:layout_constraintEnd_toStartOf="@+id/cqFromImageView"
+        app:layout_constraintTop_toTopOf="@+id/cqFromImageView"
+        app:srcCompat="@drawable/itu" />
+
+    <ImageView
+        android:id="@+id/dxccFromImageView"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="2dp"
+        android:contentDescription="@string/dxcc_image"
+        app:layout_constraintBottom_toBottomOf="@+id/ituFromImageView"
+        app:layout_constraintEnd_toStartOf="@+id/ituFromImageView"
+        app:layout_constraintTop_toTopOf="@+id/ituFromImageView"
+        app:srcCompat="@drawable/dxcc" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

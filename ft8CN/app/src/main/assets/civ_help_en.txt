@@ -1,0 +1,6 @@
+About CIV Address and Baud Rate
+
+CI-V address: The CI-V address of the radio station equipment (RIG). CI-V (Communications Interface V) is a communication protocol between the control end and the RIG.
+Baud Rate: The data transfer rate between the RIG and the APP.
+Since there may be more than one device on the control line, according to the requirements of CI-V, the receiver and the sender must be distinguished by each other's communication address. Generally speaking, each model of device has a default address when it leaves the factory, and the default addresses of different models of RIG are not necessarily the same. In general，the default address of the control end is 0xE0, and the broadcast address is 0x00. In the case of IC-705, its default address is 0xA4.
+This APP has found the default addresses and the maximum supported baud rates of these models of RIG, you can automatically set the address and baud rate by selecting "RIG".

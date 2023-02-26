@@ -1,0 +1,8 @@
+About Auto Track CQ
+
+Auto track CQ means that when an FT8CN decoded message contains a CQ message, the FT8CN will push the decoded message to the message list on "Calling" interface, so that to respond to the CQ message on "Calling" interface. Auto track CQ callsign will not be stored in the callsign database for a long time.
+
+About Auto Call Tracked
+
+After the target callsign is set to track, FT8CN will automatically call the callsign when the target callsign has CQ behavior.
+FT8CN will preserve the tracking callsigns for a long time. Every time you use FT8CN, FT8CN will push the new message of the tracking callsigns to the list of the "Calling" interface. If you want to unfollow a callsign, you can delete the callsign through background operations (accessing FT8CN with a browser on the lan).

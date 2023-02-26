@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="float_nav" type="id" />
+    <item name="float_freq" type="id" />
+    <item name="set_volume" type="id" />
+    <item name="grid_tracker" type="id" />
+    <item name="grid_tracker_config" type="id" />
+    <item name="grid_tracker_trans" type="id" />
+
+</resources>

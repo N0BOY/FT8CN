@@ -1,0 +1,16 @@
+Control Mode refers to the control mode of the RIG when FT8CN transmits signals.
+  VOX：Signal transmission is initiated by voice control.
+  CAT：It refers to the control of RIG with instructions through a serial port. The instruction sets of different RIG models are not always the same. The instruction set used by most ICOM RIGS is CI-V, and the compatibility between most ICOM RIGS is relatively high. YAESU radio serial port instructions are generally divided into three or four instruction sets. RIGS with the same instruction set are compatible with each other.
+  RTS: The PTT of the RIG is controlled by opening and closing the RTS circuit of the serial port。Some old RIGS, such as IC706, cannot control PTT transmission through serial port instructions and they need to control PTT by turning on/off RTS. Selecting this item does not mean that the serial port instruction does not work. In addition to using RTS to control PTT, other control functions of the RIG still require the instructions of serial port. Choosing RTS also requires setting the RIG address and baud rate to facilitate the app's control.
+  DTR: Similar to RTS, the RIG's PTT is controlled by the opening and closing the DTR circuit of the serial port.
+In general, even if the instruction sets of different RIG models are different, most of the instructions of the same manufacturer or the same series of RIGs are still the same. FT8CN uses as few serial instructions as possible for maximum compatibility.
+The serial port instructions used mainly include reading and setting the frequency, reading and setting mode (USB upper sideband), turning on and off the PTT button.
+
+What should I do if my phone doesn't have a serial port?
+Now many RIGs are mapped out of the serial port in the USB port, if your RIG has this function, the mobile phone can use the USB OTG adapter cable to access the RIG.
+Taking IC-705 RIG as an example, the USB of the 705 will map out 2 serial ports, at the same time, the virtual sound card of the Rig is used to collect and transmit audio. When the mobile phone is connected to the 705 RIG through the USB cable, it can control the RIG through the mapped serial port, at the same time， it can use the sound card virtually to collect and transmit audio.
+
+Notes for CAT mode:
+  1. The USB port can distinguish the master-slave relationship, the USB port of the RIG is in slave mode, and the phone is in slave mode by default. If you use a mobile phone to control the RIG, you must switch the mobile phone to the master mode, which can generally be achieved through the OTG interface.
+  2. When the RIG is in the transmitting state, there may be current interference with the USB cable, resulting in the interruption of communication between the mobile phone and the rig and the inability to control the station. A common solution is to add a magnetic ring to the USB line. The best solution is to use a USB shielder.
+  3. Some OTG or USB docking stations may increase the ground noise of the RIG, please choose the appropriate adapter.
