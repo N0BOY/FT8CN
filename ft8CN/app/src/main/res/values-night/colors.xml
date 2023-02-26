@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_500">#220053</color>
+    <color name="bar_text_view_color">#B1B1B1</color>
+    <color name="text_view_color">#DBDBDB</color>
+    <color name="transmitLayout_background">#C65000C0</color>
+    <color name="is_not_qsl_text_color">#D60000</color>
+    <color name="is_qsl_text_color">#1DBD00</color>
+    <color name="fromcall_is_qso_text_color">#A3BCFB</color>
+
+
+    <color name="tracker_sample_qsl_color">#7fff0000</color>
+    <color name="tracker_sample_qsl_text_color">#36DFCB</color>
+    <color name="tracker_sample_qso_color">#7fffff00</color>
+    <color name="tracker_sample_qso_text_color">#022D83</color>
+    <color name="tracker_sample_qsx_color">#7f0000ff</color>
+    <color name="tracker_sample_qsx_text_color">#36DFCB</color>
+    <color name="tracker_select_line_color">#FFFDBE00</color>
+    <color name="tracker_line_color">#FFFFFFFF</color>
+    <color name="tracker_in_my_line_color">#ffFF1E27</color>
+
+
+    <color name="tracker_sample_cq_bar_text_color">#7C000000</color>
+
+    <color name="button_tracker_button_color">#8F5FFA</color>
+
+    <color name="calling_list0_start_color">#00C9E5FC</color>
+    <color name="calling_list0_end_color">#34C9E5FC</color>
+
+
+    <color name="calling_list1_start_color">#8D6B94B6</color>
+    <color name="calling_list1_end_color">#8D41749F</color>
+
+    <color name="calling_list2_start_color">#00FFFFFF</color>
+    <color name="calling_list2_end_color">#8DA8A7A7</color>
+
+    <color name="tracker_info_win_start_color">#AB070707</color>
+    <color name="tracker_info_win_end_color">#805E5E5E</color>
+    <color name="tracker_tips_start_color">#94070707</color>
+    <color name="tracker_tips_win_end_color">#805E5E5E</color>
+
+    <color name="tracker_config_bar_start_color">#94070707</color>
+    <color name="tracker_config_bar_end_color">#805E5E5E</color>
+
+    <color name="calling_list3_start_color">#8D4CA8FB</color>
+    <color name="calling_list3_end_color">#1B607D96</color>
+
+    <color name="button_start_color">#4E1DBC</color>
+    <color name="button_end_color">#442C78</color>
+    <color name="message_text_color">#FAF6D2</color>
+    <color name="message_in_my_call_text_color">#FA9E9E</color>
+    <color name="textview_cq_color">#AB975A01</color>
+    <!--   欢迎界面的背景色 -->
+    <color name="welcome_layout_ground_color">#000000</color>
+    <color name="welcome_layout_text_color">#B6B6B6</color>
+    <color name="welcome_logo_text_color">#DBC1FF</color>
+    <color name="osm_grid_out_line_color">#7FFFFFFF</color>
+
+    <color name="tracker_calling_list_background_color">#94000000</color>
+
+    <color name="tracker_cq_marker_un_qso_color">#FF6161</color>
+    <color name="tracker_cq_marker_other_is_qso_color">#25FFED</color>
+    <color name="tracker_cq_marker_is_qso_color">#949494</color>
+    <color name="tracker_sample_cq_bar_start_color">#000105</color>
+    <color name="tracker_sample_cq_bar_end_color">#C100076A</color>
+
+</resources>

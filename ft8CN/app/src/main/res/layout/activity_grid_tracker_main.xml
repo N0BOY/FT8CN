@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/trackConstraint"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".grid_tracker.GridTrackerMainActivity">
+
+        <ProgressBar
+            android:id="@+id/utcProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="1dp"
+            android:background="@color/button_tracker_button_color"
+            android:max="14"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline25"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.25" />
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline27"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.75" />
+
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline34"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="5dp" />
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/osmMap"
+
+            android:layout_width="0dp"
+
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+
+            app:layout_constraintTop_toBottomOf="@+id/utcProgressBar">
+
+        </org.osmdroid.views.MapView>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline32"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.5" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/callingListConstraintLayout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/tracker_calling_list_background"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/guideline32"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/utcProgressBar">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/callMessagesRecyclerView"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ImageButton
+            android:id="@+id/openMessagesImageButton"
+            android:layout_width="30dp"
+            android:layout_height="64dp"
+            android:layout_marginStart="8dp"
+            android:alpha="0.7"
+            android:background="@drawable/imagebutton_style"
+            android:contentDescription="@string/tracker_open_messages"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_baseline_chevron_right_24"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+        <ImageButton
+            android:id="@+id/closeMessageImageButton"
+            android:layout_width="20dp"
+            android:layout_height="64dp"
+            android:alpha="0.5"
+            android:background="@drawable/imagebutton_style"
+            android:contentDescription="@string/tracker_close_messages"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/callingListConstraintLayout"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_baseline_chevron_left_24"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck,ImageContrastCheck" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/trackerConfigLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/tracker_config_bar_style"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline32">
+
+            <ImageView
+                android:id="@+id/closeTIpsImageView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:contentDescription="@string/close"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_baseline_tracker_close_24" />
+
+            <TextView
+                android:id="@+id/tracker_info_mode_textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_weight="1"
+                android:text="@string/tracker_show_info_mode"
+                android:textColor="@color/message_text_color"
+                android:textSize="11sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="SmallSp" />
+
+            <RadioGroup
+                android:id="@+id/trackerTipsRadioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tracker_info_mode_textView">
+
+                <RadioButton
+                    android:id="@+id/tipsAllRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/button_tracker_button_color"
+                    android:checked="false"
+                    android:minWidth="9dp"
+                    android:minHeight="9dp"
+                    android:text="@string/tracker_tips_all"
+                    android:textColor="@color/message_text_color"
+
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp,TouchTargetSizeCheck,TextContrastCheck" />
+
+                <RadioButton
+                    android:id="@+id/tipsNewRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/button_tracker_button_color"
+                    android:checked="true"
+                    android:minWidth="9dp"
+                    android:minHeight="9dp"
+                    android:text="@string/tracker_tips_new"
+                    android:textColor="@color/message_text_color"
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp,TouchTargetSizeCheck,TextContrastCheck" />
+
+                <RadioButton
+                    android:id="@+id/tipsNoneRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/button_tracker_button_color"
+                    android:checked="false"
+                    android:minWidth="9dp"
+                    android:minHeight="9dp"
+                    android:text="@string/tracker_tips_none"
+                    android:textColor="@color/message_text_color"
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp,TouchTargetSizeCheck,TextContrastCheck" />
+            </RadioGroup>
+
+            <Switch
+                android:id="@+id/trackerShowCqSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:checked="true"
+                android:text="@string/tracker_show_cq_tips"
+                android:textColor="@color/message_text_color"
+                android:textSize="11sp"
+                android:thumbTint="@color/button_tracker_button_color"
+                android:trackTint="?attr/colorPrimary"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/trackerTipsRadioGroup"
+                tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+            <Switch
+                android:id="@+id/trackerShowQsxSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:checked="false"
+                android:text="@string/tracker_hide_qsx_tips"
+                android:textColor="@color/message_text_color"
+                android:textSize="11sp"
+                android:thumbTint="@color/button_tracker_button_color"
+                android:trackTint="?attr/colorPrimary"
+                app:layout_constraintBottom_toBottomOf="@+id/trackerShowCqSwitch"
+                app:layout_constraintEnd_toStartOf="@+id/trackerShowCqSwitch"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/trackerTipsRadioGroup"
+                tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/trackerSampleLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/qslSampleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/tracker_qsl_sample_style"
+                android:text="@string/track_sample_text_qsl"
+                android:textColor="@color/tracker_sample_qsl_text_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@+id/qsoSampleTextView"
+                app:layout_constraintEnd_toStartOf="@+id/imageView3"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="TextContrastCheck" />
+
+            <TextView
+                android:id="@+id/qsoSampleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/tracker_qso_sample_style"
+                android:text="@string/tracker_sample_qso_text"
+                android:textColor="@color/tracker_sample_qso_text_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@+id/qsxSampleTextView"
+                app:layout_constraintEnd_toStartOf="@+id/qslSampleTextView"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="TextContrastCheck" />
+
+            <TextView
+                android:id="@+id/qsxSampleTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/tracker_qsx_sample_style"
+                android:text="@string/tracker_sample_qsx_text"
+                android:textColor="@color/tracker_sample_qsx_text_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toTopOf="@+id/textView"
+                app:layout_constraintEnd_toStartOf="@+id/qsoSampleTextView"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="TextContrastCheck" />
+
+            <ImageView
+                android:id="@+id/tracker_cq_imageView"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:background="@drawable/tracker_sample_cq_bar_style"
+                android:contentDescription="@string/tracker_qso_text"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_baseline_cq_24"
+                tools:ignore="ImageContrastCheck" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/tracker_sample_cq_bar_text_color"
+                android:text="@string/tracker_cq_text"
+                android:textColor="@color/message_text_color"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/tracker_cq_imageView"
+                app:layout_constraintStart_toStartOf="@+id/tracker_cq_imageView"
+                app:layout_constraintTop_toBottomOf="@+id/tracker_cq_imageView"
+                tools:ignore="SmallSp" />
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/tracker_sample_cq_bar_style"
+                android:contentDescription="@string/track_sample_text_qsl"
+                app:layout_constraintBottom_toBottomOf="@+id/tracker_cq_imageView"
+                app:layout_constraintEnd_toStartOf="@+id/tracker_cq_imageView"
+                app:layout_constraintTop_toTopOf="@+id/tracker_cq_imageView"
+                app:srcCompat="@drawable/ic_baseline_cq_qso_24" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/tracker_sample_cq_bar_text_color"
+                android:text="@string/tracker_qso_text"
+                android:textColor="@color/message_text_color"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/imageView3"
+                app:layout_constraintStart_toStartOf="@+id/imageView3"
+                app:layout_constraintTop_toBottomOf="@+id/imageView3"
+                tools:ignore="SmallSp" />
+
+            <TextView
+                android:id="@+id/trackerTargetTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/tracker_config_bar_style"
+                android:textColor="@color/message_text_color"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@+id/qsoSampleTextView"
+                app:layout_constraintEnd_toEndOf="@+id/qsxSampleTextView"
+                app:layout_constraintEnd_toStartOf="@+id/qsxSampleTextView"
+                app:layout_constraintTop_toTopOf="@+id/qsoSampleTextView"
+                tools:text="TOOOOO" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/transmittingLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/debug_message_style"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/callingListConstraintLayout"
+            app:layout_constraintTop_toBottomOf="@+id/trackerSampleLayout">
+
+            <ImageView
+                android:id="@+id/imageView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/send"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_baseline_campaign_transmitting_red_24"
+                tools:ignore="ImageContrastCheck" />
+
+            <TextView
+                android:id="@+id/transmittingMessageTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:stateListAnimator="@anim/view_blink"
+                android:textColor="@color/bar_text_view_color"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/imageView2"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="TextContrastCheck"
+                tools:text="CQ BG7YOZ OL50" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/trackerDebugLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:background="@drawable/debug_message_style"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/callingListConstraintLayout"
+            app:layout_constraintTop_toBottomOf="@+id/transmittingLayout"
+            tools:ignore="TouchTargetSizeCheck">
+
+
+            <TextView
+                android:id="@+id/debugMessageTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:stateListAnimator="@anim/view_blink"
+                android:textColor="@color/bar_text_view_color"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="TextContrastCheck"
+                tools:text="CQ BG7YOZ OL55" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

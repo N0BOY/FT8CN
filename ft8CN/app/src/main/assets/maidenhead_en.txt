@@ -1,0 +1,3 @@
+Please enter Maidenhead grid (at least 4 characters）. If it is 6 characters, the last two bits are automatically ignored while FT8 calling.
+
+If you grant the APP the permission to locate, please click the positioning button next to the input box. The APP will automatically calculate the grid you are currently in.

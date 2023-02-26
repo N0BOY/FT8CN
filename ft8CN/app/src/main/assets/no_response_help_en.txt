@@ -1,0 +1,3 @@
+About call interruption due to no response
+
+When communicating with the other side and it does not respond to your call for various reasons, FT8CN will repeat the call with the message content of the current stage. A call will not proceed to the next stage until the other side responds. After setting no reply counter, when the number of repeated calls reaches the set value, automatic program will stop communicating to the target and move on to the next target.

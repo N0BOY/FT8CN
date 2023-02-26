@@ -1,0 +1,6 @@
+About Tx Watchdog
+
+Within a 1-minute QSO with protocols such as JT65, users have about 10 seconds to decide whether to proceed with the next stage of action. The shorter sequences of FT8 and FT4 require faster responses and the software needs a moderate amount of built-in automation in actual use. This is why the automation program is used in FT8CN.
+The FT8CN endorses the Joel Taylor philosophy and opposes the use of robots for FT8 operations, with limited use of automated programs.
+Therefore, FT8CN should supervise the automatic program.
+When no one intervenes after the launch regulatory time limit is exceeded，the launch procedure will automatically stop.
