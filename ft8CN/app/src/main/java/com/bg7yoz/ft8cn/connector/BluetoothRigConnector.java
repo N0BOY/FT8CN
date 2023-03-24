@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.connector;
+/**
+ * 用于蓝牙连接的Connector,继承于BaseRigConnector
+ *
+ * @author BG7YOZ
+ * @date 2023-03-20
+ */
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;

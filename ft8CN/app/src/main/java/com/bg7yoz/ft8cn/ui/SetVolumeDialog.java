@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 设置信号输出强度的对话框。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -36,6 +41,8 @@ public class SetVolumeDialog extends Dialog {
         volumeValueMessage = (TextView) findViewById(R.id.volumeValueMessage);
         volumeSeekBar = (SeekBar) findViewById(R.id.volumeSeekBar);
         volumeProgress=(VolumeProgress) findViewById(R.id.volumeProgress);
+        volumeProgress.setAlarmValue(1.1f);
+        volumeProgress.setValueColor(getContext().getColor(R.color.volume_progress_value));//白色
         setVolumeText(GeneralVariables.volumePercent);
         volumeSeekBar.setProgress((int) (GeneralVariables.volumePercent*100));
 

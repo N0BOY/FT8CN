@@ -7,7 +7,7 @@
 package com.bg7yoz.ft8cn.serialport;
 
 /**
- * 已经注册的USB设备的PID/VID变量
+ * Registry of USB vendor/product ID constants.
  *
  * Culled from various sources; see
  * <a href="http://www.linux-usb.org/usb.ids">usb.ids</a> for one listing.

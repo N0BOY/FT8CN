@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.flex;
 
+/**
+ * Flex的应答类型
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public enum FlexResponseStyle {
     STATUS,//状态信息，S+HANDLE
     RESPONSE,//命令的响应，R+客户端命令序列号

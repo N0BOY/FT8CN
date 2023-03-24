@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.flex;
+/**
+ * 简单的udp封装，用于数据流的操作
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 
@@ -29,18 +34,33 @@ public class RadioUdpClient {
         this.port = port;
     }
 
-    public synchronized void sendData(byte[] data, String ip) throws UnknownHostException {
+    public synchronized void sendData(byte[] data, String ip,int port) throws UnknownHostException {
         if (!activated) return;
-
+        //Log.e(TAG, "sendData: "+byteToStr(data) );
+        //Log.e(TAG, String.format("sendData: ip: %s,port:%d ",ip,port) );
         InetAddress address = InetAddress.getByName(ip);
         sendDataRunnable.data=data;
         sendDataRunnable.address=address;
+        sendDataRunnable.port=port;
         sendDataThreadPool.execute(sendDataRunnable);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+//                try {
+//                    sendSocket.send(packet);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    Log.e(TAG, "run: " + e.getMessage());
+//                }
+//            }
+//        }).start();
     }
 
     private static class SendDataRunnable implements Runnable{
         byte[] data;
         InetAddress address;
+        int port;
         RadioUdpClient client;
 
         public SendDataRunnable(RadioUdpClient client) {
@@ -49,7 +69,7 @@ public class RadioUdpClient {
 
         @Override
         public void run() {
-            DatagramPacket packet = new DatagramPacket(data, data.length, address, client.port);
+            DatagramPacket packet = new DatagramPacket(data, data.length, address,port);
             try {
                 client.sendSocket.send(packet);
             } catch (IOException e) {
@@ -84,6 +104,31 @@ public class RadioUdpClient {
 
     private void receiveData() {
         receiveThreadPool.execute(receiveRunnable);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (activated) {
+//                    byte[] data = new byte[MAX_BUFFER_SIZE];
+//                    DatagramPacket packet = new DatagramPacket(data, data.length);
+//                    try {
+//                        sendSocket.receive(packet);
+//                        if (onUdpEvents != null) {
+//                            byte[] temp = Arrays.copyOf(packet.getData(), packet.getLength());
+//                            onUdpEvents.OnReceiveData(sendSocket, packet, temp);
+//                        }
+//                        //Log.d(TAG, "receiveData:host ip: " + packet.getAddress().getHostName());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        Log.e(TAG, "receiveData: error:" + e.getMessage());
+//                    }
+//
+//                }
+//                Log.e(TAG, "udpClient: is exit!");
+//                sendSocket.close();
+//                sendSocket = null;
+//            }
+//        }).start();
+
     }
     private static class ReceiveRunnable implements Runnable{
         RadioUdpClient client;

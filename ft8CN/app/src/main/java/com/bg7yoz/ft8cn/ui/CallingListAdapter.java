@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 消息列表Adapter。使用此Adapter有解码界面、呼叫界面、网格追踪界面。
+ * 不同周期背景不同。为了区分，共有4种背景颜色。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -202,7 +208,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         setQueryHolderQSL_Callsign(holder);
 
         //是否有与我呼号有关的消息
-        if (holder.ft8Message.inMyCall(GeneralVariables.myCallsign)) {
+        if (holder.ft8Message.inMyCall()) {
             holder.callListMessageTextView.setTextColor(context.getResources().getColor(
                     R.color.message_in_my_call_text_color));
         } else if (holder.otherBandIsQso) {

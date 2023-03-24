@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.callsign;
+/**
+ * 呼号信息类，用于归属地查询
+ *
+ * @author BG7YOZ
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.util.Log;

@@ -7,7 +7,10 @@ import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.serialport.util.SerialInputOutputManager;
 
 /**
- * 有线连接方式的Connector，这里是指USB方式的
+ * 有线连接方式的Connector，这里是指USB方式的，继承于BaseRigConnector
+ *
+ * @author BG7YOZ
+ * @date 2023-03-20
  */
 public class CableConnector extends BaseRigConnector {
     private static final String TAG="CableConnector";

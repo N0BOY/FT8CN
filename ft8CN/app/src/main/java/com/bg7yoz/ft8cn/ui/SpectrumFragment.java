@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 频谱图的主界面。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import static android.view.MotionEvent.ACTION_UP;
 

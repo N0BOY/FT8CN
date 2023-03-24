@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.grid_tracker;
+/**
+ * 网格追踪中Marker(网格)的消息窗口。包括各分区的图标，点击呼叫的按钮。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.graphics.Paint;
@@ -67,7 +72,7 @@ public class GridMarkerInfoWindow extends InfoWindow {
         boolean otherBandIsQso = GeneralVariables.checkQSLCallsign_OtherBand(msg.getCallsignFrom());
 
         //是否有与我呼号有关的消息
-        if (msg.inMyCall(GeneralVariables.myCallsign)) {
+        if (msg.inMyCall()) {
             layout.setBackground(mView.getResources().getDrawable(R.drawable.tracker_new_cq_info_win_style));
             titleView.setTextColor(mapView.getResources().getColor(
                     R.color.message_in_my_call_text_color));

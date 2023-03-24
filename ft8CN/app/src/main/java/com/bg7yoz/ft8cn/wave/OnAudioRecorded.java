@@ -5,8 +5,8 @@ package com.bg7yoz.ft8cn.wave;
  *回调接口主要有2个，录音开始前，录音开始后。
  * 注意！！！录音采用多线程的方式，此处的回调不在主线程中，如果回调中有UI操作的话，要使用runOnUiThread方法，防止界面锁死。
  *
- * BG7YOZ
- * 2022.5.7
+ * @author BG7YOZ
+ * @date 2022.5.7
  */
 
 public interface OnAudioRecorded {

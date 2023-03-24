@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 呼叫界面。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
@@ -107,6 +112,12 @@ public class MyCallingFragment extends Fragment {
             case 3:
                 Log.d(TAG, "呼叫：" + ft8Message.getCallsignFrom());
                 doCallNow(ft8Message);
+                //if (!mainViewModel.ft8TransmitSignal.isActivated()) {
+                //    mainViewModel.ft8TransmitSignal.setActivated(true);
+                // }
+                // mainViewModel.ft8TransmitSignal.setTransmit(ft8Message.getFromCallTransmitCallsign()
+                //        , 1, ft8Message.extraInfo);
+                //mainViewModel.ft8TransmitSignal.transmitNow();
                 break;
 
             case 4://回复
@@ -327,7 +338,12 @@ public class MyCallingFragment extends Fragment {
                 binding.decoderCounterTextView.setText(String.format(
                         GeneralVariables.getStringFromResource(R.string.message_count)
                         , GeneralVariables.transmitMessages.size()));
+                //if (count == 0) {
                 transmitCallListAdapter.notifyDataSetChanged();
+                //} else {
+                //    transmitCallListAdapter.notifyItemInserted(
+                //            GeneralVariables.transmitMessages.size() - count);
+                //}
 
                 //当列表下部稍微多出一些，自动上移
                 if (transmitRecycleView.computeVerticalScrollRange()
@@ -432,9 +448,7 @@ public class MyCallingFragment extends Fragment {
 
 
             @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView
-                    , @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY
-                    , int actionState, boolean isCurrentlyActive) {
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 //制作呼叫背景的图标显示
                 Drawable callIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.ic_baseline_send_red_48);

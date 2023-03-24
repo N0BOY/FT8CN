@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.wave;
+/**
+ * 使用Mic录音的操作。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.media.AudioFormat;
@@ -30,7 +35,8 @@ public class MicRecorder {
     public MicRecorder(){
         //计算最小缓冲区
         bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateInHz
+//        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateInHz
+        audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRateInHz
                 , channelConfig, audioFormat, bufferSize);//创建AudioRecorder对象
     }
 
@@ -44,7 +50,6 @@ public class MicRecorder {
             ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
                     R.string.recorder_cannot_record),e.getMessage()));
             Log.d(TAG, "startRecord: "+e.getMessage() );
-            //return;
         }
 
         isRunning = true;

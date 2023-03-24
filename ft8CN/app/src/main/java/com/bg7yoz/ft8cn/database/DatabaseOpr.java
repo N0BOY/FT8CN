@@ -1,4 +1,13 @@
 package com.bg7yoz.ft8cn.database;
+/**
+ * 用于数据库操作的类。绝大多数的操作都是采用异步方式（于HTTP有关的除外）。
+ * 数据库已经经历的多个版本，所以有onUpgrade方法。
+ * 配置信息也保存在数据库中
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ *
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -20,6 +29,7 @@ import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
+import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
@@ -33,6 +43,7 @@ import java.util.HashMap;
 
 public class DatabaseOpr extends SQLiteOpenHelper {
     private static final String TAG = "DatabaseOpr";
+    @SuppressLint("StaticFieldLeak")
     private static DatabaseOpr instance;
     private final Context context;
     private SQLiteDatabase db;
@@ -40,7 +51,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     public static DatabaseOpr getInstance(@Nullable Context context, @Nullable String databaseName) {
         if (instance == null) {
-            instance = new DatabaseOpr(context, databaseName, null, 12);
+            instance = new DatabaseOpr(context, databaseName, null, 13);
         }
         return instance;
     }
@@ -79,6 +90,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         //创建呼号与网格对应关系表
         createCallsignQTHTables(sqLiteDatabase);
 
+        //创建SWL相关的表
+        createSWLTables(sqLiteDatabase);
+
 
     }
 
@@ -98,6 +112,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         //创建呼号与网格对应关系表
         createCallsignQTHTables(sqLiteDatabase);
+
+        //创建SWL相关的表
+        createSWLTables(sqLiteDatabase);
 
         //删除DXCC呼号列表中的等号
         //deleteDxccPrefixEqual(sqLiteDatabase);
@@ -155,9 +172,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
         return false;
     }
-    private void deleteDxccPrefixEqual(SQLiteDatabase db){
+
+    private void deleteDxccPrefixEqual(SQLiteDatabase db) {
         db.execSQL("DELETE from dxcc_prefix where prefix LIKE \"=%\"");
     }
+
     /**
      * 创建通联日志表
      */
@@ -324,6 +343,47 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
     }
 
+    private void createSWLTables(SQLiteDatabase sqLiteDatabase) {
+        if (!checkTableExists(sqLiteDatabase, "SWLMessages")) {
+            sqLiteDatabase.execSQL("CREATE TABLE SWLMessages (\n" +
+                    "\tID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+                    "\tI3 INTEGER,\n" +
+                    "\tN3 INTEGER,\n" +
+                    "\tProtocol TEXT,\n" +
+                    "\tUTC TEXT,\n" +
+                    "\tSNR INTEGER,\n" +
+                    "\tTIME_SEC REAL,\n" +
+                    "\tFREQ INTEGER,\n" +
+                    "\tCALL_TO TEXT,\n" +
+                    "\tCALL_FROM TEXT,\n" +
+                    "\tEXTRAL TEXT,\n" +
+                    "\tREPORT INTEGER,\n" +
+                    "\tBAND INTEGER\n" +
+                    ")");
+            sqLiteDatabase.execSQL("CREATE INDEX SWLMessages_CALL_TO_IDX " +
+                    "ON SWLMessages (CALL_TO,CALL_FROM)");
+            sqLiteDatabase.execSQL("CREATE INDEX SWLMessages_UTC_IDX ON SWLMessages (UTC)");
+        }
+        if (!checkTableExists(sqLiteDatabase, "SWLQSOTable")) {
+            sqLiteDatabase.execSQL("CREATE TABLE SWLQSOTable (\n" +
+                    "\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
+                    "\t\"call\" TEXT,\n" +
+                    "\tgridsquare TEXT,\n" +
+                    "\tmode TEXT,\n" +
+                    "\trst_sent TEXT,\n" +
+                    "\trst_rcvd TEXT,\n" +
+                    "\tqso_date TEXT,\n" +
+                    "\ttime_on TEXT,\n" +
+                    "\tqso_date_off TEXT,\n" +
+                    "\ttime_off TEXT,\n" +
+                    "\tband TEXT,\n" +
+                    "\tfreq TEXT,\n" +
+                    "\tstation_callsign TEXT,\n" +
+                    "\tmy_gridsquare TEXT,\n" +
+                    "\tcomment TEXT)");
+        }
+    }
+
 
     public void loadItuDataFromFile(SQLiteDatabase db) {
         AssetManager assetManager = context.getAssets();
@@ -424,7 +484,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     dxcc.prefix.add(prefix.getString(j));
                 }
                 dxccObjects.add(dxcc);
-                Log.e(TAG, "loadDataFromFile: id:" + dxcc.id + " dxcc:" + dxcc.dxcc);
+                //Log.e(TAG, "loadDataFromFile: id:" + dxcc.id + " dxcc:" + dxcc.dxcc);
             }
 
             inputStream.close();
@@ -465,8 +525,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         new WriteConfig(db, KeyName, Value, onAfterWriteConfig).execute();
     }
 
-    public void writeMessage(ArrayList<Ft8Message> messages, String callSign) {
-        new WriteMessages(db, messages, callSign).execute();
+    public void writeMessage(ArrayList<Ft8Message> messages) {
+        new WriteMessages(db, messages).execute();
     }
 
     /**
@@ -478,9 +538,22 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         new GetFollowCallSigns(db, onAffterQueryFollowCallsigns).execute();
     }
 
-    public void getMessageLogTotal(OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns) {
-        new GetMessageLogTotal(db, onAffterQueryFollowCallsigns).execute();
+    /**
+     * 查询SWL MESSAGE各BAND的数量
+     * @param onAfterQueryFollowCallsigns 回调
+     */
+    public void getMessageLogTotal(OnAfterQueryFollowCallsigns onAfterQueryFollowCallsigns) {
+        new GetMessageLogTotal(db, onAfterQueryFollowCallsigns).execute();
     }
+
+    /**
+     * 查询SWL QSO的在各个月的数量
+     * @param onAfterQueryFollowCallsigns 回调
+     */
+    public void getSWLQsoLogTotal(OnAfterQueryFollowCallsigns onAfterQueryFollowCallsigns) {
+        new GetSWLQsoTotal(db, onAfterQueryFollowCallsigns).execute();
+    }
+
 
     /**
      * 向数据库中添加关注的呼号
@@ -510,17 +583,37 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                db.execSQL("delete from Messages ");
+                db.execSQL("delete from SWLMessages ");
+            }
+        }).start();
+    }
+
+    /**
+     * 删除SWL QSO日志
+     */
+    public void clearSWLQsoData() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                db.execSQL("delete from SWLQSOTable ");
             }
         }).start();
     }
     /**
-     * 把通联成功的呼号写到数据库中
+     * 把通联成功的日志和呼号写到数据库中
      *
      * @param qslRecord 通联记录
      */
     public void addQSL_Callsign(QSLRecord qslRecord) {
         new AddQSL_Info(this, qslRecord).execute();
+    }
+
+    /**
+     * 把SWL的QSO保存到数据库，SWL的QSO标准：至少要有双方的信号报告。不包含自己的呼号。
+     * @param qslRecord 通联日志记录
+     */
+    public void addSWL_QSO(QSLRecord qslRecord) {
+        new Add_SWL_QSO_Info(this, qslRecord).execute();
     }
 
     //删除数据库中关注的呼号
@@ -547,8 +640,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      * @param callsign           呼号
      * @param onQueryQSLCallsign 回调
      */
-    public void getQSLCallsignsByCallsign(String callsign, int filter, OnQueryQSLCallsign onQueryQSLCallsign) {
-        new GetQLSCallsignByCallsign(db, callsign, filter, onQueryQSLCallsign).execute();
+    public void getQSLCallsignsByCallsign(boolean showAll,int offset,String callsign, int filter, OnQueryQSLCallsign onQueryQSLCallsign) {
+        new GetQLSCallsignByCallsign(showAll,offset,db, callsign, filter, onQueryQSLCallsign).execute();
     }
 
     /**
@@ -567,8 +660,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      * @param callsign                 呼号
      * @param onQueryQSLRecordCallsign 回调
      */
-    public void getQSLRecordByCallsign(String callsign, int filter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
-        new GetQSLByCallsign(db, callsign, filter, onQueryQSLRecordCallsign).execute();
+    public void getQSLRecordByCallsign(boolean showAll,int offset,String callsign, int filter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+        new GetQSLByCallsign(showAll,offset,db, callsign, filter, onQueryQSLRecordCallsign).execute();
     }
 
     /**
@@ -977,26 +1070,24 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     static class WriteMessages extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private ArrayList<Ft8Message> messages;
-        private String myCallsign;
 
-        public WriteMessages(SQLiteDatabase db, ArrayList<Ft8Message> messages, String callsign) {
+        public WriteMessages(SQLiteDatabase db, ArrayList<Ft8Message> messages) {
             this.db = db;
             this.messages = messages;
-            this.myCallsign = callsign;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            String sql = "INSERT INTO Messages(I3,N3,Protocol,UTC,SNR,TIME_SEC,FREQ,CALL_FROM" +
-                    ",CALL_TO,EXTRAL,REPORT,BAND)" +
+            String sql = "INSERT INTO SWLMessages(I3,N3,Protocol,UTC,SNR,TIME_SEC,FREQ,CALL_FROM" +
+                    ",CALL_TO,EXTRAL,REPORT,BAND)\n" +
                     "VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
             for (Ft8Message message : messages) {//只对与我有关的消息做保存
-                if (message.callsignTo.equals(myCallsign) || message.callsignFrom.equals(myCallsign)) {
-                    db.execSQL(sql, new Object[]{message.i3, message.n3, "FT8", message.utcTime
-                            , message.snr, message.time_sec, Math.round(message.freq_hz)
-                            , message.callsignFrom, message.callsignTo, message.extraInfo
-                            , message.report, message.band});
-                }
+                db.execSQL(sql, new Object[]{message.i3, message.n3, "FT8"
+                        ,UtcTimer.getDatetimeYYYYMMDD_HHMMSS(message.utcTime)
+                        , message.snr, message.time_sec, Math.round(message.freq_hz)
+                        , message.callsignFrom, message.callsignTo, message.extraInfo
+                        , message.report, message.band});
+
             }
             return null;
         }
@@ -1043,6 +1134,43 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             return null;
         }
+    }
+
+    static class Add_SWL_QSO_Info extends AsyncTask<Void, Void, Void>{
+        private final DatabaseOpr databaseOpr;
+        private QSLRecord qslRecord;
+        public Add_SWL_QSO_Info(DatabaseOpr opr, QSLRecord qslRecord) {
+            this.databaseOpr = opr;
+            this.qslRecord = qslRecord;
+        }
+        @SuppressLint("Range")
+        @Override
+        protected Void doInBackground(Void... voids) {
+            String querySQL;
+            querySQL = "INSERT INTO SWLQSOTable(call, gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
+                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
+                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+            databaseOpr.db.execSQL(querySQL, new String[]{qslRecord.getToCallsign()
+                    , qslRecord.getToMaidenGrid()
+                    , qslRecord.getMode()
+                    , String.valueOf(qslRecord.getSendReport())
+                    , String.valueOf(qslRecord.getReceivedReport())
+                    , qslRecord.getQso_date()
+                    , qslRecord.getTime_on()
+
+                    , qslRecord.getQso_date_off()
+                    , qslRecord.getTime_off()
+                    , qslRecord.getBandLength()//波长//RigOperationConstant.getMeterFromFreq(qslRecord.getBandFreq())
+                    , BaseRigOperation.getFrequencyFloat(qslRecord.getBandFreq())
+                    , qslRecord.getMyCallsign()
+                    , qslRecord.getMyMaidenGrid()
+                    , qslRecord.getComment()});
+
+
+            return null;
+        }
+
     }
 
     /**
@@ -1128,7 +1256,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         @Override
         @SuppressLint({"Range", "DefaultLocale"})
         protected Void doInBackground(Void... voids) {
-            String querySQL = "SELECT BAND ,count(*) as c from Messages m group by BAND order by BAND ";
+            String querySQL = "SELECT BAND ,count(*) as c from SWLMessages m group by BAND order by BAND ";
             Cursor cursor = db.rawQuery(querySQL, new String[]{});
             ArrayList<String> callsigns = new ArrayList<>();
             callsigns.add(GeneralVariables.getStringFromResource(R.string.band_total));
@@ -1137,7 +1265,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 long s = cursor.getLong(cursor.getColumnIndex("BAND")); //获取频段
                 int total = cursor.getInt(cursor.getColumnIndex("c")); //获取数量
-                callsigns.add(String.format("%.3fMhz \t %d",s/1000000f, total));
+                callsigns.add(String.format("%.3fMhz \t %d", s / 1000000f, total));
                 sum = sum + total;
             }
             callsigns.add(String.format("-----------Total %d -----------", sum));
@@ -1148,6 +1276,43 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return null;
         }
     }
+
+
+    static class GetSWLQsoTotal extends AsyncTask<Void, Void, Void> {
+        private final SQLiteDatabase db;
+        private final OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns;
+
+        public GetSWLQsoTotal(SQLiteDatabase db, OnAfterQueryFollowCallsigns onAffterQueryFollowCallsigns) {
+            this.db = db;
+            this.onAffterQueryFollowCallsigns = onAffterQueryFollowCallsigns;
+        }
+
+        @Override
+        @SuppressLint({"Range", "DefaultLocale"})
+        protected Void doInBackground(Void... voids) {
+            String querySQL = "select count(*) as c,substr(qso_date_off,1,6) as t \n" +
+                    "from SWLQSOTable s\n" +
+                    "group by substr(qso_date_off,1,6)";
+            Cursor cursor = db.rawQuery(querySQL, new String[]{});
+            ArrayList<String> callsigns = new ArrayList<>();
+            //callsigns.add(GeneralVariables.getStringFromResource(R.string.band_total));
+            callsigns.add("---------------------------------------");
+            int sum = 0;
+            while (cursor.moveToNext()) {
+                String date = cursor.getString(cursor.getColumnIndex("t")); //获取频段
+                int total = cursor.getInt(cursor.getColumnIndex("c")); //获取数量
+                callsigns.add(String.format("%s \t %d ", date, total));
+                sum = sum + total;
+            }
+            callsigns.add(String.format("-----------Total %d -----------", sum));
+            cursor.close();
+            if (onAffterQueryFollowCallsigns != null) {
+                onAffterQueryFollowCallsigns.doOnAfterQueryFollowCallsigns(callsigns);
+            }
+            return null;
+        }
+    }
+
 
 
     /**
@@ -1248,12 +1413,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     }
 
     static class GetQSLByCallsign extends AsyncTask<Void, Void, Void> {
+        boolean showAll;
+        int offset;
         SQLiteDatabase db;
         String callsign;
         int filter;
         OnQueryQSLRecordCallsign onQueryQSLRecordCallsign;
 
-        public GetQSLByCallsign(SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+        public GetQSLByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+            this.showAll=showAll;
+            this.offset=offset;
             this.db = db;
             this.callsign = callsign;
             this.filter = queryFilter;
@@ -1274,9 +1443,14 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 default:
                     filterStr = "";
             }
+            String limitStr="";
+            if (!showAll){
+                limitStr="limit 100 offset "+offset;
+            }
             String querySQL = "select * from QSLTable where ([call] like ?) \n" +
                     filterStr +
-                    " order by ID desc";
+                    " order by ID desc\n"+
+                    limitStr;
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
             ArrayList<QSLRecordStr> records = new ArrayList<>();
             while (cursor.moveToNext()) {
@@ -1320,8 +1494,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         String callsign;
         int filter;
         OnQueryQSLCallsign onQueryQSLCallsign;
+        int offset;
+        boolean showAll;
 
-        public GetQLSCallsignByCallsign(SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLCallsign onQueryQSLCallsign) {
+        public GetQLSCallsignByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLCallsign onQueryQSLCallsign) {
+            this.showAll=showAll;
+            this.offset=offset;
             this.db = db;
             this.callsign = callsign;
             this.filter = queryFilter;
@@ -1342,6 +1520,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 default:
                     filterStr = "";
             }
+            String limitStr="";
+            if (!showAll){
+                limitStr="limit 100 offset "+offset;
+            }
             String querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
                     ",q.band||\"(\"||q.freq||\" Mhz)\" as band \n" +
                     ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
@@ -1351,7 +1533,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.band\n" +
                     ",q.mode,q.isQSL,q.isLotW_QSL\n" +
                     "HAVING q.qso_date =MAX(q2.qso_date) \n" +
-                    "order by q.qso_date desc";
+                    "order by q.qso_date desc\n"+
+                    limitStr;
 
 
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
@@ -1515,9 +1698,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
     }
 
-    /**
-     * 获取全部配置信息
-     */
     static class GetAllConfigParameter extends AsyncTask<Void, Void, Void> {
         private final SQLiteDatabase db;
         private OnAfterQueryConfig onAfterQueryConfig;
@@ -1539,9 +1719,131 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return result;
         }
 
+        @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-            //TODO 此处代码效率较低，已经在0.87中解决。
+
+            String querySQL = "select keyName,Value from config ";
+            Cursor cursor = db.rawQuery(querySQL, null);
+            while (cursor.moveToNext()) {
+                @SuppressLint("Range")
+                //String result = "";
+                String result = cursor.getString(cursor.getColumnIndex("Value"));
+                String name = cursor.getString(cursor.getColumnIndex("KeyName"));
+
+                if (name.equalsIgnoreCase("grid")) {
+                    GeneralVariables.setMyMaidenheadGrid(result);
+                }
+                if (name.equalsIgnoreCase("callsign")) {
+                    GeneralVariables.myCallsign = result;
+                    String callsign = GeneralVariables.myCallsign;
+                    if (callsign.length() > 0) {
+                        Ft8Message.hashList.addHash(FT8Package.getHash22(callsign), callsign);
+                        Ft8Message.hashList.addHash(FT8Package.getHash12(callsign), callsign);
+                        Ft8Message.hashList.addHash(FT8Package.getHash10(callsign), callsign);
+                    }
+                }
+                if (name.equalsIgnoreCase("toModifier")) {
+                    GeneralVariables.toModifier = result;
+                }
+                if (name.equalsIgnoreCase("freq")) {
+                    float freq = 1000;
+                    try {
+                        freq = Float.parseFloat(result);
+                    } catch (Exception e) {
+                        Log.e(TAG, "doInBackground: " + e.getMessage());
+                    }
+                    //GeneralVariables.setBaseFrequency(result.equals("") ? 1000 : Float.parseFloat(result));
+                    GeneralVariables.setBaseFrequency(freq);
+                }
+                if (name.equalsIgnoreCase("synFreq")) {
+                    GeneralVariables.synFrequency = !(result.equals("") || result.equals("0"));
+                }
+                if (name.equalsIgnoreCase("transDelay")) {
+                    if (result.matches("^\\d{1,4}$")) {//正则表达式，1-4位长度的数字
+                        GeneralVariables.transmitDelay = Integer.parseInt(result);
+                    } else {
+                        GeneralVariables.transmitDelay = FT8Common.FT8_TRANSMIT_DELAY;
+                    }
+                }
+
+                if (name.equalsIgnoreCase("civ")) {
+                    GeneralVariables.civAddress = result.equals("") ? 0xa4 : Integer.parseInt(result, 16);
+                }
+                if (name.equalsIgnoreCase("baudRate")) {
+                    GeneralVariables.baudRate = result.equals("") ? 19200 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("bandFreq")) {
+                    //--todo---把波段的索引数改成频率。用bandFreq值
+                    GeneralVariables.band = result.equals("") ? 14074000 : Long.valueOf(result);
+                    GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
+                }
+                if (name.equalsIgnoreCase("ctrMode")) {
+                    GeneralVariables.controlMode = result.equals("") ? ControlMode.VOX : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("model")) {//电台型号
+                    GeneralVariables.modelNo = result.equals("") ? 0 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("instruction")) {//指令集
+                    GeneralVariables.instructionSet = result.equals("") ? 0 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("launchSupervision")) {//发射监管
+                    GeneralVariables.launchSupervision = result.equals("") ?
+                            GeneralVariables.DEFAULT_LAUNCH_SUPERVISION : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("noReplyLimit")) {//
+                    GeneralVariables.noReplyLimit = result.equals("") ? 0 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("autoFollowCQ")) {//自动关注CQ
+                    GeneralVariables.autoFollowCQ = (result.equals("") || result.equals("1"));
+                }
+                if (name.equalsIgnoreCase("autoCallFollow")) {//自动呼叫关注
+                    GeneralVariables.autoCallFollow = (result.equals("") || result.equals("1"));
+                }
+                if (name.equalsIgnoreCase("pttDelay")) {//ptt延时设置
+                    GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("icomIp")) {//IcomIp地址
+                    GeneralVariables.icomIp = result.equals("") ? "255.255.255.255" : result;
+                }
+                if (name.equalsIgnoreCase("icomPort")) {//Icom端口
+                    GeneralVariables.icomUdpPort = result.equals("") ? 50001 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("icomUserName")) {//Icom用户名
+                    GeneralVariables.icomUserName = result.equals("") ? "ic705" : result;
+                }
+                if (name.equalsIgnoreCase("icomPassword")) {//Icom密码
+                    GeneralVariables.icomPassword = result;
+                }
+                if (name.equalsIgnoreCase("volumeValue")) {//输出音量大小
+                    GeneralVariables.volumePercent = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
+                }
+                if (name.equalsIgnoreCase("excludedCallsigns")) {//排除的呼号
+                    GeneralVariables.addExcludedCallsigns(result);
+                }
+                if (name.equalsIgnoreCase("flexMaxRfPower")) {//指令集
+                    GeneralVariables.flexMaxRfPower = result.equals("") ? 10 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("flexMaxTunePower")) {//指令集
+                    GeneralVariables.flexMaxTunePower = result.equals("") ? 10 : Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("saveSWL")) {//保存解码信息
+                    GeneralVariables.saveSWLMessage = result.equals("1");
+                }
+                if (name.equalsIgnoreCase("saveSWLQSO")) {//保存解码信息
+                    GeneralVariables.saveSWL_QSO = result.equals("1");
+                }
+            }
+
+            cursor.close();
+
+            GetAllQSLCallsign.get(db);//获取通联过的呼号
+
+            if (onAfterQueryConfig != null) {
+                onAfterQueryConfig.doOnAfterQueryConfig(null, null);
+            }
+
+            /*
             String result = "";
             GeneralVariables.setMyMaidenheadGrid(getConfigByKey("grid"));
 
@@ -1626,7 +1928,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             GeneralVariables.icomPassword = result;
 
             //输出音量大小
-            result = getConfigByKey("volumeValue");//IcomIp地址
+            result = getConfigByKey("volumeValue");
             GeneralVariables.volumePercent = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
 
             //排除的呼号
@@ -1639,6 +1941,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 onAfterQueryConfig.doOnAfterQueryConfig(null, null);
             }
 
+
+             */
             return null;
         }
     }

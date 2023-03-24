@@ -13,7 +13,11 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
-
+/**
+ * 蓝牙串口有关的服务
+ * BG7YOZ
+ * 2023-03
+ */
 public class BluetoothSerialService extends Service implements BluetoothSerialListener {
 
     public class SerialBinder extends Binder {
@@ -118,11 +122,6 @@ public class BluetoothSerialService extends Service implements BluetoothSerialLi
         if (connected){
             disconnect();
         }
-        //if(connected)
-        //    createNotification();
-        // items already in event queue (posted before detach() to mainLooper) will end up in queue1
-        // items occurring later, will be moved directly to queue2
-        // detach() and mainLooper.post run in the main thread, so all items are caught
         listener = null;
     }
 

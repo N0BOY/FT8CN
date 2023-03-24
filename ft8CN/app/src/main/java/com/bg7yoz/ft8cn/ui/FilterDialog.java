@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 日志查询的过滤对话框。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.app.Dialog;
 import android.content.Context;

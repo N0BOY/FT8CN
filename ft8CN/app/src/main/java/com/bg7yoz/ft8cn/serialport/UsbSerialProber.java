@@ -14,7 +14,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ *
+ * @author mike wakerly (opensource@hoho.com)
+ */
 public class UsbSerialProber {
 
     private final ProbeTable mProbeTable;
@@ -37,7 +40,15 @@ public class UsbSerialProber {
         return probeTable;
     }
 
-
+    /**
+     * Finds and builds all possible {@link UsbSerialDriver UsbSerialDrivers}
+     * from the currently-attached {@link UsbDevice} hierarchy. This method does
+     * not require permission from the Android USB system, since it does not
+     * open any of the devices.
+     *
+     * @param usbManager usb manager
+     * @return a list, possibly empty, of all compatible drivers
+     */
     public List<UsbSerialDriver> findAllDrivers(final UsbManager usbManager) {
         final List<UsbSerialDriver> result = new ArrayList<>();
 
@@ -50,7 +61,13 @@ public class UsbSerialProber {
         return result;
     }
     
-
+    /**
+     * Probes a single device for a compatible driver.
+     * 
+     * @param usbDevice the usb device to probe
+     * @return a new {@link UsbSerialDriver} compatible with this device, or
+     *         {@code null} if none available.
+     */
     public UsbSerialDriver probeDevice(final UsbDevice usbDevice) {
         final int vendorId = usbDevice.getVendorId();
         final int productId = usbDevice.getProductId();

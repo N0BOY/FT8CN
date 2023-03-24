@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.log;
+/**
+ * 通联日志的列表。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -21,13 +26,13 @@ import com.bg7yoz.ft8cn.callsign.OnAfterQueryCallsignLocation;
 import java.util.ArrayList;
 
 public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItemHolder> {
-    private ArrayList<QSLRecordStr> records=new ArrayList<>();
+    private ArrayList<QSLRecordStr> qslRecords=new ArrayList<>();
     private final MainViewModel mainViewModel;
     private final Context context;
 
-    public LogQSLAdapter(Context context,MainViewModel mainViewModel) {
+    public LogQSLAdapter(Context context, MainViewModel mainViewModel) {
         this.mainViewModel = mainViewModel;
-        this.context=context;
+        this.context = context;
     }
 
     @NonNull
@@ -40,96 +45,105 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
 
 
     @SuppressLint("NotifyDataSetChanged")
-    public void setQSLList(ArrayList<QSLRecordStr> list){
-        records=list;
+    public void setQSLList(ArrayList<QSLRecordStr> list) {
+        qslRecords.addAll(list);
         notifyDataSetChanged();
     }
 
     /**
-     * 删除日志
-     * @param position 在列表中的位置
+     * 清空记录列表
      */
-    public void deleteRecord(int position){
-        mainViewModel.databaseOpr.deleteQSLByID(records.get(position).id);
-        records.remove(position);
+    public void clearRecords(){
+        qslRecords.clear();
     }
 
-    public QSLRecordStr getRecord(int position){
-        return records.get(position);
+    /**
+     * 删除日志
+     *
+     * @param position 在列表中的位置
+     */
+    public void deleteRecord(int position) {
+        mainViewModel.databaseOpr.deleteQSLByID(qslRecords.get(position).id);
+        qslRecords.remove(position);
     }
+
+    public QSLRecordStr getRecord(int position) {
+        return qslRecords.get(position);
+    }
+
     /**
      * 修改手工确认项
+     *
      * @param position 列表位置
-     * @param b 状态
+     * @param b        状态
      */
-    public void setRecordIsQSL(int position,boolean b){
-        records.get(position).isQSL=b;
-        mainViewModel.databaseOpr.setQSLTableIsQSL(b,records.get(position).id);
+    public void setRecordIsQSL(int position, boolean b) {
+        qslRecords.get(position).isQSL = b;
+        mainViewModel.databaseOpr.setQSLTableIsQSL(b, qslRecords.get(position).id);
 
     }
 
     @SuppressLint({"DefaultLocale", "SetTextI18n"})
     @Override
     public void onBindViewHolder(@NonNull LogQSLItemHolder holder, int position) {
-        holder.record=records.get(position);
+        holder.record = qslRecords.get(position);
 
-        if ((position%2)==0){
+        if ((position % 2) == 0) {
             holder.logQSLHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_0_style);
-        }else {
+        } else {
             holder.logQSLHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_1_style);
         }
         holder.logQSLCallsignTextView.setText(holder.record.getCall());
         if (!holder.record.getGridsquare().equals("")) {
             holder.logQSOGridTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_grid)
                     , holder.record.getGridsquare()));
-        }else {
+        } else {
             holder.logQSOGridTextView.setText("");
         }
         holder.logQSLMyCallsignTextView.setText(holder.record.getStation_callsign());
         if (!holder.record.getMy_gridsquare().equals("")) {
             holder.logQSLMyGridTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_grid)
                     , holder.record.getMy_gridsquare()));
-        }else {
+        } else {
             holder.logQSLMyGridTextView.setText("");
         }
         holder.logQSOStartTimeTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_start_time)
                 , holder.record.getTime_on()));
         holder.logQSOEndTimeTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_end_time)
-                ,holder.record.getTime_off()));
+                , holder.record.getTime_off()));
         holder.logQSOReceiveTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_rcvd)
-                ,holder.record.getRst_rcvd()));
+                , holder.record.getRst_rcvd()));
         holder.logQSOSendTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_sent)
-                ,holder.record.getRst_sent()));
+                , holder.record.getRst_sent()));
         holder.logQSLBandTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_band)
-                ,holder.record.getBand()));
+                , holder.record.getBand()));
         holder.logQSLFreqTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_freq)
-                ,holder.record.getFreq()));
+                , holder.record.getFreq()));
         holder.logQSOModeTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_mode)
-                ,holder.record.getMode()));
+                , holder.record.getMode()));
         holder.logQSOcCommentTextView.setText(holder.record.getComment());
 
-        if (holder.record.isLotW_QSL){
+        if (holder.record.isLotW_QSL) {
             holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_lotw_confirmation));
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
                     R.color.is_qsl_text_color));
-        }else if(holder.record.isQSL){
+        } else if (holder.record.isQSL) {
             holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation));
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
                     R.color.is_qsl_text_color));
 
-        }else
-        {
+        } else {
             holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_unconfirmed));
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
                     R.color.is_not_qsl_text_color));
         }
 
         //查呼号的位置
-        if (holder.record.where==null){
+        if (holder.record.where == null) {
             setQueryHolderCallsign(holder);
-        }else if (holder.record.where.equals("")){
+        } else if (holder.record.where.equals("")) {
             setQueryHolderCallsign(holder);
-        }else {
+        } else {
             holder.logQSLWhereTextView.setText(holder.record.where);
         }
     }
@@ -146,7 +160,7 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
                                 if (GeneralVariables.isChina) {
                                     holder.logQSLWhereTextView.setText(callsignInfo.CountryNameCN);
                                     holder.record.where = callsignInfo.CountryNameCN;
-                                }else {
+                                } else {
                                     holder.logQSLWhereTextView.setText(callsignInfo.CountryNameEn);
                                     holder.record.where = callsignInfo.CountryNameEn;
                                 }
@@ -158,37 +172,37 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
     }
 
 
-
     @Override
     public int getItemCount() {
-        return records.size();
+        return qslRecords.size();
+    }
+
+    public ArrayList<QSLRecordStr> getRecords() {
+        return qslRecords;
     }
 
     static class LogQSLItemHolder extends RecyclerView.ViewHolder {
         QSLRecordStr record;
         ConstraintLayout logQSLHolderConstraintLayout;
-        TextView logQSLCallsignTextView,logQSOGridTextView,logQSOStartTimeTextView
-                ,logQSOEndTimeTextView,logQSOReceiveTextView,logQSOSendTextView
-                ,logQSLBandTextView,logQSLFreqTextView,logQSOModeTextView
-                ,logQSOcCommentTextView,logQSLMyCallsignTextView
-                ,logQSLMyGridTextView,logQSLWhereTextView,logIsQSLTextView;
+        TextView logQSLCallsignTextView, logQSOGridTextView, logQSOStartTimeTextView, logQSOEndTimeTextView, logQSOReceiveTextView, logQSOSendTextView, logQSLBandTextView, logQSLFreqTextView, logQSOModeTextView, logQSOcCommentTextView, logQSLMyCallsignTextView, logQSLMyGridTextView, logQSLWhereTextView, logIsQSLTextView;
+
         public LogQSLItemHolder(@NonNull View itemView) {
             super(itemView);
-            logQSLHolderConstraintLayout=itemView.findViewById(R.id.logQSLHolderConstraintLayout) ;
-            logQSLCallsignTextView=itemView.findViewById(R.id.logQSLCallsignTextView) ;
-            logQSOGridTextView=itemView.findViewById(R.id.logQSOGridTextView) ;
-            logQSOStartTimeTextView=itemView.findViewById(R.id.logQSOStartTimeTextView) ;
-            logQSOEndTimeTextView=itemView.findViewById(R.id.logQSOEndTimeTextView) ;
-            logQSOReceiveTextView=itemView.findViewById(R.id.logQSOReceiveTextView) ;
-            logQSOSendTextView=itemView.findViewById(R.id.logQSOSendTextView) ;
-            logQSLBandTextView=itemView.findViewById(R.id.logQSLBandTextView) ;
-            logQSLFreqTextView=itemView.findViewById(R.id.logQSLFreqTextView) ;
-            logQSOModeTextView=itemView.findViewById(R.id.logQSOModeTextView) ;
-            logQSOcCommentTextView=itemView.findViewById(R.id.logQSOcCommentTextView) ;
-            logQSLMyCallsignTextView=itemView.findViewById(R.id.logQSLMyCallsignTextView) ;
-            logQSLMyGridTextView=itemView.findViewById(R.id.logQSLMyGridTextView) ;
-            logQSLWhereTextView=itemView.findViewById(R.id.logQSLWhereTextView) ;
-            logIsQSLTextView=itemView.findViewById(R.id.logIsQSLTextView) ;
+            logQSLHolderConstraintLayout = itemView.findViewById(R.id.logQSLHolderConstraintLayout);
+            logQSLCallsignTextView = itemView.findViewById(R.id.logQSLCallsignTextView);
+            logQSOGridTextView = itemView.findViewById(R.id.logQSOGridTextView);
+            logQSOStartTimeTextView = itemView.findViewById(R.id.logQSOStartTimeTextView);
+            logQSOEndTimeTextView = itemView.findViewById(R.id.logQSOEndTimeTextView);
+            logQSOReceiveTextView = itemView.findViewById(R.id.logQSOReceiveTextView);
+            logQSOSendTextView = itemView.findViewById(R.id.logQSOSendTextView);
+            logQSLBandTextView = itemView.findViewById(R.id.logQSLBandTextView);
+            logQSLFreqTextView = itemView.findViewById(R.id.logQSLFreqTextView);
+            logQSOModeTextView = itemView.findViewById(R.id.logQSOModeTextView);
+            logQSOcCommentTextView = itemView.findViewById(R.id.logQSOcCommentTextView);
+            logQSLMyCallsignTextView = itemView.findViewById(R.id.logQSLMyCallsignTextView);
+            logQSLMyGridTextView = itemView.findViewById(R.id.logQSLMyGridTextView);
+            logQSLWhereTextView = itemView.findViewById(R.id.logQSLWhereTextView);
+            logIsQSLTextView = itemView.findViewById(R.id.logIsQSLTextView);
 
             itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                 @Override
@@ -196,18 +210,25 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
                         , ContextMenu.ContextMenuInfo contextMenuInfo) {
                     view.setTag(getAdapterPosition());
                     //添加菜单的参数i1:组，i2:id值，i3:显示顺序
-                    if (record.isQSL){
-                        contextMenu.add(0,0,0
-                                ,String.format(GeneralVariables.getStringFromResource(R.string.qsl_cancel_confirmation)
-                                        ,record.getCall())).setActionView(view);
-                    }else {
-                        contextMenu.add(0,1,0
-                                ,String.format(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation_s)
-                                        ,record.getCall())).setActionView(view);
+                    if (record.isQSL) {
+                        contextMenu.add(0, 0, 0
+                                , String.format(GeneralVariables.getStringFromResource(R.string.qsl_cancel_confirmation)
+                                        , record.getCall())).setActionView(view);
+                    } else {
+                        contextMenu.add(0, 1, 0
+                                , String.format(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation_s)
+                                        , record.getCall())).setActionView(view);
                     }
-                    contextMenu.add(0,2,0
-                            ,String.format(GeneralVariables.getStringFromResource(R.string.qsl_qrz_confirmation_s)
-                                    ,record.getCall())).setActionView(view);
+                    contextMenu.add(0, 2, 0
+                            , String.format(GeneralVariables.getStringFromResource(R.string.qsl_qrz_confirmation_s)
+                                    , record.getCall())).setActionView(view);
+
+                    if (record.getGridsquare() != null && !record.getGridsquare().equals("")
+                            && record.getMy_gridsquare() != null && !record.getMy_gridsquare().equals("")) {
+                        contextMenu.add(0, 3, 0
+                                        , GeneralVariables.getStringFromResource(R.string.log_menu_location))
+                                .setActionView(view);
+                    }
                 }
             });
         }

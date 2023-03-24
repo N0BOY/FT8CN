@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.spectrum;
+/**
+ * 用于瀑布图的音频接收。以一个FT8符号为颗粒度。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import androidx.lifecycle.MutableLiveData;
 

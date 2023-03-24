@@ -1,10 +1,12 @@
 package com.bg7yoz.ft8cn;
+/**
+ * 常用变量。关于mainContext有内存泄漏的风险，以后解决。
+ * mainContext
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 
 import com.bg7yoz.ft8cn.callsign.CallsignDatabase;
@@ -12,15 +14,14 @@ import com.bg7yoz.ft8cn.connector.ConnectMode;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.ft8transmit.QslRecordList;
+import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -29,9 +30,14 @@ public class GeneralVariables {
     public static String VERSION = BuildConfig.VERSION_NAME;//版本号"0.62（Beta 4）";
     public static String BUILD_DATE = BuildConfig.apkBuildTime;//编译的时间
     public static int MESSAGE_COUNT = 3000;//消息的最大缓存数量
+    public static boolean saveSWLMessage=false;//保存解码消息开关
+    public static boolean saveSWL_QSO=false;//保存解码消息消息中的QSO开关
 
     public static MutableLiveData<Float> mutableVolumePercent = new MutableLiveData<>();
     public static float volumePercent = 0.5f;//播放音频的音量,是百分比
+
+    public static int flexMaxRfPower=10;//flex电台的最大发射功率
+    public static int flexMaxTunePower=10;//flex电台的最大调谐功率
 
     private Context mainContext;
     public static CallsignDatabase callsignDatabase = null;
@@ -42,7 +48,7 @@ public class GeneralVariables {
 
     public static boolean isChina = true;//语言是不是中国
     public static boolean isTraditionalChinese = true;//语言是不是繁体中文
-    public static double maxDist = 0;//最远距离
+    //public static double maxDist = 0;//最远距离
 
     //各已经通联的分区列表
     public static final Map<String, String> dxccMap = new HashMap<>();
@@ -99,7 +105,7 @@ public class GeneralVariables {
             if (i == 0) {
                 calls.append(key);
             } else {
-                calls.append("," + key);
+                calls.append(",").append(key);
             }
             i++;
         }
@@ -367,6 +373,43 @@ public class GeneralVariables {
 
 
     /**
+     * 判断是不是信号报告，如果是，把值赋给 report
+     * @param extraInfo 消息扩展
+     * @return 信号报告值,没找到是-100
+     */
+    public static int checkFun2_3(String extraInfo){
+        if (extraInfo.equals("73")) return -100;
+        if (extraInfo.matches("[R]?[+-]?[0-9]{1,2}")){
+            try {
+                return Integer.parseInt(extraInfo.replace("R",""));
+            } catch (Exception e) {
+                return -100;
+            }
+        }
+        return -100;
+    }
+
+    /**
+     * 判断是不是网格报告，如果是，把值赋给 report
+     * @param extraInfo 消息扩展
+     * @return 信号报告
+     */
+    public static boolean checkFun1_6(String extraInfo){
+        return  extraInfo.trim().matches("[A-Z][A-Z][0-9][0-9]")
+                && !extraInfo.trim().equals("RR73");
+    }
+    /**
+     * 检查是否是通联结束：RRR、RR73、73
+     * @param extraInfo 消息后缀
+     * @return 是否
+     */
+    public static boolean checkFun4_5(String extraInfo){
+        return extraInfo.trim().equals("RR73")
+                || extraInfo.trim().equals("RRR")
+                ||extraInfo.trim().equals("73");
+    }
+
+    /**
      * 从String.xml中提取字符串
      *
      * @param id id
@@ -517,7 +560,7 @@ public class GeneralVariables {
 
     }
 
-    public static synchronized void deleteArrayListMore(ArrayList list) {
+    public static synchronized void deleteArrayListMore(ArrayList<Ft8Message> list) {
         if (list.size() > GeneralVariables.MESSAGE_COUNT) {
             while (list.size() > GeneralVariables.MESSAGE_COUNT) {
                 list.remove(0);

@@ -1,5 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
-
+/**
+ * 发射监管的列表。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;

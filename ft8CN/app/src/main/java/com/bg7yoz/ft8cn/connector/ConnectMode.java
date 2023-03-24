@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.connector;
 
+/**
+ * 连接的模式
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public class ConnectMode {
     public static final int USB_CABLE=0;
     public static final int BLUE_TOOTH=1;

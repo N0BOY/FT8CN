@@ -47,7 +47,7 @@ public class GuoHeQ900Rig extends BaseRig {
         }
     }
 
-    public void setPttOn(byte[] command) {
+    public synchronized void setPttOn(byte[] command) {
 
         getConnector().sendData(command);//以CAT指令发送PTT
     }

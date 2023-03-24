@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.icom;
+/**
+ * ICom的控制流。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 
@@ -180,7 +185,7 @@ public class IcomControlUdp extends IcomUdpBase {
      * 发送音频数据到电台
      * @param data 数据
      */
-    public void sendWaveData(short[] data){
+    public void sendWaveData(float[] data){
         audioUdp.sendTxAudioData(data);
     }
 

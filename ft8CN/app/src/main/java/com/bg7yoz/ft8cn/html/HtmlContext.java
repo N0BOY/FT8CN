@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.html;
+/**
+ * Http服务内容的出框架。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.database.Cursor;
 
@@ -73,8 +78,12 @@ public class HtmlContext {
                         +GeneralVariables.getStringFromResource(R.string.html_trace_callsign_and_grid_correspondence_table)
                 +"</a></td></tr>" +
                 "<tr><td class=\"default\" colspan=\"15\"><a href=/message>"
-                        +GeneralVariables.getStringFromResource(R.string.html_query_communication_message)
+                        +GeneralVariables.getStringFromResource(R.string.html_query_swl_message)
                 +"</a></td></tr>" +
+                "<tr><td class=\"default\" colspan=\"15\"><a href=/QSOSWLMSG>"
+                    +GeneralVariables.getStringFromResource(R.string.html_query_qso_swl)
+                +"</a></td></tr>" +
+
                 "<tr><td class=\"default\" colspan=\"15\"><a href=/config>"
                         +GeneralVariables.getStringFromResource(R.string.html_query_configuration_information)
                 +"</a></td></tr>" +
@@ -130,7 +139,7 @@ public class HtmlContext {
             order++;
         }
         result.append("</table>");
-
+        cursor.close();
         return result.toString();
     }
 

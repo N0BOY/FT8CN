@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.wave;
+/**
+ * 把音频保存成wave文件的操作。
+ * 已经弃用，FT8CN目前不做音频的保存操作。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;

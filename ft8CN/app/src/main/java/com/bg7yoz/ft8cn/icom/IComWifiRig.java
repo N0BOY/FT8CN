@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.icom;
+/**
+ * WIFI模式下电台操作。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
@@ -99,7 +104,7 @@ public class IComWifiRig {
         controlUdp.civUdp.sendCivData(data);
     }
 
-    public void sendWaveData(short[] data){//发送音频数据到电台
+    public void sendWaveData(float[] data){//发送音频数据到电台
         controlUdp.sendWaveData(data);
     }
 

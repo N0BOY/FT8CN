@@ -3,7 +3,8 @@ package com.bg7yoz.ft8cn.rigs;
 /**
  * crc16-ccitt-false加密工具
  *
- * @author eguid
+ * @author BGY70Z
+ * @date 2023-03-20
  *
  */
 public class CRC16 {

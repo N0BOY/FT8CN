@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.database;
+/**
+ * 与DXCC有关的3个表，dxccList、dxcc_grid、dxcc_prefix，用于保存各DXCC分区所在的国家、经纬度、网格等信息
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.database.sqlite.SQLiteDatabase;
 

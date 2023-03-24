@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <padding
+        android:bottom="1dp"
+        android:left="3dp"
+        android:right="3dp"
+        android:top="1dp" />
+
+    <stroke
+        android:width="1dp"
+        android:color="@color/calling_list_item_color" />
+
+    <gradient
+        android:angle="90"
+        android:startColor="@color/flex_meter_ruler_start_color"
+        android:endColor="@color/flex_meter_ruler_end_color"
+        android:type="linear" />
+
+    <corners android:radius="10dp" />
+
+
+
+</shape>

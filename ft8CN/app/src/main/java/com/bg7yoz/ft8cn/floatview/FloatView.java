@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.floatview;
+/**
+ * FloatButton的主界面
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -18,10 +23,7 @@ import androidx.constraintlayout.widget.Constraints;
 
 import java.util.ArrayList;
 
-/**
- * 自定义悬浮快捷按钮控件
- * @author BG7YOZ
- */
+
 public class FloatView extends ConstraintLayout {
     private static final String TAG = "FloatView";
 
@@ -76,13 +78,19 @@ public class FloatView extends ConstraintLayout {
     }
 
     public FloatViewButton addButton(String name, int imageResourceId, OnClickListener onClickListener) {
-        FloatViewButton floatViewButton = addButton(View.generateViewId(), imageResourceId, onClickListener);
+        FloatViewButton floatViewButton=getButtonByName(name);
+        if (floatViewButton==null){
+            floatViewButton =addButton(View.generateViewId(), imageResourceId, onClickListener);
+        }
         floatViewButton.setName(name);
         return floatViewButton;
     }
 
     public FloatViewButton addButton(int id, String name, int imageResourceId, OnClickListener onClickListener) {
-        FloatViewButton floatViewButton = addButton(id, imageResourceId, onClickListener);
+        FloatViewButton floatViewButton=getButtonByName(name);
+        if (floatViewButton==null){
+            floatViewButton = addButton(id, imageResourceId, onClickListener);
+        }
         floatViewButton.setName(name);
         return floatViewButton;
     }

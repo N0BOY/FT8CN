@@ -1,14 +1,15 @@
 package com.bg7yoz.ft8cn.ft8signal;
+/**
+ * 按照FT8协议打包符号。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.ft8transmit.GenerateFT8;
 
-/**
- * 生成FT8符号工具
- * @author BG7YOZ
- */
 public class FT8Package {
     private static final String TAG = "FT8Package";
     public static final int NTOKENS = 2063592;
@@ -369,6 +370,7 @@ public class FT8Package {
     }
 
     public static native int getHash12(String callsign);
+
 
     public static native int getHash10(String callsign);
 

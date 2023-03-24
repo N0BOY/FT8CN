@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.icom;
+/**
+ * 简单封装的udp协议处理
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 
@@ -43,7 +48,23 @@ public class IcomUdpClient {
         sendDataRunnable.data=data;
         sendDataRunnable.port=port;
         sendDataThreadPool.execute(sendDataRunnable);
-
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
+//                synchronized (this) {
+//                    try {
+//                        sendSocket.send(packet);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        Log.e(TAG, "IComUdpClient: " + e.getMessage());
+//                        if (onUdpEvents!=null){
+//                            onUdpEvents.OnUdpSendIOException(e);
+//                        }
+//                    }
+//                }
+//            }
+//        }).start();
     }
     private static class SendDataRunnable implements Runnable{
         byte[] data;
@@ -107,6 +128,31 @@ public class IcomUdpClient {
 
     private void receiveData() {
         doReceiveThreadPool.execute(doReceiveRunnable);
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (activated) {
+//                    byte[] data = new byte[MAX_BUFFER_SIZE];
+//                    DatagramPacket packet = new DatagramPacket(data, data.length);
+//                    try {
+//                        sendSocket.receive(packet);
+//                        if (onUdpEvents != null) {
+//                            byte[] temp = Arrays.copyOf(packet.getData(), packet.getLength());
+//                            onUdpEvents.OnReceiveData(sendSocket, packet, temp);
+//                        }
+//                        //Log.d(TAG, "receiveData:host ip: " + packet.getAddress().getHostName());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        Log.e(TAG, "receiveData: error:" + e.getMessage());
+//                    }
+//
+//                }
+//                Log.e(TAG, "udpClient: is exit!");
+//                sendSocket.close();
+//                sendSocket = null;
+//            }
+//        }).start();
+
     }
 
     public void setOnUdpEvents(OnUdpEvents onUdpEvents) {

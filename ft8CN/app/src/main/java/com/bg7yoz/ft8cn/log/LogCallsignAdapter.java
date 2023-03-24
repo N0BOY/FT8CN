@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.log;
+/**
+ * 日志中通联呼号的列表
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -22,7 +27,7 @@ import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import java.util.ArrayList;
 
 public class LogCallsignAdapter extends RecyclerView.Adapter<LogCallsignAdapter.LogCallsignItemHolder> {
-    private ArrayList<QSLCallsignRecord> callsignRecords=new ArrayList<>();
+    //private ArrayList<QSLCallsignRecord> callsignRecords=new ArrayList<>();
     private final MainViewModel mainViewModel;
     private final Context context;
 
@@ -48,7 +53,7 @@ public class LogCallsignAdapter extends RecyclerView.Adapter<LogCallsignAdapter.
      * @return 记录
      */
     public QSLCallsignRecord getRecord(int position){
-        return callsignRecords.get(position);
+        return mainViewModel.callsignRecords.get(position);
     }
     /**
      * 返回查询结题
@@ -56,8 +61,16 @@ public class LogCallsignAdapter extends RecyclerView.Adapter<LogCallsignAdapter.
      */
     @SuppressLint("NotifyDataSetChanged")
     public void setQSLCallsignList(ArrayList<QSLCallsignRecord> records){
-        callsignRecords=records;
+        mainViewModel.callsignRecords.addAll(records);
+        //mainViewModel.callsignRecords=records;
         notifyDataSetChanged();
+    }
+
+    /**
+     * 清空记录
+     */
+    public void clearRecords(){
+        mainViewModel.callsignRecords.clear();
     }
 
     @SuppressLint("SetTextI18n")
@@ -68,7 +81,7 @@ public class LogCallsignAdapter extends RecyclerView.Adapter<LogCallsignAdapter.
         }else {
             holder.logCallSignQSLHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_1_style);
         }
-        holder.record=callsignRecords.get(position);
+        holder.record=mainViewModel.callsignRecords.get(position);
 
 
         if (holder.record.isQSL||holder.record.isLotW_QSL){
@@ -147,7 +160,7 @@ public class LogCallsignAdapter extends RecyclerView.Adapter<LogCallsignAdapter.
 
     @Override
     public int getItemCount() {
-        return callsignRecords.size();
+        return mainViewModel.callsignRecords.size();
     }
 
     static class LogCallsignItemHolder extends  RecyclerView.ViewHolder{

@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.wave;
+/**
+ * 读取Wave文件的操作。
+ * 已经弃用，FT8CN不采用音频文件的方法。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;

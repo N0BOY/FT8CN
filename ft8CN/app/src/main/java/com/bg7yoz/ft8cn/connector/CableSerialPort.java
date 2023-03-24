@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.connector;
+/**
+ * 用于USB串口操作的类。USB串口驱动在serialport目录中，主要是CDC、CH34x、CP21xx、FTDI等。
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

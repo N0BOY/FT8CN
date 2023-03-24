@@ -1,8 +1,9 @@
 package com.bg7yoz.ft8cn.icom;
 
 /**
- * iCom电台各种数据包类型工具
- * @author  BG7YOZ
+ * ICom各数据包的解包和封包。
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 public class IComPacketTypes {
     private static final String TAG = "IComPacketTypes";

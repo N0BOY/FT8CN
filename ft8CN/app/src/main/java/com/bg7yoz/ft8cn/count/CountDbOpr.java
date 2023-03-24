@@ -1,4 +1,11 @@
 package com.bg7yoz.ft8cn.count;
+/**
+ * 用于通联日志统计的的数据库操作。
+ * 注：目前归属地的统计，是基于网格的，如果基于呼号的前缀统计，虽然准确，但统计速度太慢，用户的交互效果不好。
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;

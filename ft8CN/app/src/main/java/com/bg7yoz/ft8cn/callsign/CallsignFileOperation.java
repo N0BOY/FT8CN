@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.callsign;
+/**
+ * 预处理呼号数据库的文件操作，呼号的来源是CTY.DAT
+ * @author BG7YOZ
+ * @date 2023-03-20
+ */
 
 import android.content.Context;
 import android.content.res.AssetManager;

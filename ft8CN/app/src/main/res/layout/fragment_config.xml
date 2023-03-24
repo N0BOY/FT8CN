@@ -274,6 +274,17 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
 
+                        <Button
+                            android:id="@+id/synTImeButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/config_Syn_time"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/utcTimeOffsetSpinner"
+                            app:layout_constraintTop_toTopOf="parent" />
+
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -420,7 +431,7 @@
 
                         <EditText
                             android:id="@+id/inputMycallEdit"
-                            android:layout_width="100dp"
+                            android:layout_width="90dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_marginTop="6dp"
@@ -441,7 +452,7 @@
 
                         <TextView
                             android:id="@+id/modifierText"
-                            android:layout_width="75dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:text="@string/modifier_editor"
@@ -454,21 +465,23 @@
 
                         <EditText
                             android:id="@+id/modifierEdit"
-                            android:layout_width="80dp"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="2dp"
                             android:layout_marginTop="6dp"
+                            android:layout_marginEnd="2dp"
                             android:layout_marginBottom="6dp"
                             android:autofillHints=""
                             android:background="@drawable/editor_style"
                             android:ems="10"
                             android:hint="@string/pl_input_modifier"
-                            android:inputType="textEmailAddress|textCapWords"
 
+                            android:inputType="textEmailAddress|textCapWords"
                             android:minHeight="32dp"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
                             app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
                             app:layout_constraintStart_toEndOf="@+id/modifierText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
@@ -1114,6 +1127,73 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/swlOprLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/excludedLayout">
+
+                        <Switch
+                            android:id="@+id/saveSWLSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+
+                            android:checked="false"
+                            android:text="@string/config_donot_save_swl"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/saveSWLQSOSwitch"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <Switch
+                            android:id="@+id/saveSWLQSOSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+
+                            android:checked="true"
+                            android:text="@string/config_donot_save_swl_qso"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/swlHelpButton"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toEndOf="@+id/saveSWLSwitch"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <ImageButton
+                            android:id="@+id/swlHelpButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/clearCacheLayout"
                         android:layout_width="0dp"
@@ -1122,7 +1202,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/excludedLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/swlOprLayout">
 
                         <TextView
                             android:id="@+id/clearCacheText"
@@ -1171,11 +1251,21 @@
                             android:layout_marginBottom="8dp"
                             android:text="@string/logs_cache"
                             android:textSize="12sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintBottom_toTopOf="@+id/clearSWlQsoButton"
                             app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toEndOf="@+id/clearCacheText"
                             app:layout_constraintTop_toBottomOf="@+id/clearFollowButton" />
+
+                        <Button
+                            android:id="@+id/clearSWlQsoButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="@string/config_clear_swl_qso"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/clearCacheHelpButton"
+                            app:layout_constraintStart_toEndOf="@+id/clearCacheText" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </androidx.constraintlayout.widget.ConstraintLayout>

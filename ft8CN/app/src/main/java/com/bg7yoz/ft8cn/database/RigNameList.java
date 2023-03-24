@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.database;
+/**
+ * 各电台信号的列表。文件在rigaddress.txt中
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.content.Context;
 import android.content.res.AssetManager;

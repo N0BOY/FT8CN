@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.callsign;
+/**
+ * 用于呼号归属地查询的数据库操作，数据库采用内存方式。来源是CTY.DAT
+ * @author BG7YOZ
+ * 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
@@ -182,6 +187,29 @@ public class CallsignDatabase extends SQLiteOpenHelper {
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
+//            String querySQL = "select a.*,b.* from callsigns as a left join countries as b on a.countryId =b.id \n" +
+//                    "WHERE (SUBSTR(?,1,LENGTH(callsign))=callsign) OR (callsign=\"=\"||?)\n" +
+//                    "order by LENGTH(callsign) desc\n" +
+//                    "LIMIT 1";
+//
+//            Cursor cursor = db.rawQuery(querySQL, new String[]{sqlParameter.toUpperCase(), sqlParameter.toUpperCase()});
+//            if (cursor.moveToFirst()) {
+//                CallsignInfo callsignInfo = new CallsignInfo();
+//                callsignInfo.CallSign = sqlParameter.toUpperCase();
+//                callsignInfo.CountryNameEn = cursor.getString(cursor.getColumnIndex("CountryNameEn"));
+//                callsignInfo.CountryNameCN = cursor.getString(cursor.getColumnIndex("CountryNameCN"));
+//                callsignInfo.CQZone = cursor.getInt(cursor.getColumnIndex("CQZone"));
+//                callsignInfo.ITUZone = cursor.getInt(cursor.getColumnIndex("ITUZone"));
+//                callsignInfo.Continent = cursor.getString(cursor.getColumnIndex("Continent"));
+//                callsignInfo.Latitude = cursor.getFloat(cursor.getColumnIndex("Latitude"));
+//                callsignInfo.Longitude = cursor.getFloat(cursor.getColumnIndex("Longitude"));
+//                callsignInfo.GMT_offset = cursor.getFloat(cursor.getColumnIndex("GMT_offset"));
+//                callsignInfo.DXCC = cursor.getString(cursor.getColumnIndex("DXCC"));
+//                if (afterQueryCallsignLocation!=null){
+//                    afterQueryCallsignLocation.doOnAfterQueryCallsignLocation(callsignInfo);
+//                }
+//            }
+//            cursor.close();
             CallsignInfo callsignInfo = getCallsignInfo(db, sqlParameter);
             if (callsignInfo != null && afterQueryCallsignLocation != null) {
                 afterQueryCallsignLocation.doOnAfterQueryCallsignLocation(callsignInfo);

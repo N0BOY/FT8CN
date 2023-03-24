@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 包含瀑布图、频率柱状图、标尺的自定义控件。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import static android.view.MotionEvent.ACTION_UP;
 

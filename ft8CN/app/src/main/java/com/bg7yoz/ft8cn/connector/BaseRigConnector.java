@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.connector;
-
+/**
+ * 用于连接电台的基础类，蓝牙、USB线、FLEX网络、ICOM网络都是继承于此
+ *
+ * @author BG7YOZ
+ * @date 2023-03-20
+ */
 
 import com.bg7yoz.ft8cn.rigs.OnConnectReceiveData;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
@@ -69,7 +74,7 @@ public class BaseRigConnector {
         onConnectReceiveData=receiveData;
     }
 
-    public void sendWaveData(short[] data){
+    public void sendWaveData(float[] data){
         //留给网络方式发送音频流
     }
 

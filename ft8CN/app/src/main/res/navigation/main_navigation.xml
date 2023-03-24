@@ -41,4 +41,9 @@
         android:id="@+id/QRZ_Fragment"
         android:name="com.bg7yoz.ft8cn.ui.QRZ_Fragment"
         android:label="QRZ_Fragment" />
+    <fragment
+        android:id="@+id/flexRadioInfoFragment"
+        android:name="com.bg7yoz.ft8cn.ui.FlexRadioInfoFragment"
+        android:label="fragment_flex_radio_info"
+        tools:layout="@layout/fragment_flex_radio_info" />
 </navigation>

@@ -5,21 +5,21 @@ package com.bg7yoz.ft8cn;
  * 1.解码的总条数。decoded_counter和mutable_Decoded_Counter。
  * 2.解码消息的列表。消息以Ft8Message展示，列表用ArrayList泛型实现。ft8Messages，mutableFt8MessageList。
  * 3.解码和录音都需要时间同步，也就是以UTC时间的每15秒为一个周期。同步事件的触发由UtcTimer类来实现。
- * 录音方法runRecode，解码暂时用testFt8实现，后续应改为类方式。--------TO DO------------
+ * 录音方法runRecode，解码暂时用testFt8实现，后续应改为类方式。--------TODO------------
  * 4.当前的UTC时间。timerSec，更新频率（心跳频率）由UtcTimer确定，暂定100毫秒。
- *
+ * <p>
  * 5.通过类方法getInstance获取当前的MainViewModel的实例，确保有唯一的实例。
  * 6.用HamAudioRecorder类实现录音，目前只实现录音成文件，然后读取文件的数据给解码模块，后面要改成直接给数组的方式----TO DO---
- *
+ * <p>
  * 7.解码采用JNI接口调用原生C语言。调用接口名时ft8cn，由cpp文件夹下的CMakeLists.txt维护。各函数的调用接口在decode_ft8.cpp中。
- *
+ * <p>
  * -----2022.5.9-----
  * 如果系统没有发射信号，触发器会在每一个周期触发录音动作，因录音开始和结束要浪费一些时间，如果不干预上一个录音的动作，将出现
  * 连续的周期内录音动作重叠，造成第二个录音动作失败。所以，第二个周期的录音开始前，要停止前一个周期的录音，造成的结果就是每一次录音
  * 的开始时间要晚于周期开始300毫秒（模拟器的结果），实际录音的长度一般在14.77秒左右
- *
- * BG7YOZ
- * 2022.5.6
+ * <p>
+ * @author BG7YOZ
+ * @date 2022.5.6
  */
 
 import static com.bg7yoz.ft8cn.GeneralVariables.getStringFromResource;
@@ -59,7 +59,9 @@ import com.bg7yoz.ft8cn.ft8transmit.OnDoTransmitted;
 import com.bg7yoz.ft8cn.ft8transmit.OnTransmitSuccess;
 import com.bg7yoz.ft8cn.html.LogHttpServer;
 import com.bg7yoz.ft8cn.icom.IComWifiRig;
+import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecord;
+import com.bg7yoz.ft8cn.log.SWLQsoList;
 import com.bg7yoz.ft8cn.rigs.BaseRig;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.rigs.ElecraftRig;
@@ -121,6 +123,8 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<Boolean> mutableIsDecoding = new MutableLiveData<>();//会触发频谱图中的标记动作
     public ArrayList<Ft8Message> currentMessages = null;//本周期解码的消息（用于画到频谱上）
 
+    public MutableLiveData<Boolean> mutableIsFlexRadio=new MutableLiveData<>();//是不是flex电台
+
     private final ExecutorService getQTHThreadPool = Executors.newCachedThreadPool();
     private final ExecutorService sendWaveDataThreadPool = Executors.newCachedThreadPool();
     private final GetQTHRunnable getQTHRunnable=new GetQTHRunnable(this);
@@ -135,6 +139,8 @@ public class MainViewModel extends ViewModel {
 
     //控制电台的方式
     public OperationBand operationBand = null;
+
+    private SWLQsoList swlQsoList=new SWLQsoList();//用于记录SWL的QSO对象，对SWL QSO做判断，防止重复。
 
 
     public MutableLiveData<ArrayList<CableSerialPort.SerialPort>> mutableSerialPorts = new MutableLiveData<>();
@@ -193,6 +199,8 @@ public class MainViewModel extends ViewModel {
     public String queryKey = "";//查询的关键字
     public int queryFilter = 0;//过滤，0全部，1，确认，2，未确认
     public MutableLiveData<Integer> mutableQueryFilter = new MutableLiveData<>();
+    public ArrayList<QSLCallsignRecord> callsignRecords=new ArrayList<>();
+    //public ArrayList<QSLRecordStr> qslRecords=new ArrayList<>();
     //********************************************
     //关注呼号的列表
     //public ArrayList<String> followCallsign = new ArrayList<>();
@@ -240,6 +248,7 @@ public class MainViewModel extends ViewModel {
         hamRecorder = new HamRecorder(null);
         hamRecorder.startRecord();
 
+        mutableIsFlexRadio.setValue(false);
 
         //创建用于显示时间的计时器
         utcTimer = new UtcTimer(10, false, new OnUtcTimer() {
@@ -257,6 +266,8 @@ public class MainViewModel extends ViewModel {
         });
         utcTimer.start();//启动计时器
 
+        //同步一下时间。microsoft的NTP服务器
+        UtcTimer.syncTime(null);
 
         mutableFt8MessageList.setValue(ft8Messages);
 
@@ -270,13 +281,10 @@ public class MainViewModel extends ViewModel {
             @Override
             public void afterDecode(long utc, float time_sec, int sequential, ArrayList<Ft8Message> messages) {
 
-                for (Ft8Message msg : messages) {
-                    msg.isCallMe = msg.inMyCall(GeneralVariables.myCallsign);
-                }
                 synchronized (ft8Messages) {
                     ft8Messages.addAll(messages);//添加消息到列表
                 }
-                GeneralVariables.deleteArrayListMore(ft8Messages);//删除多余的消息
+                GeneralVariables.deleteArrayListMore(ft8Messages);//删除多余的消息,FT8CN限定的可展示消息的总数量
 
                 mutableFt8MessageList.postValue(ft8Messages);//触发添加消息的动作，让界面能观察到
                 mutableTimerOffset.postValue(time_sec);//本次时间偏移量
@@ -292,8 +300,21 @@ public class MainViewModel extends ViewModel {
                 currentMessages = messages;//保存本次解码的消息
 
                 getQTHRunnable.messages=messages;
-                getQTHThreadPool.execute(getQTHRunnable);//用线程池的方式查询
+                getQTHThreadPool.execute(getQTHRunnable);//用线程池的方式查询归属地
 
+                if (GeneralVariables.saveSWLMessage) {
+                    databaseOpr.writeMessage(messages);//把SWL消息写到数据库
+                }
+                //检查QSO of SWL,并保存到SWLQSOTable中的通联列表qsoList中
+                if (GeneralVariables.saveSWL_QSO){
+                    swlQsoList.findSwlQso(messages, ft8Messages, new SWLQsoList.OnFoundSwlQso() {
+                        @Override
+                        public void doFound(QSLRecord record) {
+                            databaseOpr.addSWL_QSO(record);//把SWL QSO保存到数据库
+                            ToastMessage.show(record.swlQSOInfo());
+                        }
+                    });
+                }
                 //从列表中查找呼号和网格对应关系，并添加到表中
                 getCallsignAndGrid(messages);
             }
@@ -345,14 +366,14 @@ public class MainViewModel extends ViewModel {
             }
 
             @Override
-            public void onAfterGenerate(short[] data) {
+            public void onAfterGenerate(float[] data) {
                 if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
                     if (baseRig != null) {
                         if (baseRig.isConnected()) {
                             sendWaveDataRunnable.baseRig=baseRig;
                             sendWaveDataRunnable.data=data;
+                            //以线程池的方式执行网络数据包发送
                             sendWaveDataThreadPool.execute(sendWaveDataRunnable);
-
                         }
                     }
                 }
@@ -361,7 +382,6 @@ public class MainViewModel extends ViewModel {
             @Override
             public void doAfterTransmit(QSLRecord qslRecord) {
                 databaseOpr.addQSL_Callsign(qslRecord);//两个操作，把呼号和QSL记录下来
-
                 if (qslRecord.getToCallsign() != null) {//把通联成功的分区加入到分区列表
                     GeneralVariables.callsignDatabase.getCallsignInformation(qslRecord.getToCallsign()
                             , new OnAfterQueryCallsignLocation() {
@@ -373,7 +393,6 @@ public class MainViewModel extends ViewModel {
                                 }
                             });
                 }
-
             }
         });
 
@@ -437,7 +456,6 @@ public class MainViewModel extends ViewModel {
     public void clearTransmittingMessage() {
         GeneralVariables.transmitMessages.clear();
         mutableTransmitMessagesCount.postValue(0);
-        //mutableTransmitMessages.postValue(GeneralVariables.transmitMessages);
     }
 
 
@@ -448,7 +466,7 @@ public class MainViewModel extends ViewModel {
      */
     private void getCallsignAndGrid(ArrayList<Ft8Message> messages) {
         for (Ft8Message msg : messages) {
-            if (GeneralVariables.checkFun1(msg.extraInfo)) {
+            if (GeneralVariables.checkFun1(msg.extraInfo)) {//检查是不是网格
                 //如果内存表中没有，或不一致，就写入数据库中
                 if (!GeneralVariables.getCallsignHasGrid(msg.getCallsignFrom(), msg.maidenGrid)) {
                     databaseOpr.addCallsignQTH(msg.getCallsignFrom(), msg.maidenGrid);//写数据库
@@ -663,7 +681,7 @@ public class MainViewModel extends ViewModel {
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(flexConnector);
 //
-        new Handler().postDelayed(new Runnable() {//蓝牙连接是需要时间的，等2秒再设置频率
+        new Handler().postDelayed(new Runnable() {//连接是需要时间的，等2秒再设置频率
             @Override
             public void run() {
                 setOperationBand();//设置载波频率
@@ -713,7 +731,7 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.GUOHE_Q900:
                 baseRig = new GuoHeQ900Rig();//国赫Q900
                 break;
-            case InstructionSet.XIEGUG90S:
+            case InstructionSet.XIEGUG90S://协谷，USB模式
                 baseRig = new XieGuRig(GeneralVariables.civAddress);//协谷G90S
                 break;
             case InstructionSet.ELECRAFT:
@@ -729,6 +747,9 @@ public class MainViewModel extends ViewModel {
                 baseRig = new XieGu6100Rig(GeneralVariables.civAddress);//协谷6100
                 break;
         }
+
+        mutableIsFlexRadio.postValue(GeneralVariables.instructionSet==InstructionSet.FLEX_NETWORK);
+
     }
 
 
@@ -774,7 +795,6 @@ public class MainViewModel extends ViewModel {
                 .getSystemService(Context.AUDIO_SERVICE);
         if (audioManager == null) return;
         if (audioManager.isBluetoothScoOn()) {
-            //audioManager.setMode(AudioManager.MODE_NORMAL);
             audioManager.setBluetoothScoOn(false);
             audioManager.stopBluetoothSco();
             audioManager.setSpeakerphoneOn(true);//退出耳机模式
@@ -861,11 +881,11 @@ public class MainViewModel extends ViewModel {
     }
     private static class SendWaveDataRunnable implements Runnable{
         BaseRig baseRig;
-        short[] data;
+        float[] data;
         @Override
         public void run() {
             if (baseRig!=null&&data!=null){
-                baseRig.sendWaveData(data);
+                baseRig.sendWaveData(data);//实际生成的数据是12.64+0.04,0.04是生成的0数据
             }
         }
     }

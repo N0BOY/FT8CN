@@ -13,6 +13,8 @@
     <color name="tracker_sample_qsx_text_color">#FFFFFF</color>
 
 
+
+
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#4DD0E1</color>
     <color name="teal_700">#FF018786</color>
@@ -25,6 +27,12 @@
     <color name="tracker_select_line_color">#B58200</color>
     <color name="tracker_line_color">#FFFFFFFF</color>
     <color name="tracker_in_my_line_color">#ffFF1E27</color>
+    <color name="tracker_history_line_color">#2196F3</color>
+
+
+    <color name="volume_progress_value">#FFFFFFFF</color>
+    <color name="power_progress_value">#ff264A68</color>
+    <color name="power_progress_radar_value">#B552AEF8</color>
 
 
     <color name="is_not_qsl_text_color">#FF3A3A</color>
@@ -43,6 +51,9 @@
     <color name="button_tracker_button_color">#6826FA</color>
 
     <color name="button_stroke_color">#CB0649BB</color>
+    <color name="flex_meter_ruler_end_color">#CB0649BB</color>
+    <color name="flex_meter_ruler_start_color">#FF000000</color>
+
     <color name="button_disable_strocke_color">#000649BB</color>
     <color name="button_press_solid_color">#777788</color>
     <color name="image_button_ground_color">#BEF1F1F1</color>
@@ -145,7 +156,6 @@
     <color name="osm_grid_out_line_color">#7FFFFFFF</color>
 
 
-
     <color name="char_bar_1">#2EB4FD</color>
     <color name="char_bar_2">#31738E</color>
     <color name="char_bar_3">#167372</color>
@@ -162,5 +172,6 @@
     <color name="char_bar_14">#C53FE3</color>
     <color name="char_bar_15">#770A8F</color>
     <color name="char_bar_16">#61024D</color>
+
 
 </resources>
