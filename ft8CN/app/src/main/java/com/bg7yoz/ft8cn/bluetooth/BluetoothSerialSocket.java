@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.bluetooth;
+/**
+ * 蓝牙串口的SOCKET
+ * BG7YOZ
+ * 2023-03
+ */
 
 import android.annotation.SuppressLint;
 import android.app.Activity;

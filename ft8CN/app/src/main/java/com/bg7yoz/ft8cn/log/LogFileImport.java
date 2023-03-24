@@ -13,7 +13,9 @@ import java.util.HashMap;
  * getFileContext是获取全部文件内容。
  * getLogBody是获取日志文件中全部的原始记录内容，也就是全部以<eoh>后面的数据
  * getLogRecords是获取拆解后的全部记录列表，记录是以HashMap方式保存的，其中HashMap的Key是字段名（大写），value是实际的值
- * @author  BG7YOZ
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 
 public class LogFileImport {

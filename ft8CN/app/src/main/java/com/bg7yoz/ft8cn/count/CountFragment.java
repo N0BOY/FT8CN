@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.count;
+/**
+ * 通联日志的统计界面
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;

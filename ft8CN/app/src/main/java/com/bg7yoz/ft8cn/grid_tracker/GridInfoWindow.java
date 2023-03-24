@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.grid_tracker;
+/**
+ * 网格追踪中每个连线的窗口界面。包含各类型分区图标。与我有关的通联，文字是红色的。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.graphics.Paint;
@@ -20,15 +25,7 @@ import org.osmdroid.views.overlay.infowindow.InfoWindow;
 
 public class GridInfoWindow extends InfoWindow {
     public static final int UNDEFINED_RES_ID = 0;
-    //    static int mTitleId = 0;
-//    static int mDescriptionId = 0;
-//    static int mSubDescriptionId = 0;
-//    static int fromDxccImageId = 0;
-//    static int fromItuImageId = 0;
-//    static int fromCqImageId = 0;
-//    static int toDxccImageId = 0;
-//    static int toItuImageId = 0;
-//    static int toCqImageId = 0;
+
     private final TextView titleView;
     private final TextView descriptionView;
     private final TextView subDescriptionView;
@@ -68,7 +65,7 @@ public class GridInfoWindow extends InfoWindow {
         boolean otherBandIsQso = GeneralVariables.checkQSLCallsign_OtherBand(msg.getCallsignFrom());
 
         //是否有与我呼号有关的消息
-        if (msg.inMyCall(GeneralVariables.myCallsign)) {
+        if (msg.inMyCall()) {
             layout.setBackground(mView.getResources().getDrawable(R.drawable.tracker_new_cq_info_win_style));
             titleView.setTextColor(mapView.getResources().getColor(
                     R.color.message_in_my_call_text_color));
@@ -102,7 +99,7 @@ public class GridInfoWindow extends InfoWindow {
         }
 
         if (this.mView == null) {
-            Log.e("GridInfoWindow", "Error trapped, BasicInfoWindow.open, mView is null!");
+            Log.w("OsmDroid", "Error trapped, BasicInfoWindow.open, mView is null!");
         } else {
             titleView.setText(title);
             String snippet = overlay.getSnippet();

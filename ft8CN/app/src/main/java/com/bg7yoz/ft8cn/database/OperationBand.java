@@ -13,6 +13,8 @@ import java.util.ArrayList;
 
 /**
  * 用于读取可用的载波波段列表，文件保存在assets/bands.txt中
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 
 public class OperationBand {

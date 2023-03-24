@@ -1,5 +1,9 @@
 package com.bg7yoz.ft8cn.maidenhead;
-
+/**
+ * 梅登海德网格的处理。包括经纬度换算、距离计算。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -12,11 +16,6 @@ import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
 
-/**
- * 计算梅登海德网格工具
- *
- * @author  BG7YOZ
- */
 public class MaidenheadGrid {
     private static final String TAG = "MaidenheadGrid";
     private static final double EARTH_RADIUS = 6371393; // 平均半径,单位：m；不是赤道半径。赤道为6378左右
@@ -221,6 +220,10 @@ public class MaidenheadGrid {
         latLngs[2] = new LatLng(lat2,lng2);
         latLngs[3] = new LatLng(lat2,lng1);
 
+//        Log.e(TAG, "gridToPolygon: latLng0"+latLngs[0].toString() );
+//        Log.e(TAG, "gridToPolygon: latLng1"+latLngs[1].toString() );
+//        Log.e(TAG, "gridToPolygon: latLng2"+latLngs[2].toString() );
+//        Log.e(TAG, "gridToPolygon: latLng3"+latLngs[3].toString() );
         return latLngs;
 
 

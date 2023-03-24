@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn;
 
+/**
+ * FT8有关的常量。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public final class FT8Common {
     public static final int FT8_MODE=0;
     public static final int FT4_MODE=1;

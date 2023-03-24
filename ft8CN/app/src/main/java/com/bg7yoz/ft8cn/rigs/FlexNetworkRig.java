@@ -3,6 +3,7 @@ package com.bg7yoz.ft8cn.rigs;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
+import com.bg7yoz.ft8cn.connector.FlexConnector;
 import com.bg7yoz.ft8cn.flex.FlexCommand;
 import com.bg7yoz.ft8cn.flex.FlexRadio;
 
@@ -35,7 +36,7 @@ public class FlexNetworkRig extends BaseRig{
     }
     @Override
     public void setPTT(boolean on) {
-        super.setPTT(on);
+        getConnector().setPttOn(on);
 
     }
 
@@ -75,6 +76,15 @@ public class FlexNetworkRig extends BaseRig{
         if (getConnector()!=null){
             //getConnector().sendData(IcomRigConstant.setReadFreq(ctrAddress, getCivAddress()));
         }
+    }
+
+    @Override
+    public void sendWaveData(float[] data) {
+        Log.e(TAG, "sendWaveData: "+data.length );
+        if (getConnector()!=null){
+            getConnector().sendWaveData(data);
+        }
+        //super.sendWaveData(data);
     }
 
     @Override

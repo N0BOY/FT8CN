@@ -6,12 +6,19 @@ package com.bg7yoz.ft8cn.timer;
  * 如果是，则回调doHeartBeatTimer函数，为防止重复动作，触发后会等待1秒钟后再进入新的心跳周期（因为是以秒数取模）。
  * 注意！！为防止回调动作占用时间过长，影响下一个动作的触发，所以，回调都是以多线程的方式调用，在使用时要注意线程安全。
  * <p>
- * BG7YOZ
- * 2022.5.7
+ * @author BG7YOZ
+ * @date 2022.5.7
  */
 
 import android.annotation.SuppressLint;
 
+import com.bg7yoz.ft8cn.ui.ToastMessage;
+
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
+
+import java.io.IOException;
+import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -28,21 +35,21 @@ public class UtcTimer {
 
 
     private long utc;
-    public static int delay=0;//时钟总的延时，（毫秒）
+    public static int delay = 0;//时钟总的延时，（毫秒）
     private boolean running = false;//用来判断是否触发周期的动作
 
     private final Timer secTimer = new Timer();
     private final Timer heartBeatTimer = new Timer();
     private int time_sec = 0;//时间的偏移量；
     private final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
-    private final Runnable doSomething=new Runnable() {
+    private final Runnable doSomething = new Runnable() {
         @Override
         public void run() {
             onUtcTimer.doOnSecTimer(utc);
         }
     };
-    private final ExecutorService heartBeatThreadPool=Executors.newCachedThreadPool();
-    private final Runnable doHeartBeat=new Runnable() {
+    private final ExecutorService heartBeatThreadPool = Executors.newCachedThreadPool();
+    private final Runnable doHeartBeat = new Runnable() {
         @Override
         public void run() {
             onUtcTimer.doHeartBeatTimer(utc);
@@ -51,6 +58,7 @@ public class UtcTimer {
 
     /**
      * 类方法。获得UTC时间的字符串表示结果。
+     *
      * @param time 时间。
      * @return String 以字符串方式显示UTC时间。
      */
@@ -65,6 +73,7 @@ public class UtcTimer {
 
     /**
      * 以HHMMSS格式显示UTC时间
+     *
      * @param time
      * @return
      */
@@ -76,15 +85,24 @@ public class UtcTimer {
         long min = ((curtime) % 3600) / 60;//分
         return String.format("%02d%02d%02d", hour, min, sec);
     }
-    public static String getYYYYMMDD(long time){
+
+    public static String getYYYYMMDD(long time) {
         @SuppressLint("SimpleDateFormat")
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         return simpleDateFormat.format(new Date(time));
     }
-    public static String getDatetimeStr(long time){
+
+    public static String getDatetimeStr(long time) {
         @SuppressLint("SimpleDateFormat")
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return simpleDateFormat.format(new Date(time));
+    }
+
+    public static String getDatetimeYYYYMMDD_HHMMSS(long time) {
+        @SuppressLint("SimpleDateFormat")
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
         simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         return simpleDateFormat.format(new Date(time));
     }
@@ -206,6 +224,7 @@ public class UtcTimer {
 
     /**
      * 设置时间偏移量，正值是向后偏移
+     *
      * @param time_sec 向前的偏移量
      */
     public void setTime_sec(int time_sec) {
@@ -214,6 +233,7 @@ public class UtcTimer {
 
     /**
      * 获取时间偏移
+     *
      * @return 时间偏移值（毫秒）
      */
     public int getTime_sec() {
@@ -226,18 +246,56 @@ public class UtcTimer {
 
     /**
      * 根据UTC时间计算时序
+     *
      * @param utc UTC时间
      * @return 时序:0,1
      */
-    public static int sequential(long utc){
+    public static int sequential(long utc) {
         return (int) ((((utc) / 1000) / 15) % 2);
     }
-    public static int getNowSequential(){
-      return   sequential(getSystemTime());
-    }
-    public static long getSystemTime(){
-        return delay+System.currentTimeMillis();
+
+    public static int getNowSequential() {
+        return sequential(getSystemTime());
     }
 
+    public static long getSystemTime() {
+        return delay + System.currentTimeMillis();
+    }
 
+    /**
+     * 使用微软的时间服务器同步时间
+     */
+    public static void syncTime(AfterSyncTime afterSyncTime) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                NTPUDPClient timeClient = new NTPUDPClient();
+                InetAddress inetAddress = null;
+                TimeInfo timeInfo = null;
+                try {
+                    inetAddress = InetAddress.getByName("time.windows.com");
+                    timeInfo = timeClient.getTime(inetAddress);
+                    long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
+                    int trueDelay = (int) ((serverTime - System.currentTimeMillis()));
+                    UtcTimer.delay = trueDelay % 15000;//延迟的周期
+                    if (afterSyncTime != null) {
+                        afterSyncTime.doAfterSyncTimer(trueDelay);
+                    }
+                } catch (IOException e) {
+                    if (afterSyncTime != null) {
+                        afterSyncTime.syncFailed(e);
+                    }
+                }
+
+                //long localDeviceTime = timeInfo.getReturnTime();
+
+            }
+        }).start();
+    }
+
+    public interface AfterSyncTime {
+        void doAfterSyncTimer(int secTime);
+
+        void syncFailed(IOException e);
+    }
 }

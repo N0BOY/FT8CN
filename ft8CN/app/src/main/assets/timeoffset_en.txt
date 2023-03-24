@@ -1,3 +1,3 @@
-Time offset refers to the offset value of the APP relative to the system clock in each cycle.
-The clock period of FT8 is 15 seconds. The clocks of all RIGs are based on UTC time, with the 0th, 15th, 30th, and 45th seconds of each minute as the starting time of the cycle.
-In general, the phone will automatically sync the time. If your device is out of sync with UTC time, you need to set the offset value.
+Local clock offset:
+In FT8, all stations start TX/RX at each 0/15/45/60 seconds, which require accurate time synchronization.
+FT8CN will automatically sync time via internet. When internet is not available, you can adjust the local clock by changing this local clock offset.

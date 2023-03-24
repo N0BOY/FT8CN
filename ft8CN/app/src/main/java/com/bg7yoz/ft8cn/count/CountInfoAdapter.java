@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.count;
-
+/**
+ * 用于列出统计结果的Adapter
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.content.Context;
 import android.view.LayoutInflater;

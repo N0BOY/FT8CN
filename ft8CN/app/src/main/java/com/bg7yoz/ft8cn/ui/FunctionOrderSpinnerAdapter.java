@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * FT8通联的6步列表。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Context;

@@ -6,8 +6,9 @@ package com.bg7yoz.ft8cn;
  * 1.生成MainViewModel实例。MainViewModel是用于整个生存周期，用于录音、解析等功能。
  * 2.录音、存储的权限申请。
  * 3.实现Fragment的导航管理。
- * BG7YOZ
- * 2022.5.6
+ * 4.USB串口连接后的提示
+ * @author BG7YOZ
+ * @date 2022.5.6
  */
 
 
@@ -60,6 +61,7 @@ import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -132,8 +134,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
 
-
-
         ToastMessage.getInstance();
         registerBluetoothReceiver();//注册蓝牙动作改变的广播
         if (mainViewModel.isBTConnected()) {
@@ -195,6 +195,7 @@ public class MainActivity extends AppCompatActivity {
         //清空缓存中的文件
         //deleteFolderFile(this.getCacheDir().getPath());
 
+        //Log.e(TAG, this.getCacheDir().getPath());
 
         //用于Fragment的导航。
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
@@ -217,16 +218,51 @@ public class MainActivity extends AppCompatActivity {
         binding.welcomTextView.setText(String.format(getString(R.string.version_info)
                 , GeneralVariables.VERSION, GeneralVariables.BUILD_DATE));
 
-
+        floatView = new FloatView(this, 32);
         if (!animatorRunned) {
             animationImage();
             animatorRunned = true;
         } else {
             binding.initDataLayout.setVisibility(View.GONE);
+
             InitFloatView();
         }
         //初始化数据
         InitData();
+
+
+        //观察是不是flex radio
+
+        mainViewModel.mutableIsFlexRadio.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                //if (floatView==null) return;
+                if (aBoolean) {
+                    //添加flex配置按钮
+                    floatView.addButton(R.id.flex_radio, "flex_radio", R.drawable.flex_icon
+                            , new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+
+                                    navController.navigate(R.id.flexRadioInfoFragment);
+
+//                                    if (mainViewModel.baseRig != null) {
+//                                        if (mainViewModel.baseRig.isConnected()) {
+//                                            ToastMessage.show("flex connected");
+//                                        }else {
+//                                            ToastMessage.show("flex disconnected");
+//                                        }
+//                                    }else {
+//                                        ToastMessage.show("rig is null");
+//                                    }
+
+                                }
+                            });
+                } else {//删除flex配置按钮
+                    floatView.deleteButtonByName("flex_radio");
+                }
+            }
+        });
 
 
         //关闭串口设备列表按钮
@@ -281,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
      */
 
     private void InitFloatView() {
-        floatView = new FloatView(this, 32);
+        //floatView = new FloatView(this, 32);
 
         binding.container.addView(floatView);
         floatView.setButtonMargin(0);
@@ -331,6 +367,15 @@ public class MainActivity extends AppCompatActivity {
                         startActivity(intent);
                     }
                 });
+
+
+//        floatView.addButton(R.id.flex_radio, "flex_radio", R.drawable.flex_icon
+//                , new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        navController.navigate(R.id.flexRadioInfoFragment);
+//                    }
+//                });
 
         floatView.initLocation();
     }

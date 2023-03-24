@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.icom;
+/**
+ * 简单封装的udp流处理。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 

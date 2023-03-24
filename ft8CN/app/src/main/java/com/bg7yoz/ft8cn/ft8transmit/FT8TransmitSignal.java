@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ft8transmit;
+/**
+ * 与发射信号有关的类。包括分析通联过程的自动程序。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.media.AudioAttributes;
@@ -178,7 +183,66 @@ public class FT8TransmitSignal {
         }
         Log.d(TAG, "doTransmit: 开始发射...");
         doTransmitThreadPool.execute(doTransmitRunnable);
-
+//        new Thread(new Runnable() {
+//            @SuppressLint("DefaultLocale")
+//            @Override
+//            public void run() {
+//                //--todo----
+//                //此处可能要修改，维护一个列表。把每个呼号，网格，时间，波段，记录下来
+//                if (functionOrder == 1 || functionOrder == 2) {//当消息处于1或2时，说明开始了通联
+//                    messageStartTime = UtcTimer.getSystemTime();
+//                }
+//                if (messageStartTime == 0) {//如果起始时间没有，就取现在的
+//                    messageStartTime = UtcTimer.getSystemTime();
+//                }
+//
+//                //用于显示将要发射的消息内容
+//                Ft8Message msg;
+//                if (transmitFreeText){
+//                    msg=new Ft8Message("CQ",GeneralVariables.myCallsign,freeText);
+//                    msg.i3=0;
+//                    msg.n3=0;
+//                }else {
+//                    msg = getFunctionCommand(functionOrder);
+//                }
+//
+//                if (onDoTransmitted != null) {
+//                    //此处用于处理PTT等事件
+//                    onDoTransmitted.onBeforeTransmit(msg, functionOrder);
+//                }
+//                //short[] buffer = new short[FT8Common.SAMPLE_RATE * FT8Common.FT8_SLOT_TIME];
+//                //79个符号，每个符号0.16秒，采样率12000，
+//                short[] buffer = new short[(int) (0.5f +
+//                        GenerateFT8.num_tones * GenerateFT8.symbol_period
+//                                * GenerateFT8.sample_rate)]; // 数据信号中的采样数0.5+79*0.16*12000];
+//
+//
+//                isTransmitting = true;
+//                mutableIsTransmitting.postValue(true);
+//
+//
+//                mutableTransmittingMessage.postValue(String.format(" (%.0fHz) %s"
+//                        , GeneralVariables.getBaseFrequency()
+//                        , msg.getMessageText()));
+//                if (!GenerateFT8.generateFt8(msg
+//                        , GeneralVariables.getBaseFrequency(), buffer)) {
+//                    return;
+//                }
+//                ;
+//                //电台动作可能有要有个延迟时间，所以时间并不一定完全准确
+//                try {//给电台一个100毫秒的响应时间
+//                    Thread.sleep(GeneralVariables.pttDelay);//给PTT指令后，电台一个响应时间，默认100毫秒
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                if (onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
+//                    onDoTransmitted.onAfterGenerate(buffer);
+//                }
+//                //播放音频
+//                playFT8Signal(buffer);
+//            }
+//        }).start();
         mutableFunctions.postValue(functionList);
     }
 
@@ -302,7 +366,7 @@ public class FT8TransmitSignal {
     }
 
 
-    private void playFT8Signal(short[] buffer) {
+    private void playFT8Signal(float[] buffer) {
 
         //todo--实现网络发送模式
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {//网络方式就不播放音频了
@@ -329,16 +393,16 @@ public class FT8TransmitSignal {
         Log.d(TAG, "playFT8Signal: 准备声卡播放....");
         attributes = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
-                //.setLegacyStreamType(AudioManager.STREAM_VOICE_CALL)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build();
 
         myFormat = new AudioFormat.Builder().setSampleRate(FT8Common.SAMPLE_RATE)
-                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                //.setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build();
         int mySession = 0;
         audioTrack = new AudioTrack(attributes, myFormat
-                , 12000 * 15 * 2, AudioTrack.MODE_STATIC
+                , 12000 * 15 * 4, AudioTrack.MODE_STATIC
                 , mySession);
 
 
@@ -943,9 +1007,9 @@ public class FT8TransmitSignal {
             }
             //short[] buffer = new short[FT8Common.SAMPLE_RATE * FT8Common.FT8_SLOT_TIME];
             //79个符号，每个符号0.16秒，采样率12000，
-            short[] buffer = new short[(int) (0.5f +
-                    GenerateFT8.num_tones * GenerateFT8.symbol_period
-                            * GenerateFT8.sample_rate)]; // 数据信号中的采样数0.5+79*0.16*12000];
+//            short[] buffer = new short[(int) (0.5f +
+//                    GenerateFT8.num_tones * GenerateFT8.symbol_period
+//                            * GenerateFT8.sample_rate)]; // 数据信号中的采样数0.5+79*0.16*12000];
 
 
             transmitSignal.isTransmitting = true;
@@ -955,8 +1019,9 @@ public class FT8TransmitSignal {
             transmitSignal.mutableTransmittingMessage.postValue(String.format(" (%.0fHz) %s"
                     , GeneralVariables.getBaseFrequency()
                     , msg.getMessageText()));
-            if (!GenerateFT8.generateFt8(msg
-                    , GeneralVariables.getBaseFrequency(), buffer)) {
+            //生成信号
+            float[] buffer=GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency());
+            if (buffer==null) {
                 return;
             }
             ;

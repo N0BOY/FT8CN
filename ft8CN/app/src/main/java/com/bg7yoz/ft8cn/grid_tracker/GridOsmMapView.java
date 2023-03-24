@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.grid_tracker;
+/**
+ * OsmMapView中画通联线、画网格等操作。地图是sqlite模式，采用离线方式（nightUSGS4Layer）。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import static java.lang.Math.PI;
 import static java.lang.Math.asin;
@@ -22,6 +27,7 @@ import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
+import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -75,8 +81,8 @@ public class GridOsmMapView {
     // private final ArrayList<OverlayItem> markerItems = new ArrayList<>();
     private final ArrayList<GridPolyLine> gridLines = new ArrayList<>();
     private GridPolyLine selectedLine = null;
-    private static final int TIME_OUT=3;
-    private int selectLineTimeOut=TIME_OUT;//被选择的画线，停留的周期数
+    private static final int TIME_OUT = 3;
+    private int selectLineTimeOut = TIME_OUT;//被选择的画线，停留的周期数
     private final ArrayList<GridPolygon> gridPolygons = new ArrayList<>();
     private final ArrayList<GridMarker> gridMarkers = new ArrayList<>();
 
@@ -127,12 +133,13 @@ public class GridOsmMapView {
 
     /**
      * 缩放到线路的范围之内
+     *
      * @param line 线
      */
     public void zoomToLineBound(GridPolyLine line) {
         BoundingBox boundingBox = new BoundingBox();
         selectedLine = line;
-        selectLineTimeOut=TIME_OUT;
+        selectLineTimeOut = TIME_OUT;
         line.getOutlinePaint().setColor(gridMapView.getResources().getColor(
                 R.color.tracker_select_line_color));
         line.getOutlinePaint().setStrokeWidth(6);
@@ -143,15 +150,14 @@ public class GridOsmMapView {
         GeoPoint westSouthPoint = new GeoPoint(line.getActualPoints().get(1).getLatitude()
                 , line.getActualPoints().get(1).getLongitude());
 
-        if (Math.abs(westSouthPoint.getLongitude()-eastNorthPoint.getLongitude())>180){
-            if (eastNorthPoint.getLongitude() > westSouthPoint.getLongitude())
-            {
+        if (Math.abs(westSouthPoint.getLongitude() - eastNorthPoint.getLongitude()) > 180) {
+            if (eastNorthPoint.getLongitude() > westSouthPoint.getLongitude()) {
                 double temp = westSouthPoint.getLongitude();
                 westSouthPoint.setLongitude(eastNorthPoint.getLongitude());
                 eastNorthPoint.setLongitude(temp);
 
             }
-        }else {
+        } else {
             if (eastNorthPoint.getLongitude() < westSouthPoint.getLongitude()) {
                 double temp = westSouthPoint.getLongitude();
                 westSouthPoint.setLongitude(eastNorthPoint.getLongitude());
@@ -174,6 +180,7 @@ public class GridOsmMapView {
 
     /**
      * 显示CQ的位置
+     *
      * @param marker CQ的标记
      * @param offset 是否偏移
      */
@@ -182,7 +189,7 @@ public class GridOsmMapView {
         if (offset) {
             geoPoint.setLongitude(geoPoint.getLongitude() - 40f);
         }
-        gridMapView.getController().animateTo(geoPoint,2.5,500l);
+        gridMapView.getController().animateTo(geoPoint, 2.5, 500L);
     }
 
 
@@ -206,27 +213,29 @@ public class GridOsmMapView {
         gridMapView.invalidate();
     }
 
-    public GridPolyLine getSelectedLine(){
+    public GridPolyLine getSelectedLine() {
         return selectedLine;
     }
-    public void clearSelectedLines(){
-        if (selectedLine!=null){
+
+    public void clearSelectedLines() {
+        if (selectedLine != null) {
             selectedLine.closeInfoWindow();
             gridMapView.getOverlays().remove(selectedLine);
-            selectedLine=null;
+            selectedLine = null;
 
         }
     }
+
     /**
      * 清除线条
      */
     public synchronized void clearLines() {
 
-        boolean isOpening=false;
+        boolean isOpening = false;
 
-        if (selectedLine !=null){
+        if (selectedLine != null) {
             selectLineTimeOut--;
-            isOpening=selectedLine.isInfoWindowOpen();
+            isOpening = selectedLine.isInfoWindowOpen();
             selectedLine.closeInfoWindow();
             gridMapView.getOverlays().remove(selectedLine);
         }
@@ -235,7 +244,7 @@ public class GridOsmMapView {
             gridMapView.getOverlays().remove(line);
         }
         gridLines.clear();
-        if (selectedLine != null&& selectLineTimeOut>0) {
+        if (selectedLine != null && selectLineTimeOut > 0) {
             gridMapView.getOverlays().add(selectedLine);
             if (isOpening) selectedLine.showInfoWindow();
         }
@@ -293,6 +302,54 @@ public class GridOsmMapView {
         gridPolygon.setSubDescription(subDetail);
         //gridPolygon.showInfoWindow();
         return gridPolygon;
+    }
+
+    /**
+     * 标记、更新新发生消息的网格
+     *
+     * @param recordStr 历史记录
+     * @return 网格对象
+     */
+    public GridPolygon upgradeGridInfo(QSLRecordStr recordStr) {
+        GridPolygon gridPolygon = getGridPolygon(recordStr.getGridsquare());
+        if (gridPolygon == null) {
+            if (recordStr.isQSL) {
+                gridPolygon = addGridPolygon(recordStr.getGridsquare(), GridMode.QSL);
+            } else {
+                gridPolygon = addGridPolygon(recordStr.getGridsquare(), GridMode.QSO);
+            }
+        }
+
+        gridPolygon.setSnippet(String.format(String.format("%s %s",
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_freq)
+                        , recordStr.getFreq()),
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_band)
+                        , recordStr.getBand()))));
+
+        gridPolygon.setSubDescription(String.format("%s\n%s\n%s  %s\n%s %s",
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_start_time)
+                        , recordStr.getTime_on()),
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_end_time)
+                        , recordStr.getTime_off()),
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_rcvd)
+                        , recordStr.getRst_rcvd()),
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_sent)
+                        , recordStr.getRst_sent()),
+
+                String.format(GeneralVariables.getStringFromResource(R.string.qsl_mode)
+                        , recordStr.getMode()),
+                recordStr.getComment()
+        ));
+        gridPolygon.setTitle(String.format("%s--%s", recordStr.getCall(), recordStr.getStation_callsign()));//显示消息内容
+        gridPolygon.setInfoWindow(new GridRecordInfoWindow(R.layout.tracker_record_info_win, gridMapView));
+        return gridPolygon;
+    }
+
+    /**
+     * 更新地图
+     */
+    public void mapUpdate(){
+        gridMapView.invalidate();
     }
 
     /**
@@ -385,6 +442,23 @@ public class GridOsmMapView {
         return line;
     }
 
+    public synchronized GridPolyLine drawLine(QSLRecordStr recordStr) {
+        LatLng fromLatLng = MaidenheadGrid.gridToLatLng(recordStr.getGridsquare());
+        LatLng toLatLng = MaidenheadGrid.gridToLatLng(recordStr.getMy_gridsquare());
+        if (fromLatLng == null) {
+            //todo 把呼号转为国家的经纬度
+            return null;
+            //fromLatLng = message.fromLatLng;
+        }
+
+        if (toLatLng == null) {
+            //todo 把呼号转为国家的经纬度
+            return null;
+            //toLatLng = message.toLatLng;
+        }
+        final GridPolyLine line = new GridPolyLine(gridMapView, fromLatLng, toLatLng, recordStr);
+        return line;
+    }
 
     /**
      * 设定地图的离线来源
@@ -468,7 +542,47 @@ public class GridOsmMapView {
         //public String fromGrid;
         //public String toGrid;
         public Ft8Message msg;
+        public QSLRecordStr recorder;
         //public boolean marked = false;
+
+        @SuppressLint("DefaultLocale")
+        public GridPolyLine(MapView mapView, LatLng fromLatLng, LatLng toLatLng, QSLRecordStr recordStr) {
+            super(mapView);
+            this.recorder = recordStr;
+            setSnippet(String.format(String.format("%s %s",
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_freq)
+                            , recordStr.getFreq()),
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_band)
+                            , recordStr.getBand()))));
+
+            setSubDescription(String.format("%s\n%s\n%s  %s\n%s %s",
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_start_time)
+                            , recordStr.getTime_on()),
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_end_time)
+                            , recordStr.getTime_off()),
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_rcvd)
+                            , recordStr.getRst_rcvd()),
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_sent)
+                            , recordStr.getRst_sent()),
+
+                    String.format(GeneralVariables.getStringFromResource(R.string.qsl_mode)
+                            , recordStr.getMode()),
+                    recordStr.getComment()
+            ));
+            setTitle(String.format("%s--%s", recordStr.getCall(), recordStr.getStation_callsign()));//显示消息内容
+            this.mOutlinePaint = getStrokePaint(
+                    mapView.getResources().getColor(
+                            R.color.tracker_history_line_color), 3);
+            List<GeoPoint> pts = new ArrayList<>();
+            pts.add(GridOsmMapView.LatLng2GeoPoint(fromLatLng));
+            pts.add(GridOsmMapView.LatLng2GeoPoint(toLatLng));
+
+
+            setPoints(pts);
+            setGeodesic(true);
+            setInfoWindow(new GridRecordInfoWindow(R.layout.tracker_record_info_win, mapView));
+            mapView.getOverlayManager().add(this);
+        }
 
         @SuppressLint("DefaultLocale")
         public GridPolyLine(MapView mapView, LatLng fromLatLng, LatLng toLatLng, Ft8Message msg) {
@@ -480,11 +594,11 @@ public class GridOsmMapView {
                     , msg.snr, msg.time_sec
                     , MaidenheadGrid.getDistLatLngStr(fromLatLng, toLatLng)));
             setTitle(msg.getMessageText());//显示消息内容
-            if (msg.inMyCall(GeneralVariables.myCallsign)) {
+            if (msg.inMyCall()) {
                 this.mOutlinePaint = getStrokePaint(
                         mapView.getResources().getColor(
                                 R.color.tracker_in_my_line_color), 3);
-            }else {
+            } else {
                 this.mOutlinePaint = getStrokePaint(mapView.getResources().getColor(
                         R.color.tracker_line_color), 3);
             }
@@ -551,10 +665,16 @@ public class GridOsmMapView {
         }
 
         public void showNewInfo() {
-            if ((msg.fromDxcc || msg.fromItu || msg.fromCq)
-                    && !GeneralVariables.checkQSLCallsign(msg.callsignFrom)) {
+            if (msg != null) {
+                if ((msg.fromDxcc || msg.fromItu || msg.fromCq)
+                        && !GeneralVariables.checkQSLCallsign(msg.callsignFrom)) {
+                    showInfoWindow();
+                }
+            }
+            if (recorder != null) {
                 showInfoWindow();
             }
+
         }
     }
 
@@ -617,7 +737,8 @@ public class GridOsmMapView {
         private final Ft8Message msg;
 
         @SuppressLint({"UseCompatLoadingForDrawables", "DefaultLocale"})
-        public GridMarker(Context context, MainViewModel mainViewModel, MapView mapView, String grid, Ft8Message msg) {
+        public GridMarker(Context context, MainViewModel mainViewModel, MapView mapView
+                , String grid, Ft8Message msg) {
             super(mapView);
             this.grid = grid;
             this.context = context;
@@ -798,13 +919,13 @@ public class GridOsmMapView {
     /**
      * 根据当前时间画灰线
      */
-    public void setGrayLine(){
-        double[] lats=  computeDayNightTerminator(System.currentTimeMillis());
-        LatLng[] grayLine=new LatLng[lats.length*3];
+    public void setGrayLine() {
+        double[] lats = computeDayNightTerminator(System.currentTimeMillis());
+        LatLng[] grayLine = new LatLng[lats.length * 3];
         for (int i = 0; i < lats.length; i++) {
-            grayLine[i]=new LatLng((lats[i]-90),i);
-            grayLine[lats.length+i]=new LatLng((lats[i]-90),i);
-            grayLine[lats.length*2+i]=new LatLng((lats[i]-90),i);
+            grayLine[i] = new LatLng((lats[i] - 90), i);
+            grayLine[lats.length + i] = new LatLng((lats[i] - 90), i);
+            grayLine[lats.length * 2 + i] = new LatLng((lats[i] - 90), i);
         }
 
         Polyline line = new Polyline(gridMapView);
@@ -812,7 +933,7 @@ public class GridOsmMapView {
         line.setColor(context.getColor(R.color.tracker_gray_line_color));
 
         List<GeoPoint> pts = new ArrayList<>();
-        for (int i = 0; i <grayLine.length ; i++) {
+        for (int i = 0; i < grayLine.length; i++) {
             pts.add(GridOsmMapView.LatLng2GeoPoint(grayLine[i]));
         }
         line.setInfoWindow(null);

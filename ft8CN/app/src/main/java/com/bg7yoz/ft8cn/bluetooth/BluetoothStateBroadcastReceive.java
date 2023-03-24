@@ -1,7 +1,7 @@
 package com.bg7yoz.ft8cn.bluetooth;
 /**
  * 蓝牙状态广播类。连接、断开、变化
- * @author bg7yoz
+ * @writer bg7yoz
  * @date 2022-07-22
  */
 
@@ -92,4 +92,18 @@ public class BluetoothStateBroadcastReceive extends BroadcastReceiver {
         }
     }
 
+//    static final int PROFILE_HEADSET = 0;
+//    static final int PROFILE_A2DP  = 1;
+//    static final int PROFILE_OPP  = 2;
+//    static final int PROFILE_HID = 3;
+//    static final int PROFILE_PANU  = 4;
+//    static final int PROFILE_NAP  = 5;
+//    static final int PROFILE_A2DP_SINK  = 6;
+//
+//    private boolean checkBluetoothClass(BluetoothClass bluetoothClass,int proFile){
+//        if (proFile==PROFILE_A2DP){
+//            bluetoothClass.hasService(BluetoothClass.Service.RENDER);
+//            return true;
+//        }
+//    }
 }

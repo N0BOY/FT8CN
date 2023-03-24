@@ -78,7 +78,8 @@ public class XieGu6100Rig extends BaseRig {
         if (getConnector() != null) {
 //            getConnector().sendData(IcomRigConstant.setOperationMode(ctrAddress
 //                    , getCivAddress(), 1));//usb=1
-            getConnector().sendData(IcomRigConstant.setOperationDataMode(ctrAddress, getCivAddress(), IcomRigConstant.USB));//usb-d
+            getConnector().sendData(IcomRigConstant.setOperationDataMode(ctrAddress
+                    , getCivAddress(), IcomRigConstant.USB));//usb-d
         }
     }
 

@@ -343,7 +343,7 @@
     <string name="pl_icom_password">請輸入密碼</string>
     <string name="icom_login_button">登入</string>
     <string name="show_password">顯示密碼</string>
-    <string name="connect_icom_ip">連接到ICom電臺 %s ...</string>
+    <string name="connect_icom_ip">連接到ICom電臺 %s …</string>
     <string name="network_exception">%s：網路傳輸異常：%s</string>
     <string name="login_succeed">登錄成功！</string>
     <string name="loging_failed">登錄失敗，無效的用戶名或密碼。</string>
@@ -388,9 +388,43 @@
     <string name="follow_callsign_data">關註的呼號</string>
     <string name="cancel_clear_cache">取消</string>
     <string name="log_statistics_cache">緩存的日誌數</string>
-    <string name="logs_cache">QSO消息緩存</string>
+    <string name="logs_cache">解碼的消息</string>
     <string name="band_total">頻段 \t 數量</string>
-    <string name="modifier_editor">CQ修飾符</string>
-    <string name="pl_input_modifier">請輸入修飾符</string>
+    <string name="modifier_editor">CQ定向字</string>
+    <string name="pl_input_modifier">請輸入CQ定向字</string>
+    <string name="flex_start_atu">啟動調諧</string>
+    <string name="flex_max_tx_power">最大發射功率%d瓦</string>
+    <string name="flex_tune_power">調諧天調功率%d瓦</string>
+    <string name="html_flex_max_rf_power">最大發射功率</string>
+    <string name="html_atu_tune_power">ATU調諧功率</string>
+    <string name="flex_atu_tune_off">關閉載波</string>
+    <string name="flex_atu_tune_on">打開載波</string>
+    <string name="flex_logo_text">FlexRadio</string>
+    <string name="map_location_image">在地圖中的定位</string>
+    <string name="log_menu_location">定位</string>
+    <string name="tracker_query_qso_info">正在查詢QSO日誌數據…</string>
+    <string name="html_callsign_grid_total">合計：%d</string>
+    <string name="html_message_page_count">總頁數：%d</string>
+    <string name="html_message_page_size">每頁信息數：</string>
+    <string name="html_message_query">查詢</string>
+    <string name="config_save_swl">保存解碼信息</string>
+    <string name="config_donot_save_swl">不保存解碼</string>
+    <string name="config_save_swl_qso">保存SWL記錄</string>
+    <string name="config_donot_save_swl_qso">不保存SWL記錄</string>
+    <string name="html_query_swl_message">查詢解碼的信息（SWL）</string>
+    <string name="log_statistics_decode_msg">解碼的信息數</string>
+    <string name="config_Syn_time">同步時間</string>
+    <string name="utc_time_sync_delay_slow">已校正，時鐘慢了%d毫秒</string>
+    <string name="utc_time_sync_delay_faster">時鐘快了%d毫秒</string>
+    <string name="config_clock_is_accurate">時鐘很精確！</string>
+    <string name="html_start_date_swl_message">起始日期</string>
+    <string name="html_end_date_swl_message">結束日期</string>
+    <string name="html_query_qso_swl">查詢SWL的記錄日誌</string>
+    <string name="html_export_csv">導出到CSV文件</string>
+    <string name="html_export_text">導出到TEXT文件</string>
+    <string name="html_export_adi">導出到ADIF文件</string>
+    <string name="log_statistics_swl_qso">收聽到的QSO數</string>
+    <string name="config_clear_swl_qso">SWL記錄</string>
+
 
 </resources>

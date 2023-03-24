@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.ft8transmit;
 
+/**
+ * 记录QSO的类，用于保存数据库。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public class QSLRecord {
     private long startTime;//起始时间
     private long endTime;//结束时间

@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 帮助信息的对话框。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.app.Activity;
 import android.app.Dialog;

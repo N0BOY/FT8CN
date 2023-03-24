@@ -1,4 +1,11 @@
 package com.bg7yoz.ft8cn.connector;
+/**
+ * ICom网络方式的连接器。
+ * 注：ICom网络方式的音频数据包是Int类型，需要转换成Float类型
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import com.bg7yoz.ft8cn.icom.IComWifiRig;
 
@@ -42,7 +49,7 @@ public class IComWifiConnector extends BaseRigConnector{
     }
 
     @Override
-    public void sendWaveData(short[] data) {
+    public void sendWaveData(float[] data) {
         if (iComWifiRig.opened) {
             iComWifiRig.sendWaveData(data);
         }

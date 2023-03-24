@@ -1,8 +1,11 @@
 package com.bg7yoz.ft8cn.ft8transmit;
 /**
- * FT8信号生成器
- * @author BG7YOZ
+ * 生成FT8音频信号的类。音频数据是32位的浮点数组。
+ * @author BGY70Z
+ * @date 2023-03-20
  */
+
+import android.util.Log;
 
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
@@ -25,6 +28,7 @@ public class GenerateFT8 {
     public static final float symbol_period = FT8_SYMBOL_PERIOD;//FT8_SYMBOL_PERIOD=0.160f
     private static final float symbol_bt = FT8_SYMBOL_BT;//FT8_SYMBOL_BT=2.0f
     private static final float slot_time = FT8_SLOT_TIME;//FT8_SLOT_TIME=15f
+    //public static int sample_rate = 48000;//采样率
     public static int sample_rate = 12000;//采样率
 
 
@@ -117,10 +121,10 @@ public class GenerateFT8 {
     }
 
 
-    public static boolean generateFt8(Ft8Message msg, float frequency, short[] buffer) {
+    public static float[] generateFt8(Ft8Message msg, float frequency) {
         if (msg.callsignFrom.length()<3){
             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.callsign_error));
-            return false;
+            return null;
         }
         // 首先，将文本数据打包为二进制消息,共12个字节
         byte[] packed = new byte[FTX_LDPC_K_BYTES];
@@ -156,6 +160,7 @@ public class GenerateFT8 {
             packFreeTextTo77(msg.getMessageText(), packed);
         }
 
+
         // 其次，将二进制消息编码为FSK音调序列,79个字节
         byte[] tones = new byte[num_tones]; // 79音调（符号）数组
         ft8_encode(packed, tones);
@@ -164,21 +169,31 @@ public class GenerateFT8 {
 
         int num_samples = (int) (0.5f + num_tones * symbol_period * sample_rate); // 数据信号中的采样数0.5+79*0.16*12000
 
+
+
+        //int num_silence = (int) ((slot_time * sample_rate - num_samples) / 2); // 两端填充静音到15秒（15*12000-num_samples）/2（1.18秒的样本数）
+        //int num_total_samples = num_silence + num_samples + num_silence;         // 填充信号中的样本数2.36秒+12.64秒=15秒的样本数
+
+        //float[] signal = new float[Ft8num_samples];
         float[] signal = new float[num_samples];
 
-        synth_gfsk(tones, num_tones, frequency, symbol_bt, symbol_period, sample_rate, signal, 0);
-
-        for (int i = 0; i < num_samples; i++) {
-            float x = signal[i];
-            if (x > 1.0)
-                x = 1.0f;
-            else if (x < -1.0)
-                x = -1.0f;
-            buffer[i] = (short) (0.5 + (x * 32767.0));
+        //Ft8num_sampleFT8声音的总采样数，不是字节数。15*12000
+        //for (int i = 0; i < Ft8num_samples; i++)//把数据全部静音。
+        for (int i = 0; i < num_samples; i++)//把数据全部静音。
+        {
+            signal[i] = 0;
         }
-        return true;
-    }
 
+        synth_gfsk(tones, num_tones, frequency, symbol_bt, symbol_period, sample_rate, signal, 0);
+        for (int i = 0; i < num_samples; i++)//把数据全部静音。
+        {
+           if (signal[i]>1.0||signal[i]<-1.0){
+               Log.e(TAG, "generateFt8: "+signal[i] );
+           }
+        }
+        return signal;
+
+    }
 
     private static native int packFreeTextTo77(String msg, byte[] c77);
 

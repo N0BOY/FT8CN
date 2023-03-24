@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.wave;
+/**
+ * 写WAVE文件的头。
+ * 已经弃用。FT8CN不做音频文件的操作。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.media.AudioFormat;
 import android.util.Log;

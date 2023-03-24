@@ -1,9 +1,15 @@
 package com.bg7yoz.ft8cn.grid_tracker;
+/**
+ * 网格追踪的主窗口。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -37,12 +45,15 @@ import com.bg7yoz.ft8cn.databinding.ActivityGridTrackerMainBinding;
 import com.bg7yoz.ft8cn.floatview.FloatView;
 import com.bg7yoz.ft8cn.floatview.FloatViewButton;
 import com.bg7yoz.ft8cn.ft8transmit.TransmitCallsign;
+import com.bg7yoz.ft8cn.log.OnQueryQSLRecordCallsign;
+import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.CallingListAdapter;
 import com.bg7yoz.ft8cn.ui.FreqDialog;
 import com.bg7yoz.ft8cn.ui.SetVolumeDialog;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,9 +73,12 @@ public class GridTrackerMainActivity extends AppCompatActivity {
     private CallingListAdapter callingListAdapter;
     private boolean messageListIsClose = false;
     private boolean configBarIsClose = false;
+    private QSLRecordStr qlsRecorder = null;//用于历史显示消息
+    private MutableLiveData<ArrayList<QSLRecordStr>> qslRecordList = new MutableLiveData<>();
+
 
     @SuppressLint("NotifyDataSetChanged")
-    protected void onCreateDelay() {
+    protected void doAfterCreate() {
         //设置消息列表
         callingListAdapter.notifyDataSetChanged();
         callMessagesRecyclerView.scrollToPosition(callingListAdapter.getItemCount() - 1);
@@ -72,12 +86,38 @@ public class GridTrackerMainActivity extends AppCompatActivity {
         setTipsRadioGroupClickerListener();//显示模式Group radio动作
         setShowTipsSwitchClickerListener();//显示提示开关动作
         readConfig();
+
+        //读取调用本activity的参数，如果不为空，说明要画参数中的消息
+        //画在日志界面中被选择的消息
+        Intent intentGet = getIntent();
+        qlsRecorder = (QSLRecordStr) intentGet.getSerializableExtra("qslList");
+        if (qlsRecorder != null) {
+            GridOsmMapView.GridPolyLine line = drawMessage(qlsRecorder);//在地图上画每一个消息
+            if (line != null) {
+                line.showInfoWindow();
+            }
+        }
+        //画日志界面查询出的全部消息
+        String queryKey = intentGet.getStringExtra("qslAll");
+        int queryFilter=intentGet.getIntExtra("queryFilter",0);
+        if (queryKey != null) {
+            ToastMessage.show(GeneralVariables.getStringFromResource(R.string.tracker_query_qso_info));
+            mainViewModel.databaseOpr.getQSLRecordByCallsign(true, 0, queryKey, queryFilter
+                    , new OnQueryQSLRecordCallsign() {
+                        @Override
+                        public void afterQuery(ArrayList<QSLRecordStr> records) {
+                            qslRecordList.postValue(records);
+                        }
+                    });
+        }
     }
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         //禁止休眠
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 , WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -95,7 +135,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
 
         gridOsmMapView = new GridOsmMapView(getBaseContext(), binding.osmMap, mainViewModel);
 
-        //---todo ---转移1
+
         callMessagesRecyclerView = binding.callMessagesRecyclerView;
         callingListAdapter = new CallingListAdapter(this, mainViewModel
                 , mainViewModel.ft8Messages, CallingListAdapter.ShowMode.TRACKER);
@@ -165,15 +205,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
                     gridOsmMapView.clearLines();
                     gridOsmMapView.clearMarkers();
                     for (Ft8Message msg : mainViewModel.currentMessages) {
-                        gridOsmMapView.upgradeGridInfo(
-                                msg.getMaidenheadGrid(mainViewModel.databaseOpr), msg.getMessageText()
-                                , String.format("%d dBm , %.1f ms", msg.snr, msg.time_sec));
-                        gridOsmMapView.drawLine(msg, mainViewModel.databaseOpr);
-                        if (msg.checkIsCQ()) {
-                            gridOsmMapView.addGridMarker(
-                                    msg.getMaidenheadGrid(mainViewModel.databaseOpr)
-                                    , msg);
-                        }
+                        drawMessage(msg);//在地图上画每一个消息
                     }
                     gridOsmMapView.showInfoWindows();
                 }
@@ -283,16 +315,50 @@ public class GridTrackerMainActivity extends AppCompatActivity {
         });
         gridOsmMapView.initMap(GeneralVariables.getMyMaidenhead4Grid(), true);
 
+        qslRecordList.observe(this, new Observer<ArrayList<QSLRecordStr>>() {
+            @Override
+            public void onChanged(ArrayList<QSLRecordStr> qslRecordStrs) {
+                for (QSLRecordStr record : qslRecordStrs) {
+                    drawMessage(record);//在地图上画每一个消息
+                }
+                gridOsmMapView.mapUpdate();
+            }
+        });
+
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                onCreateDelay();
+                //onCreateDelay();
                 closeMessages();
                 closeConfigBar();
+                doAfterCreate();
             }
         }, 1000);
 
         setContentView(binding.getRoot());
+    }
+
+    /**
+     * 在地图上画消息，包括收发消息和CQ消息
+     *
+     * @param msg 消息
+     */
+    @SuppressLint("DefaultLocale")
+    private void drawMessage(Ft8Message msg) {
+        gridOsmMapView.upgradeGridInfo(
+                msg.getMaidenheadGrid(mainViewModel.databaseOpr), msg.getMessageText()
+                , String.format("%d dBm , %.1f ms", msg.snr, msg.time_sec));
+        gridOsmMapView.drawLine(msg, mainViewModel.databaseOpr);
+        if (msg.checkIsCQ()) {
+            gridOsmMapView.addGridMarker(
+                    msg.getMaidenheadGrid(mainViewModel.databaseOpr)
+                    , msg);
+        }
+    }
+
+    private GridOsmMapView.GridPolyLine drawMessage(QSLRecordStr recordStr) {
+        gridOsmMapView.upgradeGridInfo(recordStr);
+        return gridOsmMapView.drawLine(recordStr);
     }
 
     private void setShowTipsSwitchClickerListener() {
@@ -685,9 +751,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
 
 
             @Override
-            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView
-                    , @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY
-                    , int actionState, boolean isCurrentlyActive) {
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
                 Ft8Message message = callingListAdapter.getMessageByViewHolder(viewHolder);
                 //制作呼叫背景的图标显示

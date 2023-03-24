@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 设置界面。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -11,10 +16,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 
 import com.bg7yoz.ft8cn.FAQActivity;
 import com.bg7yoz.ft8cn.Ft8Message;
@@ -30,6 +31,12 @@ import com.bg7yoz.ft8cn.ft8signal.FT8Package;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
+
+import java.io.IOException;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -503,6 +510,8 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+
+
         //设置自动呼叫关注的呼号
         binding.autoCallfollowSwitch.setOnCheckedChangeListener(null);
         binding.autoCallfollowSwitch.setChecked(GeneralVariables.autoCallFollow);
@@ -517,6 +526,40 @@ public class ConfigFragment extends Fragment {
                     mainViewModel.databaseOpr.writeConfig("autoCallFollow", "0", null);
                 }
                 setAutoCallFollow();
+            }
+        });
+
+        //设置保存SWL选项
+        binding.saveSWLSwitch.setOnCheckedChangeListener(null);
+        binding.saveSWLSwitch.setChecked(GeneralVariables.saveSWLMessage);
+        setSaveSwl();
+        binding.saveSWLSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.saveSWLMessage = binding.saveSWLSwitch.isChecked();
+                if (binding.saveSWLSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("saveSWL", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("saveSWL", "0", null);
+                }
+                setSaveSwl();
+            }
+        });
+
+        //设置保存SWL选项
+        binding.saveSWLQSOSwitch.setOnCheckedChangeListener(null);
+        binding.saveSWLQSOSwitch.setChecked(GeneralVariables.saveSWLMessage);
+        setSaveSwlQSO();
+        binding.saveSWLQSOSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.saveSWL_QSO = binding.saveSWLQSOSwitch.isChecked();
+                if (binding.saveSWLQSOSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("saveSWLQSO", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("saveSWLQSO", "0", null);
+                }
+                setSaveSwlQSO();
             }
         });
 
@@ -582,16 +625,30 @@ public class ConfigFragment extends Fragment {
             binding.autoCallfollowSwitch.setText(getString(R.string.do_not_call_the_following_callsign));
         }
     }
-
+    private void setSaveSwl() {
+        if (binding.saveSWLSwitch.isChecked()) {
+            binding.saveSWLSwitch.setText(getString(R.string.config_save_swl));
+        } else {
+            binding.saveSWLSwitch.setText(getString(R.string.config_donot_save_swl));
+        }
+    }
+    private void setSaveSwlQSO() {
+        if (binding.saveSWLQSOSwitch.isChecked()) {
+            binding.saveSWLQSOSwitch.setText(getString(R.string.config_save_swl_qso));
+        } else {
+            binding.saveSWLQSOSwitch.setText(getString(R.string.config_donot_save_swl_qso));
+        }
+    }
     /**
      * 设置UTC时间偏移的spinner
      */
     private void setUtcTimeOffsetSpinner() {
         UtcOffsetSpinnerAdapter adapter = new UtcOffsetSpinnerAdapter(requireContext());
-        binding.utcTimeOffsetSpinner.setAdapter(adapter);
+
         requireActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                binding.utcTimeOffsetSpinner.setAdapter(adapter);
                 adapter.notifyDataSetChanged();
                 binding.utcTimeOffsetSpinner.setSelection((UtcTimer.delay / 100 + 75) / 5);
             }
@@ -997,6 +1054,7 @@ public class ConfigFragment extends Fragment {
                 }
             }
         });
+        //排除选项
         binding.excludedHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1007,6 +1065,19 @@ public class ConfigFragment extends Fragment {
                 }
             }
         });
+
+        binding.swlHelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (GeneralVariables.isChina) {
+                    new HelpDialog(requireContext(), requireActivity(), "swlMode.txt", true).show();
+                } else {
+                    new HelpDialog(requireContext(), requireActivity(), "swlMode_en.txt", true).show();
+                }
+            }
+        });
+
+        //清除缓存
         binding.clearCacheHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1030,9 +1101,46 @@ public class ConfigFragment extends Fragment {
             public void onClick(View view) {
                 new ClearCacheDataDialog(requireContext(), requireActivity()
                         ,mainViewModel.databaseOpr
-                        ,ClearCacheDataDialog.CACHE_MODE.CALL_LOG).show();
+                        ,ClearCacheDataDialog.CACHE_MODE.SWL_MSG).show();
             }
         });
+        binding.clearSWlQsoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new ClearCacheDataDialog(requireContext(), requireActivity()
+                        ,mainViewModel.databaseOpr
+                        ,ClearCacheDataDialog.CACHE_MODE.SWL_QSO).show();
+            }
+        });
+
+        binding.synTImeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                UtcTimer.syncTime(new UtcTimer.AfterSyncTime() {
+                    @Override
+                    public void doAfterSyncTimer(int secTime) {
+                        setUtcTimeOffsetSpinner();
+                        if (secTime>100) {//正数时慢了
+                            ToastMessage.show(String.format(GeneralVariables
+                                    .getStringFromResource(R.string.utc_time_sync_delay_slow), secTime));
+                        }else if (secTime<-100){
+                            ToastMessage.show(String.format(GeneralVariables
+                                    .getStringFromResource(R.string.utc_time_sync_delay_faster), -secTime));
+                        }else {
+                            ToastMessage.show(GeneralVariables
+                                    .getStringFromResource(R.string.config_clock_is_accurate));
+                        }
+                    }
+
+                    @Override
+                    public void syncFailed(IOException e) {
+                        ToastMessage.show(e.getMessage());
+                    }
+                });
+
+            }
+        });
+
     }
 
     /**

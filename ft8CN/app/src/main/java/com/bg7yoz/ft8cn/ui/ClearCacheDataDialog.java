@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 清除缓存的对话框。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -30,7 +35,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ClearCacheDataDialog extends Dialog {
-    public static enum CACHE_MODE {FOLLOW_DATA, CALL_LOG}
+    public static enum CACHE_MODE {FOLLOW_DATA, SWL_MSG,SWL_QSO}
 
     private static final String TAG = "HelpDialog";
     private final Context context;
@@ -104,12 +109,27 @@ public class ClearCacheDataDialog extends Dialog {
             }
             cacheHelpMessage.setText(msg.toString());
         }
-        if (cache_mode==CACHE_MODE.CALL_LOG){
+        //解码的消息
+        if (cache_mode==CACHE_MODE.SWL_MSG){
             db.getMessageLogTotal(new OnAfterQueryFollowCallsigns() {
                 @Override
                 public void doOnAfterQueryFollowCallsigns(ArrayList<String> callsigns) {
                     StringBuilder msg=new StringBuilder();
-                    msg.append(GeneralVariables.getStringFromResource(R.string.log_statistics_cache));
+                    msg.append(GeneralVariables.getStringFromResource(R.string.log_statistics_decode_msg));
+                    for (int i = 0; i <callsigns.size() ; i++) {
+                        msg.append("\n"+callsigns.get(i));
+                    }
+                    cacheHelpMessage.setText(msg.toString());
+                }
+            });
+        }
+        //SWL QSO日志
+        if (cache_mode==CACHE_MODE.SWL_QSO){
+            db.getSWLQsoLogTotal(new OnAfterQueryFollowCallsigns() {
+                @Override
+                public void doOnAfterQueryFollowCallsigns(ArrayList<String> callsigns) {
+                    StringBuilder msg=new StringBuilder();
+                    msg.append(GeneralVariables.getStringFromResource(R.string.log_statistics_swl_qso));
                     for (int i = 0; i <callsigns.size() ; i++) {
                         msg.append("\n"+callsigns.get(i));
                     }
@@ -135,11 +155,14 @@ public class ClearCacheDataDialog extends Dialog {
                 if (cache_mode == CACHE_MODE.FOLLOW_DATA) {
                     synchronized (GeneralVariables.followCallsign) {
                         GeneralVariables.followCallsign.clear();
-                        db.clearFollowCallsigns();
+                        db.clearFollowCallsigns();//清除关注的呼号
                     }
                 }
-                if (cache_mode==CACHE_MODE.CALL_LOG){
-                        db.clearLogCacheData();
+                if (cache_mode==CACHE_MODE.SWL_MSG){
+                        db.clearLogCacheData();//清除解码的消息（SWLMessages表）
+                }
+                if (cache_mode==CACHE_MODE.SWL_QSO){
+                    db.clearSWLQsoData();//清除SWL QSO日志
                 }
 
                 dismiss();

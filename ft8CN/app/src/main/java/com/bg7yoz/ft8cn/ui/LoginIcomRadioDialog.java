@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 网络模式登录ICOM的对话框。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -190,6 +195,7 @@ public class LoginIcomRadioDialog extends Dialog {
         //设置对话框的大小，以百分比0.6
         int height = getWindow().getWindowManager().getDefaultDisplay().getHeight();
         int width = getWindow().getWindowManager().getDefaultDisplay().getWidth();
+//        params.height = (int) (height * 0.6);
         if (width > height) {
             params.width = (int) (width * 0.6);
             //params.height = (int) (height * 0.6);

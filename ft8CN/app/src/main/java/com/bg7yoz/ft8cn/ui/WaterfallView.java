@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 瀑布图自定义控件。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import static android.graphics.Bitmap.Config.ARGB_8888;
 
@@ -21,7 +26,6 @@ import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.util.List;
 
-
 public class WaterfallView extends View {
     private int blockHeight = 2;//色块高度
     private float freq_width = 1;//频率的宽度
@@ -30,13 +34,14 @@ public class WaterfallView extends View {
     private int lastSequential = 0;
     private Bitmap lastBitMap = null;
     private Canvas _canvas;
-    private Paint linePaint;
-    private Paint touchPaint;
-    private Paint fontPaint;
-    private Paint messagePaint;
-    private Paint messagePaintBack;//消息背景
-    private Paint utcPaint;
-    private Paint utcPainBack;
+    private final Paint linePaint = new Paint();
+    private Paint touchPaint = new Paint();
+    private final Paint fontPaint = new Paint();
+    private final Paint messagePaint = new Paint();
+    private final Paint messagePaintBack = new Paint();//消息背景
+    private final Paint utcPaint = new Paint();
+    Paint linearPaint = new Paint();
+    private final Paint utcPainBack = new Paint();
     private float pathStart = 0;
     private float pathEnd = 0;
 
@@ -78,21 +83,21 @@ public class WaterfallView extends View {
         blackPaint.setColor(0xFF000000);
         _canvas.drawRect(0, 0, w, h, blackPaint);//先把背景画黑，防止文字重叠
 
-        linePaint = new Paint();
+        //linePaint = new Paint();
         linePaint.setColor(0xff990000);
         touchPaint = new Paint();
         touchPaint.setColor(0xff00ffff);
         touchPaint.setStrokeWidth(getResources().getDisplayMetrics().density);
 
 
-        fontPaint = new Paint();
+        //fontPaint = new Paint();
         fontPaint.setTextSize(dpToPixel(10));
         fontPaint.setColor(0xff00ffff);
         fontPaint.setAntiAlias(true);
         fontPaint.setDither(true);
         fontPaint.setTextAlign(Paint.Align.LEFT);
 
-        messagePaint = new Paint();
+       // messagePaint = new Paint();
         messagePaint.setTextSize(dpToPixel(11));
         messagePaint.setColor(0xff00ffff);
         messagePaint.setAntiAlias(true);
@@ -101,9 +106,9 @@ public class WaterfallView extends View {
         messagePaint.setStyle(Paint.Style.FILL_AND_STROKE);
         messagePaint.setTextAlign(Paint.Align.CENTER);
 
-        messagePaintBack = new Paint();
+        //messagePaintBack = new Paint();
         messagePaintBack.setTextSize(dpToPixel(11));
-        messagePaintBack.setColor(0xff000000);//背景50%透明
+        messagePaintBack.setColor(0xff000000);//背景不透明
         messagePaintBack.setAntiAlias(true);
         messagePaintBack.setDither(true);
         messagePaintBack.setStrokeWidth(dpToPixel(3));
@@ -111,22 +116,22 @@ public class WaterfallView extends View {
         messagePaintBack.setStyle(Paint.Style.FILL_AND_STROKE);
         messagePaintBack.setTextAlign(Paint.Align.CENTER);
 
-        utcPaint = new Paint();
+        //utcPaint = new Paint();
         utcPaint.setTextSize(dpToPixel(10));
         utcPaint.setColor(0xff00ffff);//
         utcPaint.setAntiAlias(true);
         utcPaint.setDither(true);
-        ///utcPaint.setStrokeWidth(1);
-        utcPaint.setStyle(Paint.Style.STROKE);
+        utcPaint.setStrokeWidth(0);
+        utcPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         utcPaint.setTextAlign(Paint.Align.LEFT);
 
-        utcPainBack = new Paint();
+        //utcPainBack = new Paint();
         utcPainBack.setTextSize(dpToPixel(10));
-        utcPainBack.setColor(0xff000000);//背景50%透明
+        utcPainBack.setColor(0xff000000);//背景不透明
         utcPainBack.setAntiAlias(true);
         utcPainBack.setDither(true);
         utcPainBack.setStrokeWidth(dpToPixel(4));
-        utcPainBack.setStyle(Paint.Style.STROKE);
+        utcPainBack.setStyle(Paint.Style.FILL_AND_STROKE);
         utcPainBack.setTextAlign(Paint.Align.LEFT);
 
 
@@ -214,12 +219,12 @@ public class WaterfallView extends View {
         }
         LinearGradient linearGradient = new LinearGradient(0, 0, getWidth() * 2, 0, colors
                 , null, Shader.TileMode.CLAMP);
-        Paint paint = new Paint();
-        paint.setShader(linearGradient);
+        //Paint linearPaint = new Paint();
+        linearPaint.setShader(linearGradient);
         Bitmap bitmap = Bitmap.createBitmap(lastBitMap, 0, 0, getWidth(), getHeight() - blockHeight);
-        _canvas.drawBitmap(bitmap, 0, blockHeight, paint);
+        _canvas.drawBitmap(bitmap, 0, blockHeight, linearPaint);
         bitmap.recycle();
-        _canvas.drawRect(0, 0, getWidth(), blockHeight, paint);
+        _canvas.drawRect(0, 0, getWidth(), blockHeight, linearPaint);
 
         //消息有3种：普通、CQ、有我
         if (drawMessage && messages != null) {
@@ -238,7 +243,7 @@ public class WaterfallView extends View {
 //                }
 
 
-                if (msg.isCallMe) {//与我有关
+                if (msg.inMyCall()) {//与我有关
                     //messagePaint.setColor(0xffFF0202);
                     messagePaint.setColor(0xffffb2b2);
                 } else if (msg.checkIsCQ()) {//CQ

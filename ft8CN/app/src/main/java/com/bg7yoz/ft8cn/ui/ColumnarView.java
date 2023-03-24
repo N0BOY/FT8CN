@@ -18,25 +18,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 柱状
+ * 柱状频谱图。
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 public class ColumnarView extends View {
     private static final String TAG = "ColumnarView";
     //每一个能量柱的宽度
     private int width;
     //每一个能量柱之间的间距
-    private int spacing = 1;
+    private final int spacing = 1;
     //能量块高度
-    private int blockHeight = 5;
+    private final int blockHeight = 5;
     //能量块下将速度
     private int blockSpeed = 5;
     //能量块与能量柱之间的距离
-    private int distance = 2;
+    private final int distance = 2;
 
     private boolean drawblock = false;
-    private Paint paint = new Paint();
-    private List<Rect> newData = new ArrayList<>();
-    private List<Rect> blockData = new ArrayList<>();
+    private final Paint paint = new Paint();
+    private final List<Rect> newData = new ArrayList<>();
+    private final List<Rect> blockData = new ArrayList<>();
 
     private Bitmap lastBitMap=null;
     private Canvas _canvas;
@@ -79,10 +81,10 @@ public class ColumnarView extends View {
                 if (blockData.size() == 0 || newData.size() != blockData.size()) {
                     blockData.clear();
                     for (int i = 0; i < data.length / 2; i++) {
-                        Rect rect = new Rect();
-                        rect.top =getHeight()- blockHeight;
-                        rect.bottom = getHeight();
-                        blockData.add(rect);
+                        Rect blockRect = new Rect();
+                        blockRect.top =getHeight()- blockHeight;
+                        blockRect.bottom = getHeight();
+                        blockData.add(blockRect);
                     }
                 }
                 for (int i = 0; i < blockData.size(); i++) {
@@ -98,18 +100,18 @@ public class ColumnarView extends View {
             }
         }
         newData.clear();
-        float rateHeight = (float) 0.95f * getHeight() / 256;//0.95是比率，柱形的最大高度不超过95%
+        float rateHeight =  0.95f * getHeight() / 256;//0.95是比率，柱形的最大高度不超过95%
         for (int i = 0; i < data.length / 2; i++) {
-            Rect rect = new Rect();
+            Rect colRect = new Rect();
             if (newData.size() == 0) {
-                rect.left = 0;
+                colRect.left = 0;
             } else {
-                rect.left = i * getWidth() / (data.length / 2);
+                colRect.left = i * getWidth() / (data.length / 2);
             }
-            rect.top = getHeight() - Math.round(Math.max(data[i], data[i + 1]) * rateHeight);
-            rect.right = rect.left + width - spacing;
-            rect.bottom = getHeight();
-            newData.add(rect);
+            colRect.top = getHeight() - Math.round(Math.max(data[i], data[i + 1]) * rateHeight);
+            colRect.right = colRect.left + width - spacing;
+            colRect.bottom = getHeight();
+            newData.add(colRect);
         }
     }
 
@@ -121,9 +123,10 @@ public class ColumnarView extends View {
 
         lastBitMap= Bitmap.createBitmap(w,h, ARGB_8888);
         _canvas=new Canvas(lastBitMap);
-        paint.setShader(new LinearGradient(0f, 0f, 0f, getHeight(),
+        LinearGradient linearGradient=new LinearGradient(0f, 0f, 0f, getHeight(),
                 new int[]{0xff00ffff,0xff00ffff, Color.BLUE}
-                , new float[]{0f, 0.6f, 1f}, Shader.TileMode.CLAMP));
+                , new float[]{0f, 0.6f, 1f}, Shader.TileMode.CLAMP);
+        paint.setShader(linearGradient);
         linePaint = new Paint();
         linePaint.setColor(0xff990000);
         touchPaint = new Paint();
@@ -149,7 +152,6 @@ public class ColumnarView extends View {
             freq_hz = Math.round(3000f * (float) touch_x / (float) getWidth());
             canvas.drawLine(touch_x, 0, touch_x, getHeight(), touchPaint);
         }
-
         invalidate();
     }
     public void setTouch_x(int touch_x) {

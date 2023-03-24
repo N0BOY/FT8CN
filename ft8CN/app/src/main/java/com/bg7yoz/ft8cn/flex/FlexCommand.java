@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.flex;
 
+/**
+ * 用于区分Flex各命令的枚举
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public enum FlexCommand {
     UNKNOW,
     CLIENT_GUI,
@@ -53,5 +58,9 @@ public enum FlexCommand {
     SUB_DAX_ALL,
     DISPLAY_PAN,
 
-    TRANSMIT_POWER
+    TRANSMIT_POWER,
+    TRANSMIT_MAX_POWER,
+    AUT_TUNE_MAX_POWER,
+    ATU,
+    PTT_ON
 }

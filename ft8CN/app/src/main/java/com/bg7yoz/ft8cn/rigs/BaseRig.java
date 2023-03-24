@@ -5,7 +5,9 @@ import androidx.lifecycle.MutableLiveData;
 import com.bg7yoz.ft8cn.connector.BaseRigConnector;
 
 /**
- * 电台的抽象类
+ * 电台的抽象类。
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 public abstract class BaseRig {
     private long freq;//当前频率值
@@ -43,7 +45,7 @@ public abstract class BaseRig {
         }
     }
 
-    public void sendWaveData(short[] data) {
+    public void sendWaveData(float[] data) {
         //留给ICOM电台使用
     }
 

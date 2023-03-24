@@ -1,4 +1,10 @@
 package com.bg7yoz.ft8cn.ft8listener;
+/**
+ * 用于监听音频的类。监听通过时钟UtcTimer来控制周期，通过OnWaveDataListener接口来读取音频数据。
+ *
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 
@@ -18,7 +24,7 @@ public class FT8SignalListener {
     private static final String TAG = "FT8SignalListener";
     private final UtcTimer utcTimer;
     //private HamRecorder hamRecorder;
-    private OnFt8Listen onFt8Listen;//当开始监听，解码结束后触发的事件
+    private final OnFt8Listen onFt8Listen;//当开始监听，解码结束后触发的事件
     //private long band;
     public MutableLiveData<Long> decodeTimeSec = new MutableLiveData<>();//解码的时长
     private OnWaveDataListener onWaveDataListener;
@@ -74,7 +80,7 @@ public class FT8SignalListener {
     /**
      * 获取当前时间的偏移量，这里包括总的时钟偏移，也包括本实例的偏移
      *
-     * @return
+     * @return int
      */
     public int time_Offset() {
         return utcTimer.getTime_sec() + UtcTimer.delay;
@@ -99,91 +105,77 @@ public class FT8SignalListener {
                         }
                     });
         }
-//
-//        hamRecorder.getVoiceData(FT8Common.FT8_SLOT_TIME_MILLISECOND, true
-//                , new OnGetVoiceDataDone() {
-//                    @Override
-//                    public void onGetDone(float[] data) {
-//                        Log.d(TAG, "开始解码...");
-//                        //testFt8(utc, HamRecorder.byteDataTo16BitData(data));
-//                        //decodeFt8(utc, HamRecorder.getFloatFromBytes(data));
-//                        decodeFt8(utc, data);
-//                    }
-//                });
     }
 
     public void decodeFt8(long utc, float[] voiceData) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-        long time = System.currentTimeMillis();
-        if (onFt8Listen != null) {
-            onFt8Listen.beforeListen(utc);
-        }
-        ArrayList<Ft8Message> ft8Messages = new ArrayList<>();
-        //long ft8Decoder;
-
-        Ft8Message ft8Message = new Ft8Message(FT8Common.FT8_MODE);
-
-        ft8Message.utcTime = utc;
-        ft8Message.band = GeneralVariables.band;
-
-        //此处，改为reset,是因为在cpp部分，改为一个变量，不是以指针，申请新内存的方式处理了。
-        //其实这种方式要注意一个问题，在一个周期之内，必须解码完毕，否则新的解码又要开始了
-        long ft8Decoder = InitDecoder(ft8Message.utcTime, FT8Common.SAMPLE_RATE
-                , voiceData.length, true);
-
-        //DecoderFt8Reset(ft8Decoder, ft8Message.utcTime, voiceData.length);
-
-        DecoderMonitorPressFloat(voiceData, ft8Decoder);
-
-
-        int num_candidates = DecoderFt8FindSync(ft8Decoder);
-        float dt = 0;
-        int dtAverage = 0;
-        for (int idx = 0; idx < num_candidates; ++idx) {
-
-            try {//做一下解码失败保护
-                if (DecoderFt8Analysis(idx, ft8Decoder, ft8Message)) {
-                    if (ft8Message.isValid) {
-                        Ft8Message msg = new Ft8Message(ft8Message);//此处使用msg，是因为有的哈希呼号会把<...>替换掉
-                        if (checkMessageSame(ft8Messages, msg)) {
-                            continue;
-                        }
-                        dt += ft8Message.time_sec;
-                        dtAverage++;
-                        //ft8Messages.add(new Ft8Message(ft8Message));
-                        ft8Messages.add(msg);
-                    }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                long time = System.currentTimeMillis();
+                if (onFt8Listen != null) {
+                    onFt8Listen.beforeListen(utc);
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "run: " + e.getMessage());
+                ArrayList<Ft8Message> ft8Messages = new ArrayList<>();
+
+                Ft8Message ft8Message = new Ft8Message(FT8Common.FT8_MODE);
+
+                ft8Message.utcTime = utc;
+                ft8Message.band = GeneralVariables.band;
+
+                //此处，改为reset,是因为在cpp部分，改为一个变量，不是以指针，申请新内存的方式处理了。
+                //其实这种方式要注意一个问题，在一个周期之内，必须解码完毕，否则新的解码又要开始了
+                long ft8Decoder = InitDecoder(ft8Message.utcTime, FT8Common.SAMPLE_RATE
+                        , voiceData.length, true);
+
+                //DecoderFt8Reset(ft8Decoder, ft8Message.utcTime, voiceData.length);
+
+                DecoderMonitorPressFloat(voiceData, ft8Decoder);
+
+
+                int num_candidates = DecoderFt8FindSync(ft8Decoder);
+                float dt = 0;
+                int dtAverage = 0;
+                for (int idx = 0; idx < num_candidates; ++idx) {
+
+                    try {//做一下解码失败保护
+                        if (DecoderFt8Analysis(idx, ft8Decoder, ft8Message)) {
+                            if (ft8Message.isValid) {
+                                Ft8Message msg = new Ft8Message(ft8Message);//此处使用msg，是因为有的哈希呼号会把<...>替换掉
+                                if (checkMessageSame(ft8Messages, msg)) {
+                                    continue;
+                                }
+                                dt += ft8Message.time_sec;
+                                dtAverage++;
+                                //ft8Messages.add(new Ft8Message(ft8Message));
+                                ft8Messages.add(msg);
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "run: " + e.getMessage());
+                    }
+
+                }
+                float time_sec = 0f;
+                if (dtAverage != 0) {
+                    time_sec = dt / dtAverage;
+                    //utcTimer.setTime_sec(Math.round(time_sec * 1000));
+                } else {//当检测不到时，不要偏移时间
+                    utcTimer.setTime_sec(Math.round(0));
+                }
+
+                //移到finalize() 方法中调用了
+                DeleteDecoder(ft8Decoder);
+
+
+                if (onFt8Listen != null) {
+                    onFt8Listen.afterDecode(utc, time_sec, UtcTimer.sequential(utc), ft8Messages);
+                }
+
+                decodeTimeSec.postValue(System.currentTimeMillis() - time);//解码耗时
+
+                Log.d(TAG, String.format("解码耗时:%d毫秒", System.currentTimeMillis() - time));
             }
-
-        }
-        float time_sec = 0f;
-        if (dtAverage != 0) {
-            time_sec = dt / dtAverage;
-            //utcTimer.setTime_sec(Math.round(time_sec * 1000));
-        } else {//当检测不到时，不要偏移时间
-            utcTimer.setTime_sec(Math.round(0));
-        }
-
-        //移到finalize() 方法中调用了
-        DeleteDecoder(ft8Decoder);
-
-
-        if (onFt8Listen != null) {
-            onFt8Listen.afterDecode(utc, time_sec, UtcTimer.sequential(utc), ft8Messages);
-        }
-
-        decodeTimeSec.postValue(System.currentTimeMillis() - time);//解码耗时
-
-        db.writeMessage(ft8Messages, GeneralVariables.myCallsign);//把消息写到数据库
-
-        Log.d(TAG, String.format("解码耗时:%d毫秒", System.currentTimeMillis() - time));
-//            }
-//        }).start();
+        }).start();
     }
 
 
@@ -192,7 +184,7 @@ public class FT8SignalListener {
      *
      * @param ft8Messages 消息列表
      * @param ft8Message  消息
-     * @return
+     * @return boolean
      */
     private boolean checkMessageSame(ArrayList<Ft8Message> ft8Messages, Ft8Message ft8Message) {
         for (Ft8Message msg : ft8Messages) {
@@ -256,7 +248,7 @@ public class FT8SignalListener {
      * @param idx        中标信号的序号
      * @param decoder    解码器的地址
      * @param ft8Message 解出来的消息
-     * @return
+     * @return boolean
      */
     public native boolean DecoderFt8Analysis(int idx, long decoder, Ft8Message ft8Message);
 

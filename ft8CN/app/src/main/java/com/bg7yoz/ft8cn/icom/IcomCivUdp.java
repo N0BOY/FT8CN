@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.icom;
+/**
+ * 处理ICom的CIV流。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.util.Log;
 

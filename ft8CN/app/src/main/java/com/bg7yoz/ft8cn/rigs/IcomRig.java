@@ -75,8 +75,10 @@ public class IcomRig extends BaseRig {
         if (getConnector() != null) {
             //因为担心老的ICOM电台不一定支持USB-D，所以，先做个一USB模式，再进入USB-D模式，
             // 这样，如果USB-D模式不支持，USB-D的指令就是无效的，电台就停留在USB模式下了
-            //getConnector().sendData(IcomRigConstant.setOperationMode(ctrAddress, getCivAddress(), IcomRigConstant.USB));//usb
-            getConnector().sendData(IcomRigConstant.setOperationDataMode(ctrAddress, getCivAddress(), IcomRigConstant.USB));//usb-d
+            //getConnector().sendData(IcomRigConstant.setOperationMode(ctrAddress
+            // , getCivAddress(), IcomRigConstant.USB));//usb
+            getConnector().sendData(IcomRigConstant.setOperationDataMode(ctrAddress
+                    , getCivAddress(), IcomRigConstant.USB));//usb-d
         }
     }
 
@@ -126,7 +128,7 @@ public class IcomRig extends BaseRig {
     }
 
     @Override
-    public void sendWaveData(short[] data) {//发送音频数据到电台，用于网络方式
+    public void sendWaveData(float[] data) {//发送音频数据到电台，用于网络方式
         if (getConnector() != null) {
             getConnector().sendWaveData(data);
         }

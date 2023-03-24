@@ -1,4 +1,11 @@
 package com.bg7yoz.ft8cn.html;
+/**
+ * Http服务的具体内容。数据库访问不需要异步方式。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
+
+import static com.bg7yoz.ft8cn.html.HtmlContext.HTML_STRING;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
@@ -52,52 +59,54 @@ public class LogHttpServer extends NanoHTTPD {
         }
 
         if (uri.equalsIgnoreCase("CONFIG")) {//查配置信息
-            msg = HtmlContext.HTML_STRING(getConfig());
+            msg = HTML_STRING(getConfig());
         } else if (uri.equalsIgnoreCase("showQSLCallsigns")) {//显示通联过的呼号，包括最后的时间
-            msg = HtmlContext.HTML_STRING(showQslCallsigns());
+            msg = HTML_STRING(showQslCallsigns(session));
         } else if (uri.equalsIgnoreCase("DEBUG")) {//查通联过的呼号
-            msg = HtmlContext.HTML_STRING(showDebug());
+            msg = HTML_STRING(showDebug());
         } else if (uri.equalsIgnoreCase("SHOWHASH")) {//查通呼号的哈希表
-            msg = HtmlContext.HTML_STRING(showCallsignHash());
-        } else if (uri.equalsIgnoreCase("NEWMESSAGE")) {//查通消息表
-            msg = HtmlContext.HTML_STRING(getNewMessages());
-        } else if (uri.equalsIgnoreCase("MESSAGE")) {//查通联消息表
-            msg = HtmlContext.HTML_STRING(getMessages());
-        } else if (uri.equalsIgnoreCase("CALLSIGNGRID")) {//查所有的表
-            msg = HtmlContext.HTML_STRING(showCallGridList());
+            msg = HTML_STRING(showCallsignHash());
+        } else if (uri.equalsIgnoreCase("NEWMESSAGE")) {//查本周期通联消息表
+            msg = HTML_STRING(getNewMessages());
+        } else if (uri.equalsIgnoreCase("MESSAGE")) {//查保存的SWL通联消息表
+            return getMessages(session);
+        }else if (uri.equalsIgnoreCase("QSOSWLMSG")) {//查SWL QSO通联消息表
+            return getSWLQsoMessages(session);
+        } else if (uri.equalsIgnoreCase("CALLSIGNGRID")) {//查呼号与网格的对应关系
+            msg = HTML_STRING(showCallGridList());
         } else if (uri.equalsIgnoreCase("GETCALLSIGNQTH")) {
-            msg = HtmlContext.HTML_STRING(getCallsignQTH());
+            msg = HTML_STRING(getCallsignQTH());
         } else if (uri.equalsIgnoreCase("ALLTABLE")) {//查所有的表
-            msg = HtmlContext.HTML_STRING(getAllTableName());
+            msg = HTML_STRING(getAllTableName());
         } else if (uri.equalsIgnoreCase("FOLLOWCALLSIGNS")) {//查关注的呼号
-            msg = HtmlContext.HTML_STRING(getFollowCallsigns());
+            msg = HTML_STRING(getFollowCallsigns());
         } else if (uri.equalsIgnoreCase("DELFOLLOW")) {//删除关注的呼号
             if (uriList.length >= 3) {
                 deleteFollowCallSign(uriList[2].replace("_", "/"));
             }
-            msg = HtmlContext.HTML_STRING(getFollowCallsigns());
+            msg = HTML_STRING(getFollowCallsigns());
         } else if (uri.equalsIgnoreCase("DELQSL")) {
             if (uriList.length >= 3) {
                 deleteQSLByMonth(uriList[2].replace("_", "/"));
             }
-            msg = HtmlContext.HTML_STRING(showQSLTable());
+            msg = HTML_STRING(showQSLTable());
         } else if (uri.equalsIgnoreCase("QSLCALLSIGNS")) {//查通联过的呼号
-            msg = HtmlContext.HTML_STRING(getQSLCallsigns());
+            msg = HTML_STRING(getQSLCallsigns());
         } else if (uri.equalsIgnoreCase("QSLTABLE")) {
-            msg = HtmlContext.HTML_STRING(showQSLTable());
+            msg = HTML_STRING(showQSLTable());
         } else if (uri.equalsIgnoreCase("IMPORTLOG")) {
-            msg = HtmlContext.HTML_STRING(showImportLog());
+            msg = HTML_STRING(showImportLog());
         } else if (uri.equalsIgnoreCase("IMPORTLOGDATA")) {
-            msg = HtmlContext.HTML_STRING(doImportLogFile(session));
+            msg = HTML_STRING(doImportLogFile(session));
         } else if (uri.equalsIgnoreCase("SHOWALLQSL")) {
-            msg = HtmlContext.HTML_STRING(showAllQSL());
+            msg = HTML_STRING(showAllQSL());
         } else if (uri.equalsIgnoreCase("SHOWQSL")) {
-            msg = HtmlContext.HTML_STRING(showQSLByMonth(uriList[2]));
+            msg = HTML_STRING(showQSLByMonth(uriList[2]));
         } else if (uri.equalsIgnoreCase("DELQSLCALLSIGN")) {//删除通联过的呼号
             if (uriList.length >= 3) {
                 deleteQSLCallSign(uriList[2].replace("_", "/"));
             }
-            msg = HtmlContext.HTML_STRING(getQSLCallsigns());
+            msg = HTML_STRING(getQSLCallsigns());
         } else {
             msg = HtmlContext.DEFAULT_HTML();
         }
@@ -152,7 +161,7 @@ public class LogHttpServer extends NanoHTTPD {
 
                 ArrayList<HashMap<String, String>> recordList = logFileImport.getLogRecords();
                 int importCount = 0;
-                int recordCount=0;
+                int recordCount = 0;
                 for (HashMap<String, String> record : recordList) {
                     QSLRecord qslRecord = new QSLRecord(record);
                     recordCount++;
@@ -161,12 +170,12 @@ public class LogHttpServer extends NanoHTTPD {
                     }
                 }
 
-                StringBuilder temp=new StringBuilder();
+                StringBuilder temp = new StringBuilder();
                 temp.append(String.format(GeneralVariables.getStringFromResource(R.string.html_import_count) + "<br>"
-                        , recordCount, importCount,logFileImport.getErrorCount()));
-                if (logFileImport.getErrorCount()>0) {
+                        , recordCount, importCount, logFileImport.getErrorCount()));
+                if (logFileImport.getErrorCount() > 0) {
                     temp.append("<table>");
-                    temp.append(String.format("<tr><th></th><th>%d malformed logs</th></tr>\n",logFileImport.getErrorCount()));
+                    temp.append(String.format("<tr><th></th><th>%d malformed logs</th></tr>\n", logFileImport.getErrorCount()));
                     for (int key : logFileImport.getErrorLines().keySet()) {
                         temp.append(String.format("<tr><td><pre>%d</pre></td><td><pre >%s</pre></td></tr>\n"
                                 , key, logFileImport.getErrorLines().get(key)));
@@ -202,14 +211,30 @@ public class LogHttpServer extends NanoHTTPD {
      *
      * @return config表内容
      */
-    private String showQslCallsigns() {
+    private String showQslCallsigns(IHTTPSession session) {
+        String callsign = "";
+        //读取查询的参数
+        Map<String, String> pars = session.getParms();
+        if (pars.get("callsign") != null) {
+            callsign = Objects.requireNonNull(pars.get("callsign"));
+        }
+        String where = String.format("%%%s%%", callsign);
+
+        String html = String.format("<form >%s<input type=text name=callsign value=\"%s\">" +
+                        "<input type=submit value=\"%s\"></form><br>\n"
+                , GeneralVariables.getStringFromResource(R.string.html_callsign)
+                , callsign
+                , GeneralVariables.getStringFromResource(R.string.html_message_query));
+
         Cursor cursor = mainViewModel.databaseOpr.getDb()
                 .rawQuery("select q.[call] as callsign ,q.gridsquare,q.band||\"(\"||q.freq||\")\" as band \n" +
                         ",q.qso_date||\"-\"||q.time_on as last_time from QSLTable q \n" +
                         "inner join QSLTable q2 ON q.id =q2.id \n" +
+                        "where q.[call] like ?\n" +
                         "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.time_on,q.band\n" +
-                        "HAVING q.qso_date||q.time_on =MAX(q2.qso_date||q2.time_on) \n", null);
-        return HtmlContext.ListTableContext(cursor);
+                        "HAVING q.qso_date||q.time_on =MAX(q2.qso_date||q2.time_on) \n", new String[]{where});
+        return html + HtmlContext.ListTableContext(cursor);
+
     }
 
     /**
@@ -223,7 +248,7 @@ public class LogHttpServer extends NanoHTTPD {
         return HtmlContext.ListTableContext(cursor);
     }
 
-    @SuppressLint("Range")
+    @SuppressLint({"Range", "DefaultLocale"})
     private String getCallsignQTH() {
         Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery("select callsign ,grid,updateTime from CallsignQTH", null);
         StringBuilder result = new StringBuilder();
@@ -238,7 +263,7 @@ public class LogHttpServer extends NanoHTTPD {
         result.append(String.format("<th>%s</th>", GeneralVariables.getStringFromResource(R.string.html_distance)));
         result.append(String.format("<th>%s</th>", GeneralVariables.getStringFromResource(R.string.html_update_time)));
         result.append("</tr>\n");
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat formatTime= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat formatTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         int order = 0;
         while (cursor.moveToNext()) {
             if (order % 2 == 0) {
@@ -252,18 +277,19 @@ public class LogHttpServer extends NanoHTTPD {
                     , cursor.getString(cursor.getColumnIndex("callsign"))
                     , cursor.getString(cursor.getColumnIndex("grid"))));
             result.append(String.format("<td class=\"default\" align=right>%s</td>",
-                    MaidenheadGrid.getDistStr(GeneralVariables.myCallsign
+                    MaidenheadGrid.getDistStr(GeneralVariables.getMyMaidenhead4Grid()
                             , cursor.getString(cursor.getColumnIndex("grid")))));
 
-            Date date =new Date(cursor.getLong(cursor.getColumnIndex("updateTime")));
+            Date date = new Date(cursor.getLong(cursor.getColumnIndex("updateTime")));
 
             result.append(String.format("<td class=\"default\" align=center>%s</td>",
-                    formatTime.format(date) ));
+                    formatTime.format(date)));
 
             result.append("</tr>\n");
             order++;
         }
-        result.append("</table>");
+        result.append("</table><br>");
+        result.append(String.format("%d", order));
         return result.toString();
     }
 
@@ -421,6 +447,7 @@ public class LogHttpServer extends NanoHTTPD {
      *
      * @return html
      */
+    @SuppressLint("DefaultLocale")
     private String showCallGridList() {
         StringBuilder result = new StringBuilder();
         result.append("<script language=\"JavaScript\">\n" +
@@ -429,13 +456,17 @@ public class LogHttpServer extends NanoHTTPD {
                 "}\n" +
                 "setTimeout('myrefresh()',5000); //指定5秒刷新一次，5000处可自定义设置，1000为1秒\n" +
                 "</script>");
-        result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        result.append(String.format(GeneralVariables.getStringFromResource(R.string.html_callsign_grid_total)
+                , GeneralVariables.callsignAndGrids.size()));
+        //result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        result.append("<table bgcolor=\"#a1a1a1\" border=\"1\" cellpadding=\"1\" cellspacing=\"0\" >\n");
         result.append("<tr>");
         result.append(String.format("<th>%s</th>", GeneralVariables.getStringFromResource(R.string.html_callsign)));
         result.append(String.format("<th>%s</th>", GeneralVariables.getStringFromResource(R.string.html_qsl_grid)));
         result.append("</tr>\n");
         result.append(GeneralVariables.getCallsignAndGridToHTML());
         result.append("</table><br>\n");
+
         return result.toString();
     }
 
@@ -453,7 +484,8 @@ public class LogHttpServer extends NanoHTTPD {
                 "}\n" +
                 "setTimeout('myrefresh()',5000); //指定5秒刷新一次，5000处可自定义设置，1000为1秒\n" +
                 "</script>");
-        result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"5\" cellspacing=\"1\">\n");
+        //result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
         result.append("<tr>");
         result.append(String.format("<th>%s</th>", GeneralVariables.getStringFromResource(R.string.html_variable)));
         result.append(String.format("<th>%s</th>", GeneralVariables.getStringFromResource(R.string.html_value)));
@@ -780,6 +812,27 @@ public class LogHttpServer extends NanoHTTPD {
         result.append("</td>");
         result.append("</tr>\n");
 
+
+        result.append("<tr class=\"bbb\">>");
+        result.append("<td class=\"default\" >");
+        result.append(GeneralVariables.getStringFromResource(R.string.html_flex_max_rf_power));
+        result.append("</td>\n");
+        result.append("<td class=\"default\" >");
+        result.append(String.format("%d W", GeneralVariables.flexMaxRfPower));
+        result.append("</td>");
+        result.append("</tr>\n");
+
+
+        result.append("<tr>");
+        result.append("<td class=\"default\" >");
+        result.append(GeneralVariables.getStringFromResource(R.string.html_atu_tune_power));
+        result.append("</td>\n");
+        result.append("<td class=\"default\" >");
+        result.append(String.format("%d W", GeneralVariables.flexMaxTunePower));
+        result.append("</td>");
+        result.append("</tr>\n");
+
+
         result.append("<tr class=\"bbb\">>");
         result.append("<td class=\"default\" >");
         result.append(GeneralVariables.getStringFromResource(R.string.be_excluded_callsigns));
@@ -790,6 +843,24 @@ public class LogHttpServer extends NanoHTTPD {
         result.append("</tr>\n");
 
 
+        result.append("<tr>");
+        result.append("<td class=\"default\" >");
+        result.append(GeneralVariables.getStringFromResource(R.string.config_save_swl));
+        result.append("</td>\n");
+        result.append("<td class=\"default\" >");
+        result.append(GeneralVariables.saveSWLMessage);
+        result.append("</td>");
+        result.append("</tr>\n");
+
+
+        result.append("<tr class=\"bbb\">>");
+        result.append("<td class=\"default\" >");
+        result.append(GeneralVariables.getStringFromResource(R.string.config_save_swl_qso));
+        result.append("</td>\n");
+        result.append("<td class=\"default\" >");
+        result.append(GeneralVariables.saveSWL_QSO);
+        result.append("</td>");
+        result.append("</tr>\n");
 
         result.append("</table><br>");
 
@@ -827,9 +898,7 @@ public class LogHttpServer extends NanoHTTPD {
         result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
         result.append(String.format("<tr><th>%s</th></tr>\n"
                 , GeneralVariables.getStringFromResource(R.string.html_tracking_qso_information)));
-//
-//
-//        result.append(GeneralVariables.qslRecordList.toHTML());
+
         result.append("<tr><td class=\"default\" >");
         result.append(GeneralVariables.qslRecordList.toHTML());
         result.append("</td></tr></table>\n");
@@ -851,7 +920,8 @@ public class LogHttpServer extends NanoHTTPD {
                 "}\n" +
                 "setTimeout('myrefresh()',5000); //指定5秒刷新一次，5000处可自定义设置，1000为1秒\n" +
                 "</script>");
-        result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        //result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        result.append("<table bgcolor=\"#a1a1a1\" border=\"1\" cellpadding=\"1\" cellspacing=\"0\" >\n");
         result.append("<tr>");
         result.append(String.format("<th>%s</th>"
                 , GeneralVariables.getStringFromResource(R.string.html_callsign)));
@@ -860,14 +930,14 @@ public class LogHttpServer extends NanoHTTPD {
         result.append("</tr>\n");
 
         int order = 0;
-        for (Map.Entry<Long,String> entry: Ft8Message.hashList.entrySet()) {
+        for (Map.Entry<Long, String> entry : Ft8Message.hashList.entrySet()) {
             if ((order / 3) % 2 == 0) {
                 result.append("<tr>");
             } else {
                 result.append("<tr class=\"bbb\">");
             }
-            result.append(String.format("<td class=\"default\" >%s</td>", entry.getValue()));
-            result.append(String.format("<td class=\"default\" >0x%x</td>", entry.getKey()));
+            result.append(String.format("<td class=\"default\" > %s </td>", entry.getValue()));
+            result.append(String.format("<td class=\"default\" > 0x%x </td>", entry.getKey()));
             result.append("</tr>\n");
             order++;
         }
@@ -888,17 +958,526 @@ public class LogHttpServer extends NanoHTTPD {
         return result.toString();
     }
 
+    @SuppressLint("Range")
+    private Response exportSWLMessage(String exportFile, String callsign, String start_date, String end_date) {
+        Response response;
+        StringBuilder fileName = new StringBuilder();
+        fileName.append("message");
+        if (callsign.length() > 0) {
+            fileName.append("_");
+            fileName.append(callsign.replace("/", "_")
+                    .replace("\\", "_")
+                    .replace(":", "_")
+                    .replace("?", "_")
+                    .replace("*", "_")
+                    .replace("|", "_")
+                    .replace("\"", "_")
+                    .replace("'", "_")
+                    .replace("<", "_")
+                    .replace(".", "_")
+                    .replace(">", "_"));
+        }
+        if (start_date.length()>0){
+            fileName.append(String.format("_%s",start_date));
+        }
+        if (end_date.length()>0){
+            fileName.append(String.format("_%s",end_date));
+        }
+        fileName.append(".").append(exportFile);
+
+
+        Cursor cursor;
+        StringBuilder dateSql = new StringBuilder();
+        if (!start_date.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(UTC,1,8)>=\"%s\") "
+                    , start_date.replace("-", "")));
+        }
+        if (!end_date.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(UTC,1,8)<=\"%s\") "
+                    , end_date.replace("-", "")));
+        }
+        String whereStr = String.format("%%%s%%", callsign);
+        cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                        "select * from SWLMessages where ((CALL_TO LIKE ?)OR(CALL_FROM LIKE ?)) " +
+                                dateSql.toString() +
+                                " order by ID "
+                        , new String[]{whereStr, whereStr});
+
+        StringBuilder result=new StringBuilder();
+
+        String formatStr;
+        if (exportFile.equalsIgnoreCase("CSV")){
+            formatStr="%s,%.3f,Rx,%s,%d,%.1f,%d,%s\n";
+        }else {
+            formatStr="%s %12.3f Rx %s %6d %4.1f %4d %s\n";
+        }
+
+        while (cursor.moveToNext()) {
+            String utcTime = cursor.getString(cursor.getColumnIndex("UTC"));
+            int dB = cursor.getInt(cursor.getColumnIndex("SNR"));
+            float dt = cursor.getFloat(cursor.getColumnIndex("TIME_SEC"));
+            int freq = cursor.getInt(cursor.getColumnIndex("FREQ"));
+            String callTo = cursor.getString(cursor.getColumnIndex("CALL_TO"));
+            String protocol = cursor.getString(cursor.getColumnIndex("Protocol"));
+            String callFrom = cursor.getString(cursor.getColumnIndex("CALL_FROM"));
+            String extra = cursor.getString(cursor.getColumnIndex("EXTRAL"));
+            long band = cursor.getLong(cursor.getColumnIndex("BAND"));
+
+            result.append(String.format(formatStr
+                    ,utcTime,(band/1000f/1000f),protocol,dB,dt,freq,String.format("%s %s %s",callTo,callFrom,extra)));
+        }
+        cursor.close();
+
+
+
+        response = newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "text/plain", result.toString());
+        response.addHeader("Content-Disposition"
+                , String.format("attachment;filename=%s",fileName.toString()));
+
+        return response;
+    }
 
     /**
-     * 查消息表
+     * 查SWL消息表
      *
      * @return html
      */
-    private String getMessages() {
-        Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery(
-                "select * from Messages order by ID DESC ", null);
-        return HtmlContext.ListTableContext(cursor);
+    @SuppressLint({"DefaultLocale", "Range"})
+    private Response getMessages(IHTTPSession session) {
+        int pageSize = 100;
+        String callsign = "";
+
+
+        StringBuilder result = new StringBuilder();
+        String startDate = "";
+        String endDate = "";
+        String exportFile = "";
+
+        //读取查询的参数
+        Map<String, String> pars = session.getParms();
+        int pageIndex = 1;
+        if (pars.get("page") != null) {
+            pageIndex = Integer.parseInt(Objects.requireNonNull(pars.get("page")));
+        }
+        if (pars.get("pageSize") != null) {
+            pageSize = Integer.parseInt(Objects.requireNonNull(pars.get("pageSize")));
+        }
+        if (pars.get("callsign") != null) {
+            callsign = Objects.requireNonNull(pars.get("callsign"));
+        }
+        if (pars.get("start_date") != null) {
+            startDate = Objects.requireNonNull(pars.get("start_date"));
+        }
+        if (pars.get("end_date") != null) {
+            endDate = Objects.requireNonNull(pars.get("end_date"));
+        }
+        String whereStr = String.format("%%%s%%", callsign);
+
+        if (pars.get("exportFile") != null) {
+            exportFile = Objects.requireNonNull(pars.get("exportFile"));
+        }
+
+        //导出到文件中
+        if (exportFile.equalsIgnoreCase("CSV")
+                || exportFile.equalsIgnoreCase("TXT")) {
+            return exportSWLMessage(exportFile, callsign, startDate, endDate);
+        }
+
+        result.append(String.format("<a href=\"message?callsign=%s&start_date=%s&end_date=%s&exportFile=csv\">%s</a>" +
+                        " , <a href=\"message?callsign=%s&start_date=%s&end_date=%s&exportFile=txt\">%s</a><br>"
+                , callsign, startDate, endDate,GeneralVariables.getStringFromResource(R.string.html_export_csv)
+                , callsign, startDate, endDate,GeneralVariables.getStringFromResource(R.string.html_export_text)));
+
+        Cursor cursor;
+        StringBuilder dateSql = new StringBuilder();
+        if (!startDate.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(UTC,1,8)>=\"%s\") "
+                    , startDate.replace("-", "")));
+        }
+        if (!endDate.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(UTC,1,8)<=\"%s\") "
+                    , endDate.replace("-", "")));
+        }
+        //计算总的记录数
+        cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                "select count(*) as rc from SWLMessages " +
+                        "where ((CALL_TO LIKE ?)OR(CALL_FROM LIKE ?))" + dateSql.toString()
+                , new String[]{whereStr, whereStr});
+        cursor.moveToFirst();
+        int pageCount = Math.round(((float) cursor.getInt(cursor.getColumnIndex("rc")) / pageSize) + 0.5f);
+        if (pageIndex > pageCount) pageIndex = pageCount;
+        cursor.close();
+
+        //查询、每页消息数设定
+        result.append(String.format("<form >%s , %s" +
+                        "<input type=number name=pageSize style=\"width:80px\" value=%d>" +//页码及页大小
+                        "<br>\n%s&nbsp;<input type=text name=callsign value=\"%s\">" +//呼号
+                        "<br>\n%s&nbsp;<input type=date name=\"start_date\" value=\"%s\">" +//起始时间
+                        "<br>\n%s&nbsp;<input type=date name=end_date value=\"%s\">" +//结束时间
+                        "&nbsp;&nbsp;<input type=submit value=\"%s\"><br>\n"
+                , String.format(GeneralVariables.getStringFromResource(R.string.html_message_page_count), pageCount)
+                , GeneralVariables.getStringFromResource(R.string.html_message_page_size)
+                , pageSize
+                , GeneralVariables.getStringFromResource(R.string.html_callsign)
+                , callsign
+                , GeneralVariables.getStringFromResource(R.string.html_start_date_swl_message)
+                , startDate
+                , GeneralVariables.getStringFromResource(R.string.html_end_date_swl_message)
+                , endDate
+                , GeneralVariables.getStringFromResource(R.string.html_message_query)));
+
+
+        //定位页，第一页、上一页、下一页，最后一页
+        result.append(String.format("<a href=\"message?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">|&lt;</a>" +
+                        "&nbsp;&nbsp;<a href=\"message?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">&lt;&lt;</a>" +
+                        "<input type=\"number\" name=\"page\" value=%d style=\"width:50px\">" +
+                        "<a href=\"message?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">&gt;&gt;</a>" +
+                        "&nbsp;&nbsp;<a href=\"message?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">&gt;|</a></form>\n"
+                , 1, pageSize, callsign, startDate, endDate
+                , pageIndex - 1 == 0 ? 1 : pageIndex - 1, pageSize, callsign, startDate, endDate
+                , pageIndex
+                , pageIndex == pageCount ? pageCount : pageIndex + 1, pageSize, callsign, startDate, endDate
+                , pageCount, pageSize, callsign, startDate, endDate));
+
+
+
+        cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                String.format(
+                        "select * from SWLMessages where ((CALL_TO LIKE ?)OR(CALL_FROM LIKE ?)) " +
+                                dateSql.toString() +
+                                " order by ID LIMIT(%d),%d "
+                        , (pageIndex - 1) * pageSize, pageSize), new String[]{whereStr, whereStr});
+
+        result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        result.append("<tr>");
+        result.append("<th>No.</th>");
+        result.append("<th>Protocol</th>");
+        result.append("<th>i3.n3</th>");
+        result.append("<th>UTC</th>");
+        result.append("<th>dB</th>");
+        result.append("<th>Dt</th>");
+        result.append(String.format("<th>%s</th>"
+                , GeneralVariables.getStringFromResource(R.string.html_qsl_freq)));
+        result.append(String.format("<th>%s</th>"
+                , GeneralVariables.getStringFromResource(R.string.message)));
+        result.append(String.format("<th>%s</th>"
+                , GeneralVariables.getStringFromResource(R.string.html_carrier_frequency_band)));
+        result.append("</tr>\n");
+        int order = 0;
+        while (cursor.moveToNext()) {
+            if (order % 2 == 0) {
+                result.append("<tr align=center>");
+            } else {
+                result.append("<tr align=center class=\"bbb\">");
+            }
+
+            //int id = cursor.getInt(cursor.getColumnIndex("ID"));
+            int i3 = cursor.getInt(cursor.getColumnIndex("I3"));
+            int n3 = cursor.getInt(cursor.getColumnIndex("N3"));
+            String utcTime = cursor.getString(cursor.getColumnIndex("UTC"));
+            int dB = cursor.getInt(cursor.getColumnIndex("SNR"));
+            float dt = cursor.getFloat(cursor.getColumnIndex("TIME_SEC"));
+            int freq = cursor.getInt(cursor.getColumnIndex("FREQ"));
+            String protocol = cursor.getString(cursor.getColumnIndex("Protocol"));
+            String callTo = cursor.getString(cursor.getColumnIndex("CALL_TO"));
+            String callFrom = cursor.getString(cursor.getColumnIndex("CALL_FROM"));
+            String extra = cursor.getString(cursor.getColumnIndex("EXTRAL"));
+            long band = cursor.getLong(cursor.getColumnIndex("BAND"));
+
+            //UtcTimer.getDatetimeStr(utcTime)
+            result.append(String.format("<td>%d</td>" +
+                            "<td>%s</td>" +//protocol
+                            "<td>%s</td>" +
+                            "<td>%s</td><td>%d</td><td>%.1f</td><td>%dHz</td><td><b>%s</b>" +
+                            "</td><td>%s</td>"
+                    , order + 1 + pageSize * (pageIndex - 1)
+                    , protocol
+                    , Ft8Message.getCommandInfoByI3N3(i3, n3)
+                    , utcTime
+                    , dB, dt, freq, String.format("<a href=\"message?&pageSize=%d&callsign=%s\">" +
+                                    "%s</a>&nbsp;&nbsp;" +
+                                    "<a href=\"message?&pageSize=%d&callsign=%s\">%s</a>&nbsp;&nbsp;%s"
+                            , pageSize, callTo.replace("<", "")
+                                    .replace(">", "")
+                            , callTo.replace("<", "&lt;")
+                                    .replace(">", "&gt;")
+                            , pageSize, callFrom.replace("<", "")
+                                    .replace(">", "")
+                            , callFrom.replace("<", "&lt;")
+                                    .replace(">", "&gt;"), extra)
+
+                    , BaseRigOperation.getFrequencyStr(band)));
+            //result.append(UtcTimer.getDatetimeStr(utcTime));
+            result.append("</tr>\n");
+            order++;
+        }
+        cursor.close();
+        result.append("</table><br>");
+
+
+        return newFixedLengthResponse(HtmlContext.HTML_STRING(result.toString()));
+        //return result.toString();
+
     }
+
+
+
+    @SuppressLint("Range")
+    private Response exportSWLQSOMessage(String exportFile, String callsign, String start_date, String end_date) {
+        Response response;
+        StringBuilder fileName = new StringBuilder();
+        fileName.append("swl_qso");
+        if (callsign.length() > 0) {
+            fileName.append("_");
+            fileName.append(callsign.replace("/", "_")
+                    .replace("\\", "_")
+                    .replace(":", "_")
+                    .replace("?", "_")
+                    .replace("*", "_")
+                    .replace("|", "_")
+                    .replace("\"", "_")
+                    .replace("'", "_")
+                    .replace("<", "_")
+                    .replace(".", "_")
+                    .replace(">", "_"));
+        }
+        if (start_date.length()>0){
+            fileName.append(String.format("_%s",start_date));
+        }
+        if (end_date.length()>0){
+            fileName.append(String.format("_%s",end_date));
+        }
+        fileName.append(".").append(exportFile);
+
+
+        Cursor cursor;
+        StringBuilder dateSql = new StringBuilder();
+        if (!start_date.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(qso_date_off,1,8)>=\"%s\") "
+                    , start_date.replace("-", "")));
+        }
+        if (!end_date.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(qso_date_off,1,8)<=\"%s\") "
+                    , end_date.replace("-", "")));
+        }
+        String whereStr = String.format("%%%s%%", callsign);
+
+        cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                String.format(
+                        "select * from SWLQSOTable where (([call] LIKE ?)OR(station_callsign LIKE ?)) " +
+                                dateSql.toString() +
+                                " order by ID "),new String[]{whereStr, whereStr});
+
+
+        response = newFixedLengthResponse(NanoHTTPD.Response.Status.OK, "text/plain"
+                , downQSLTable(cursor,true));
+        response.addHeader("Content-Disposition"
+                , String.format("attachment;filename=%s",fileName.toString()));
+
+        return response;
+    }
+
+
+
+
+    @SuppressLint({"DefaultLocale", "Range"})
+    private Response getSWLQsoMessages(IHTTPSession session) {
+        int pageSize = 100;
+        String callsign = "";
+
+
+        StringBuilder result = new StringBuilder();
+        String startDate = "";
+        String endDate = "";
+        String exportFile = "";
+
+        //读取查询的参数
+        Map<String, String> pars = session.getParms();
+        int pageIndex = 1;
+        if (pars.get("page") != null) {
+            pageIndex = Integer.parseInt(Objects.requireNonNull(pars.get("page")));
+        }
+        if (pars.get("pageSize") != null) {
+            pageSize = Integer.parseInt(Objects.requireNonNull(pars.get("pageSize")));
+        }
+        if (pars.get("callsign") != null) {
+            callsign = Objects.requireNonNull(pars.get("callsign"));
+        }
+        if (pars.get("start_date") != null) {
+            startDate = Objects.requireNonNull(pars.get("start_date"));
+        }
+        if (pars.get("end_date") != null) {
+            endDate = Objects.requireNonNull(pars.get("end_date"));
+        }
+        String whereStr = String.format("%%%s%%", callsign);
+
+        if (pars.get("exportFile") != null) {
+            exportFile = Objects.requireNonNull(pars.get("exportFile"));
+        }
+
+        //导出到文件中
+        if (exportFile.equalsIgnoreCase("ADI")) {
+            return exportSWLQSOMessage(exportFile, callsign, startDate, endDate);
+        }
+
+        result.append(String.format("<a href=\"QSOSWLMSG?callsign=%s&start_date=%s&end_date=%s&exportFile=adi\">%s</a>"
+                , callsign, startDate, endDate,GeneralVariables.getStringFromResource(R.string.html_export_adi)));
+
+        Cursor cursor;
+        StringBuilder dateSql = new StringBuilder();
+        if (!startDate.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(qso_date_off,1,8)>=\"%s\") "
+                    , startDate.replace("-", "")));
+        }
+        if (!endDate.equals("")) {
+            dateSql.append(String.format(" AND (SUBSTR(qso_date_off,1,8)<=\"%s\") "
+                    , endDate.replace("-", "")));
+        }
+        //计算总的记录数
+        cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                "select count(*) as rc from SWLQSOTable " +
+                        "where (([call] LIKE ?)OR(station_callsign LIKE ?))" + dateSql.toString()
+                , new String[]{whereStr, whereStr});
+        cursor.moveToFirst();
+        int pageCount = Math.round(((float) cursor.getInt(cursor.getColumnIndex("rc")) / pageSize) + 0.5f);
+        if (pageIndex > pageCount) pageIndex = pageCount;
+        cursor.close();
+
+        //查询、每页消息数设定
+        result.append(String.format("<form >%s , %s" +
+                        "<input type=number name=pageSize style=\"width:80px\" value=%d>" +//页码及页大小
+                        "<br>\n%s&nbsp;<input type=text name=callsign value=\"%s\">" +//呼号
+                        "<br>\n%s&nbsp;<input type=date name=\"start_date\" value=\"%s\">" +//起始时间
+                        "<br>\n%s&nbsp;<input type=date name=end_date value=\"%s\">" +//结束时间
+                        "&nbsp;&nbsp;<input type=submit value=\"%s\"><br>\n"
+                , String.format(GeneralVariables.getStringFromResource(R.string.html_message_page_count), pageCount)
+                , GeneralVariables.getStringFromResource(R.string.html_message_page_size)
+                , pageSize
+                , GeneralVariables.getStringFromResource(R.string.html_callsign)
+                , callsign
+                , GeneralVariables.getStringFromResource(R.string.html_start_date_swl_message)
+                , startDate
+                , GeneralVariables.getStringFromResource(R.string.html_end_date_swl_message)
+                , endDate
+                , GeneralVariables.getStringFromResource(R.string.html_message_query)));
+
+
+        //定位页，第一页、上一页、下一页，最后一页
+        result.append(String.format("<a href=\"QSOSWLMSG?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">|&lt;</a>" +
+                        "&nbsp;&nbsp;<a href=\"QSOSWLMSG?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">&lt;&lt;</a>" +
+                        "<input type=\"number\" name=\"page\" value=%d style=\"width:50px\">" +
+                        "<a href=\"QSOSWLMSG?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">&gt;&gt;</a>" +
+                        "&nbsp;&nbsp;<a href=\"QSOSWLMSG?page=%d&pageSize=%d&callsign=%s&start_date=%s&end_date=%s\">&gt;|</a></form>\n"
+                , 1, pageSize, callsign, startDate, endDate
+                , pageIndex - 1 == 0 ? 1 : pageIndex - 1, pageSize, callsign, startDate, endDate
+                , pageIndex
+                , pageIndex == pageCount ? pageCount : pageIndex + 1, pageSize, callsign, startDate, endDate
+                , pageCount, pageSize, callsign, startDate, endDate));
+
+
+
+        cursor = mainViewModel.databaseOpr.getDb().rawQuery(
+                String.format(
+                        "select * from SWLQSOTable where (([call] LIKE ?)OR(station_callsign LIKE ?)) " +
+                                dateSql.toString() +
+                                " order by ID LIMIT(%d),%d "
+                        , (pageIndex - 1) * pageSize, pageSize), new String[]{whereStr, whereStr});
+
+        result.append("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">\n");
+        result.append("<tr>");
+        result.append("<th>No.</th>");
+        result.append("<th>call</th>");
+        result.append("<th>gridsquare</th>");
+        result.append("<th>mode</th>");
+        result.append("<th>rst_sent</th>");
+        result.append("<th>rst_rcvd</th>");
+        result.append("<th>qso_date</th>");
+        result.append("<th>time_on</th>");
+        result.append("<th>qso_date_off</th>");
+        result.append("<th>time_off</th>");
+        result.append("<th>band</th>");
+        result.append("<th>freq</th>");
+        result.append("<th>station_callsign</th>");
+        result.append("<th>my_gridsquare</th>");
+        result.append("<th>comment</th>");
+        result.append("</tr>\n");
+        int order = 0;
+        while (cursor.moveToNext()) {
+            if (order % 2 == 0) {
+                result.append("<tr align=center>");
+            } else {
+                result.append("<tr align=center class=\"bbb\">");
+            }
+
+            //int id = cursor.getInt(cursor.getColumnIndex("ID"));
+            String call = cursor.getString(cursor.getColumnIndex("call"));
+            String gridsquare = cursor.getString(cursor.getColumnIndex("gridsquare"));
+            String mode = cursor.getString(cursor.getColumnIndex("mode"));
+            String rst_sent = cursor.getString(cursor.getColumnIndex("rst_sent"));
+            String rst_rcvd = cursor.getString(cursor.getColumnIndex("rst_rcvd"));
+            String qso_date = cursor.getString(cursor.getColumnIndex("qso_date"));
+            String time_on = cursor.getString(cursor.getColumnIndex("time_on"));
+            String qso_date_off = cursor.getString(cursor.getColumnIndex("qso_date_off"));
+            String time_off = cursor.getString(cursor.getColumnIndex("time_off"));
+            String band = cursor.getString(cursor.getColumnIndex("band"));
+            String freq = cursor.getString(cursor.getColumnIndex("freq"));
+            String station_callsign = cursor.getString(cursor.getColumnIndex("station_callsign"));
+            String my_gridsquare = cursor.getString(cursor.getColumnIndex("my_gridsquare"));
+            String comment = cursor.getString(cursor.getColumnIndex("comment"));
+
+
+            //UtcTimer.getDatetimeStr(utcTime)
+            result.append(String.format("<td>%d</td>" +
+                            "<td><a href=\"QSOSWLMSG?&pageSize=%d&callsign=%s\">%s</a></td>"+//call
+                            "<td>%s</td>" +//gridsquare
+                            "<td>%s</td>" +//mode
+                            "<td>%s</td>" +//rst_sent
+                            "<td>%s</td>" +//rst_rcvd
+                            "<td>%s</td>" +//qso_date
+                            "<td>%s</td>" +//time_on
+                            "<td>%s</td>" +//qso_date_off
+                            "<td>%s</td>" +//time_off
+                            "<td>%s</td>" +//band
+                            "<td>%s</td>" +//freq
+                            "<td><a href=\"QSOSWLMSG?&pageSize=%d&callsign=%s\">%s</a></td>"+//station_callsign
+                            "<td>%s</td>" +//my_gridsquare
+                            "<td>%s</td>" //comment
+
+                    , order + 1 + pageSize * (pageIndex - 1)
+
+                    ,pageSize
+                    ,call.replace("<", "")
+                            .replace(">", "")
+                    , call.replace("<", "&lt;")
+                            .replace(">", "&gt;")
+
+                    ,gridsquare==null?"":gridsquare
+                    ,mode,rst_sent,rst_rcvd
+                    ,qso_date,time_on,qso_date_off,time_off
+                    ,band,freq
+
+                    ,pageSize
+                    ,station_callsign.replace("<", "")
+                            .replace(">", "")
+                    , station_callsign.replace("<", "&lt;")
+                            .replace(">", "&gt;")
+
+                    ,my_gridsquare==null?"":my_gridsquare
+                    ,comment ));
+            //result.append(UtcTimer.getDatetimeStr(utcTime));
+            result.append("</tr>\n");
+            order++;
+        }
+        cursor.close();
+        result.append("</table><br>");
+
+
+        return newFixedLengthResponse(HtmlContext.HTML_STRING(result.toString()));
+        //return result.toString();
+
+    }
+
+
 
     /**
      * 获取全部通联日志
@@ -1081,7 +1660,7 @@ public class LogHttpServer extends NanoHTTPD {
                     , new String[]{String.valueOf(month.length()), month});
 
         }
-        return downQSLTable(cursor);
+        return downQSLTable(cursor,false);
     }
 
     /**
@@ -1091,7 +1670,7 @@ public class LogHttpServer extends NanoHTTPD {
      */
     private String downAllQSl() {
         Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery("select * from QSLTable", null);
-        return downQSLTable(cursor);
+        return downQSLTable(cursor,false);
     }
 
     /**
@@ -1100,7 +1679,7 @@ public class LogHttpServer extends NanoHTTPD {
      * @return 日志内容
      */
     @SuppressLint({"Range", "DefaultLocale"})
-    private String downQSLTable(Cursor cursor) {
+    private String downQSLTable(Cursor cursor,boolean isSWL) {
         //Cursor cursor = mainViewModel.databaseOpr.getDb().rawQuery("select * from QSLTable", null);
         StringBuilder logStr = new StringBuilder();
 
@@ -1109,64 +1688,91 @@ public class LogHttpServer extends NanoHTTPD {
             logStr.append(String.format("<call:%d>%s "
                     , cursor.getString(cursor.getColumnIndex("call")).length()
                     , cursor.getString(cursor.getColumnIndex("call"))));
-
-            if (cursor.getInt(cursor.getColumnIndex("isLotW_QSL"))==1){
-                logStr.append("<QSL_RCVD:1>Y ");
+            if (!isSWL) {
+                if (cursor.getInt(cursor.getColumnIndex("isLotW_QSL")) == 1) {
+                    logStr.append("<QSL_RCVD:1>Y ");
+                } else {
+                    logStr.append("<QSL_RCVD:1>N ");
+                }
+                if (cursor.getInt(cursor.getColumnIndex("isQSL")) == 1) {
+                    logStr.append("<QSL_MANUAL:1>Y ");
+                } else {
+                    logStr.append("<QSL_MANUAL:1>N ");
+                }
             }else {
-                logStr.append("<QSL_RCVD:1>N ");
+                logStr.append("<swl:1>Y ");
             }
-            if (cursor.getInt(cursor.getColumnIndex("isQSL"))==1){
-                logStr.append("<QSL_MANUAL:1>Y ");
-            }else {
-                logStr.append("<QSL_MANUAL:1>N ");
+            if (cursor.getString(cursor.getColumnIndex("gridsquare"))!=null) {
+                logStr.append(String.format("<gridsquare:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("gridsquare")).length()
+                        , cursor.getString(cursor.getColumnIndex("gridsquare"))));
             }
-            logStr.append(String.format("<gridsquare:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("gridsquare")).length()
-                    , cursor.getString(cursor.getColumnIndex("gridsquare"))));
 
-            logStr.append(String.format("<mode:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("mode")).length()
-                    , cursor.getString(cursor.getColumnIndex("mode"))));
+            if (cursor.getString(cursor.getColumnIndex("mode"))!=null) {
+                logStr.append(String.format("<mode:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("mode")).length()
+                        , cursor.getString(cursor.getColumnIndex("mode"))));
+            }
 
-            logStr.append(String.format("<rst_sent:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("rst_sent")).length()
-                    , cursor.getString(cursor.getColumnIndex("rst_sent"))));
+            if (cursor.getString(cursor.getColumnIndex("rst_sent"))!=null) {
+                logStr.append(String.format("<rst_sent:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("rst_sent")).length()
+                        , cursor.getString(cursor.getColumnIndex("rst_sent"))));
+            }
 
-            logStr.append(String.format("<rst_rcvd:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("rst_rcvd")).length()
-                    , cursor.getString(cursor.getColumnIndex("rst_rcvd"))));
+            if (cursor.getString(cursor.getColumnIndex("rst_rcvd"))!=null) {
+                logStr.append(String.format("<rst_rcvd:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("rst_rcvd")).length()
+                        , cursor.getString(cursor.getColumnIndex("rst_rcvd"))));
+            }
 
-            logStr.append(String.format("<qso_date:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("qso_date")).length()
-                    , cursor.getString(cursor.getColumnIndex("qso_date"))));
+            if (cursor.getString(cursor.getColumnIndex("qso_date"))!=null) {
+                logStr.append(String.format("<qso_date:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("qso_date")).length()
+                        , cursor.getString(cursor.getColumnIndex("qso_date"))));
+            }
 
-            logStr.append(String.format("<time_on:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("time_on")).length()
-                    , cursor.getString(cursor.getColumnIndex("time_on"))));
+            if (cursor.getString(cursor.getColumnIndex("time_on"))!=null) {
+                logStr.append(String.format("<time_on:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("time_on")).length()
+                        , cursor.getString(cursor.getColumnIndex("time_on"))));
+            }
 
-            logStr.append(String.format("<qso_date_off:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("qso_date_off")).length()
-                    , cursor.getString(cursor.getColumnIndex("qso_date_off"))));
+            if (cursor.getString(cursor.getColumnIndex("qso_date_off"))!=null) {
+                logStr.append(String.format("<qso_date_off:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("qso_date_off")).length()
+                        , cursor.getString(cursor.getColumnIndex("qso_date_off"))));
+            }
 
-            logStr.append(String.format("<time_off:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("time_off")).length()
-                    , cursor.getString(cursor.getColumnIndex("time_off"))));
+            if (cursor.getString(cursor.getColumnIndex("time_off"))!=null) {
+                logStr.append(String.format("<time_off:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("time_off")).length()
+                        , cursor.getString(cursor.getColumnIndex("time_off"))));
+            }
 
-            logStr.append(String.format("<band:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("band")).length()
-                    , cursor.getString(cursor.getColumnIndex("band"))));
+            if (cursor.getString(cursor.getColumnIndex("band"))!=null) {
+                logStr.append(String.format("<band:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("band")).length()
+                        , cursor.getString(cursor.getColumnIndex("band"))));
+            }
 
-            logStr.append(String.format("<freq:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("freq")).length()
-                    , cursor.getString(cursor.getColumnIndex("freq"))));
+            if (cursor.getString(cursor.getColumnIndex("freq"))!=null) {
+                logStr.append(String.format("<freq:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("freq")).length()
+                        , cursor.getString(cursor.getColumnIndex("freq"))));
+            }
 
-            logStr.append(String.format("<station_callsign:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("station_callsign")).length()
-                    , cursor.getString(cursor.getColumnIndex("station_callsign"))));
+            if (cursor.getString(cursor.getColumnIndex("station_callsign"))!=null) {
+                logStr.append(String.format("<station_callsign:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("station_callsign")).length()
+                        , cursor.getString(cursor.getColumnIndex("station_callsign"))));
+            }
 
-            logStr.append(String.format("<my_gridsquare:%d>%s "
-                    , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
-                    , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
+            if (cursor.getString(cursor.getColumnIndex("my_gridsquare"))!=null) {
+                logStr.append(String.format("<my_gridsquare:%d>%s "
+                        , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
+                        , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
+            }
 
             String comment = cursor.getString(cursor.getColumnIndex("comment"));
 
@@ -1178,6 +1784,7 @@ public class LogHttpServer extends NanoHTTPD {
         }
 
         //Log.e(TAG, "getQSLTable: " + logStr.toString());
+        cursor.close();
         return logStr.toString();
     }
 

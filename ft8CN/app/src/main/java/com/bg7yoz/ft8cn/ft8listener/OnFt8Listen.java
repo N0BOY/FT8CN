@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ft8listener;
+/**
+ * 监听音频的回调，当结束解码后，调用afterDecode来通知解码的消息
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import com.bg7yoz.ft8cn.Ft8Message;
 

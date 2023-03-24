@@ -1,7 +1,8 @@
 package com.bg7yoz.ft8cn.flex;
-
 /**
- * @AUTHOR BG7YOZ
+ * Flex的操作，命令使用TCP，数据流使用UDP。
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 
 import android.annotation.SuppressLint;
@@ -21,17 +22,22 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 
 
 public class FlexRadio {
 
-    public enum FlexMode { LSB, USB, AM, CW, DIGL, DIGU, SAM, FM, NFM, DFM, RTTY, RAW, ARQ,UNKNOW }
-    public enum AntMode { ANT1, ANT2, RX_A, XVTA,UNKNOW }
+    public enum FlexMode {LSB, USB, AM, CW, DIGL, DIGU, SAM, FM, NFM, DFM, RTTY, RAW, ARQ, UNKNOW}
+
+    public enum AntMode {ANT1, ANT2, RX_A, XVTA, UNKNOW}
 
 
     private static final String TAG = "FlexRadio";
     private static int streamPort = 7051;
+    private int flexStreamPort = 4993;
+    public boolean isPttOn = false;
+    public long streamTxId = 0x084000000;
 
     public static int getStreamPort() {//获取用于流传输的UDP端口，防止重复，采用自增方式
         return ++streamPort;
@@ -88,6 +94,7 @@ public class FlexRadio {
     private boolean allFlexRadioStatusEvent = false;
     private String clientID = "";
     private long daxAudioStreamId = 0;
+    private long daxTxAudioStreamId = 0;
     private long panadapterStreamId = 0;
     private final HashSet<Long> streamIdSet = new HashSet<>();
 
@@ -361,14 +368,16 @@ public class FlexRadio {
         RadioUdpClient.OnUdpEvents onUdpEvents = new RadioUdpClient.OnUdpEvents() {
             @Override
             public void OnReceiveData(DatagramSocket socket, DatagramPacket packet, byte[] data) {
+                if (flexStreamPort != packet.getPort()) flexStreamPort = packet.getPort();
+
                 VITA vita = new VITA(data);
                 addStreamIdToSet(vita.streamId);
+
                 //Log.e(TAG, String.format("OnReceiveData: stream id:0x%x,class id:0x%x",vita.streamId,vita.classId) );
                 switch (vita.classId) {
                     case VITA.FLEX_DAX_AUDIO_CLASS_ID://音频数据
+                        //Log.e(TAG, String.format("FLEX_DAX_AUDIO_CLASS_ID stream id:0x%x",vita.streamId ));
                         doReceiveAudio(vita.payload);
-
-                        //Log.e(TAG, "OnReceiveData: audio:"+vita.payload.length );
                         break;
                     case VITA.FLEX_DAX_IQ_CLASS_ID://IQ数据
                         doReceiveIQ(vita.payload);
@@ -378,6 +387,7 @@ public class FlexRadio {
                         //Log.e(TAG, String.format("OnReceiveData: FFT:%d,STREAM ID:0x%x",vita.payload.length,vita.streamId));
                         break;
                     case VITA.FLEX_METER_CLASS_ID://仪表数据
+                        //Log.e(TAG, String.format("FLEX_METER_CLASS_ID: stream id:0x%x",vita.streamId ));
                         doReceiveMeter(vita);
                         //Log.e(TAG, String.format("OnReceiveData: METER class id:0x%x,stream id:0x%x,length:%d\n%s"
                         //        ,vita.classId,vita.streamId,vita.payload.length,vita.showPayload() ));
@@ -428,6 +438,106 @@ public class FlexRadio {
         }
     }
 
+    /**
+     * flexRadio要把12000采样率改为24000采样率，还要把单声道改为立体声
+     * @param data 音频
+     */
+    public void sendWaveData(float[] data) {
+        float[] temp = new float[data.length * 4];
+        for (int i = 0; i < data.length; i++) {//转成立体声,12000采样率转24000采样率
+            temp[i * 4] = data[i];
+            temp[i * 4 + 1] = data[i];
+            temp[i * 4 + 2] = data[i];
+            temp[i * 4 + 3] = data[i];
+        }
+        //port=4991;
+        //streamTxId=0x084000001;
+        Log.e(TAG, String.format("sendWaveData: streamid:0x%x,ip:%s,port:%d",streamTxId,ip, port) );
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                VITA vita = new VITA();
+
+                int count = 0;
+                int packetCount=0;
+                while (count<temp.length){
+                    long now = System.currentTimeMillis() - 1;//获取当前时间
+                    float[] voice=new float[64];
+                    for (int j = 0; j <3 ; j++) {
+                        for (int i = 0; i < 64; i++) {
+                            voice[i] = temp[count];
+                            count++;
+                            if (count > temp.length) break;
+                        }
+
+                        byte[] send = vita.audioDataToVita(packetCount, streamTxId, voice);
+                        packetCount++;
+                        try {
+                            streamClient.sendData(send, ip, port);
+                        } catch (UnknownHostException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if (count>temp.length) break;
+                    }
+                    while (isPttOn) {
+                        if (System.currentTimeMillis() - now >= 41) {//40毫秒一个周期,每个周期3个包，每个包64个float。
+                            break;
+                        }
+                    }
+                    if (!isPttOn){
+                        Log.e(TAG, String.format("count：%d,temp.length:%d",count,temp.length ));
+                    }
+
+                }
+
+
+//                for (int i = 0; i < (temp.length / (24 * 2 * 40)); i++) {//40毫秒的数据量
+//                    if (!isPttOn) return;
+//                    long now = System.currentTimeMillis() - 1;//获取当前时间
+//
+//                    float[] voice = new float[24 * 2 * 10];
+//                    for (int j = 0; j < 24 * 2 *10; j++) {
+//                        voice[j] = temp[i * 24 * 2 * 10 + j];
+//                    }
+//                    //Log.e(TAG, "sendWaveData: "+floatToStr(voice) );
+//                    //streamTxId=0x84000001;
+//                    byte[] send = vita.audioDataToVita(count, streamTxId, voice);
+//                    count++;
+//
+//                    try {
+//                        streamClient.sendData(send, ip, port);
+//                    } catch (UnknownHostException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//
+//                    while (isPttOn) {
+//                        if (System.currentTimeMillis() - now >= 41) {//40毫秒一个周期,每个周期3个包，每个包64个float。
+//                            break;
+//                        }
+//                    }
+//                }
+            }
+        }).start();
+
+
+        //设置发送音频包
+        //streamClient.sendData();
+    }
+    public static String byteToStr(byte[] data) {
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < data.length; i++) {
+            s.append(String.format("%02x ", data[i] & 0xff));
+        }
+        return s.toString();
+    }
+    public static String floatToStr(float[] data) {
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < data.length; i++) {
+            s.append(String.format("%f ", data[i]));
+        }
+        return s.toString();
+    }
     /**
      * 电台是否连接
      *
@@ -524,6 +634,11 @@ public class FlexRadio {
                 if (response.panadapterStreamId != 0) {
                     this.panadapterStreamId = response.panadapterStreamId;
                 }
+                if (response.daxTxStreamId != 0) {
+                    this.daxTxAudioStreamId = response.daxTxStreamId;
+                    Log.e(TAG, String.format("doReceiveLineEvent: txStreamID:0x%x", daxTxAudioStreamId));
+                }
+
                 break;
         }
 
@@ -697,6 +812,13 @@ public class FlexRadio {
         sendCommand(FlexCommand.STREAM_CREATE_DAX_RX, String.format("stream create type=dax_rx dax_channel=%d", channel));
     }
 
+    @SuppressLint("DefaultLocale")
+    public synchronized void commandStreamCreateDaxTx(int channel) {
+        //sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx dax_channel=%d", channel));
+        //sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx compression=none"));
+        sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=remote_audio_tx"));
+    }
+
     public synchronized void commandRemoveDaxStream() {
         sendCommand(FlexCommand.STREAM_REMOVE, String.format("stream remove 0x%x", getDaxAudioStreamId()));
     }
@@ -710,6 +832,11 @@ public class FlexRadio {
     @SuppressLint("DefaultLocale")
     public synchronized void commandSetFilter(int sliceOrder, int filt_low, int filt_high) {
         sendCommand(FlexCommand.FILT_SET, String.format("filt %d %d %d", sliceOrder, filt_low, filt_high));
+    }
+
+    @SuppressLint("DefaultLocale")
+    public synchronized void commandStartATU() {
+        sendCommand(FlexCommand.FILT_SET, "atu start");
     }
 
     public synchronized void commandGetInfo() {
@@ -780,8 +907,32 @@ public class FlexRadio {
         sendCommand(FlexCommand.SUB_DAX_ALL, "sub dax all");
     }
 
-    public synchronized void commandSetRfPower(int power){
-        sendCommand(FlexCommand.TRANSMIT_POWER,String.format("transmit set rfpower=%d",power));
+    @SuppressLint("DefaultLocale")
+    public synchronized void commandSetRfPower(int power) {
+        sendCommand(FlexCommand.TRANSMIT_MAX_POWER, String.format("transmit set max_power_level=%d", power));
+        sendCommand(FlexCommand.TRANSMIT_POWER, String.format("transmit set rfpower=%d", power));
+        //sendCommand(FlexCommand.TRANSMIT_MAX_POWER,"info");
+    }
+
+    @SuppressLint("DefaultLocale")
+    public synchronized void commandSetTunePower(int power) {
+        sendCommand(FlexCommand.AUT_TUNE_MAX_POWER, String.format("transmit set tunepower=%d", power));
+    }
+
+    public synchronized void commandPTTOnOff(boolean on) {
+        if (on) {
+            sendCommand(FlexCommand.PTT_ON, "xmit 1");
+        } else {
+            sendCommand(FlexCommand.PTT_ON, "xmit 0");
+        }
+    }
+
+    public synchronized void commandTuneTransmitOnOff(boolean on) {
+        if (on) {
+            sendCommand(FlexCommand.PTT_ON, "transmit tune on");
+        } else {
+            sendCommand(FlexCommand.PTT_ON, "transmit tune off");
+        }
     }
 
 
@@ -864,6 +1015,7 @@ public class FlexRadio {
         public String version;//版本信息
         public int message_num;//消息号，32位，16进制。其中位24-25包含消息的严重性（0=信息，1=警告，2=错误，3=致命错误）
         public long daxStreamId = 0;
+        public long daxTxStreamId = 0;
         public long panadapterStreamId = 0;
         public FlexCommand flexCommand = FlexCommand.UNKNOW;
         public long resultValue = 0;
@@ -900,6 +1052,9 @@ public class FlexRadio {
                                 break;
                             case PANADAPTER_CREATE:
                                 this.panadapterStreamId = getStreamId(line);
+                                break;
+                            case STREAM_CREATE_DAX_TX:
+                                this.daxTxStreamId = getStreamId(line);
                                 break;
                         }
                         resultValue = Integer.parseInt(content, 16);//取命令的返回值
@@ -962,12 +1117,12 @@ public class FlexRadio {
             }
         }
 
-        private int getStreamId(String line) {
+        private long getStreamId(String line) {
             String[] lines = line.split("\\|");
             if (lines.length > 2) {
                 if (lines[1].equals("0")) {
                     try {
-                        return Integer.parseInt(lines[2], 16);//stream id，16进制
+                        return Long.parseLong(lines[2], 16);//stream id，16进制
                     } catch (NumberFormatException e) {
                         e.printStackTrace();
                         Log.e(TAG, "getDaxStreamId exception: " + e.getMessage());
@@ -994,10 +1149,10 @@ public class FlexRadio {
 
             }
 
-            if (temp.length>2){
-                exContent=temp[2];
-            }else {
-                exContent="";
+            if (temp.length > 2) {
+                exContent = temp[2];
+            } else {
+                exContent = "";
             }
 
         }

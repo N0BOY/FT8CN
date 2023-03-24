@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.database;
 
+/**
+ * 控制的模式
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public class ControlMode {
     public static final int VOX=0;
     public static final int CAT=1;

@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.log;
 
+/**
+ * 通联过的呼号的日志。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 public class QSLCallsignRecord {
     private String callsign;
     private String mode;

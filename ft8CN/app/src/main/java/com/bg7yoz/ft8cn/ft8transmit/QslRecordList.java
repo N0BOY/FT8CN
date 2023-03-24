@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ft8transmit;
+/**
+ * 通联记录的列表
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import com.bg7yoz.ft8cn.log.QSLRecord;
 
@@ -41,7 +46,14 @@ public class QslRecordList extends ArrayList<QSLRecord> {
      */
     public QSLRecord addQSLRecord(QSLRecord record){
         if (record.getToCallsign().equals("CQ")) return null;
-
+        //清除已经保存过的通联记录
+        //for (int i = this.size()-1; i >=0 ; i--) {
+        //    if (this.get(i).getToCallsign().equals(record.getToCallsign())){
+        //        if (this.get(i).saved){
+        //            this.remove(i);
+        //        }
+        //    }
+        //}
         //找一下看有没有已经在列表中，但还没有保存的记录
         QSLRecord oldRecord= getRecordByCallsign(record.getToCallsign());
         if (oldRecord==null){

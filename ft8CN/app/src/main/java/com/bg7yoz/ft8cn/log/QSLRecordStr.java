@@ -1,10 +1,18 @@
 package com.bg7yoz.ft8cn.log;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.bg7yoz.ft8cn.Ft8Message;
+
+import java.io.Serializable;
+
 /**
  * 用于在ADAPTER中显示内容，此数据在数据库的查询中生成
- * @author  BG7YOZ
+ * @author BGY70Z
+ * @date 2023-03-20
  */
-public class QSLRecordStr {
+public class QSLRecordStr implements Serializable {
     public int id;
     private String call="";
     private String gridsquare="";

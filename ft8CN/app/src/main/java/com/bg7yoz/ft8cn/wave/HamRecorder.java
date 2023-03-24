@@ -18,8 +18,8 @@ import java.util.ArrayList;
  * 当有录音数据后，HamRecorder会触发监听器列表中各监听器的OnReceiveData回调。
  * 制作此类的目的，是防止FT8各录音时序因录音启动时间的问题，造成重叠创建录音对象或录音的时长达不到一个时序的时长（15秒）
  * <p>
- * BG7YOZ
- * 2022-05-31
+ * @author BG7YOZ
+ * @date 2022-05-31
  */
 
 public class HamRecorder {

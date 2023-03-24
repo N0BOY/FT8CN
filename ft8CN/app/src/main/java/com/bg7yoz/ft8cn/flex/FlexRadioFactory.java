@@ -1,9 +1,5 @@
 package com.bg7yoz.ft8cn.flex;
 
-/**
- * @author BG7YOZ
- */
-
 import android.util.Log;
 
 import java.net.DatagramPacket;
@@ -31,6 +27,8 @@ enum VitaTokens {
  * RadioFactory: 实例化这个类来创建一个 Radio Factory，它将为网络上发现的无线电维护FlexRadio列表flexRadios。
  *
  * 通过Upd协议，在4992端口的广播数据中获取vita协议数据，并解析出序列号，用于更新电台列表flexRadios。
+ * @author BGY70Z
+ * @date 2023-03-20
  */
 public class FlexRadioFactory {
     private static final String TAG="FlexRadioFactory";

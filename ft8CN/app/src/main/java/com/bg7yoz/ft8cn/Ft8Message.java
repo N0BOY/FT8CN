@@ -7,8 +7,8 @@ package com.bg7yoz.ft8cn;
  * 1.为方便在列表中显示，各要素通过Get方法，返回String类型的结果。
  * -----2022.5.13---
  * 2.增加i3,n3消息类型内容
- * BG7YOZ
- * 2022.5.6
+ * @author BG7YOZ
+ * @date 2022.5.6
  */
 
 import android.annotation.SuppressLint;
@@ -42,7 +42,7 @@ public class Ft8Message {
     public String callsignFrom = null;//发起呼叫的呼号
     public String callsignTo = null;//接收呼叫的呼号
 
-    public String modifier=null;//目标呼号的修饰符 如CQ POTA BG7YOZ OL50中的POTA
+    public String modifier = null;//目标呼号的修饰符 如CQ POTA BG7YOZ OL50中的POTA
 
     public String extraInfo = null;
     public String maidenGrid = null;
@@ -53,26 +53,26 @@ public class Ft8Message {
     public long callToHash10 = 0;//12位长度的哈希码
     public long callToHash12 = 0;//12位长度的哈希码
     public long callToHash22 = 0;//12位长度的哈希码
-    public boolean isCallMe = false;//是不是CALL我的消息
+    //private boolean isCallMe = false;//是不是CALL我的消息
     public long band;//载波频率
 
     public String fromWhere = null;//用于显示地址
     public String toWhere = null;//用于显示地址
 
-    public boolean isQSL_Callsign=false;//是不是通联过的呼号
+    public boolean isQSL_Callsign = false;//是不是通联过的呼号
 
     public static MessageHashMap hashList = new MessageHashMap();
 
 
-    public boolean fromDxcc=false;
-    public boolean fromItu=false;
-    public boolean fromCq=false;
-    public boolean toDxcc=false;
-    public boolean toItu=false;
-    public boolean toCq=false;
+    public boolean fromDxcc = false;
+    public boolean fromItu = false;
+    public boolean fromCq = false;
+    public boolean toDxcc = false;
+    public boolean toItu = false;
+    public boolean toCq = false;
 
-    public LatLng fromLatLng=null;
-    public LatLng toLatLng=null;
+    public LatLng fromLatLng = null;
+    public LatLng toLatLng = null;
 
 
     @NonNull
@@ -93,20 +93,22 @@ public class Ft8Message {
         this.signalFormat = signalFormat;
     }
 
-    public Ft8Message(String callTo,String callFrom,String extraInfo) {
+    public Ft8Message(String callTo, String callFrom, String extraInfo) {
         //如果是自由文本，callTo=CQ,callFrom=MyCall,extraInfo=freeText
-        this.callsignTo=callTo.toUpperCase();
-        this.callsignFrom=callFrom.toUpperCase();
-        this.extraInfo=extraInfo.toUpperCase();
+        this.callsignTo = callTo.toUpperCase();
+        this.callsignFrom = callFrom.toUpperCase();
+        this.extraInfo = extraInfo.toUpperCase();
     }
-    public Ft8Message(int i3,int n3,String callTo,String callFrom,String extraInfo) {
-        this.callsignTo=callTo;
-        this.callsignFrom=callFrom;
-        this.extraInfo=extraInfo;
-        this.i3=i3;
-        this.n3=n3;
-        this.utcTime=UtcTimer.getSystemTime();//用于显示TX
+
+    public Ft8Message(int i3, int n3, String callTo, String callFrom, String extraInfo) {
+        this.callsignTo = callTo;
+        this.callsignFrom = callFrom;
+        this.extraInfo = extraInfo;
+        this.i3 = i3;
+        this.n3 = n3;
+        this.utcTime = UtcTimer.getSystemTime();//用于显示TX
     }
+
     /**
      * 创建一个解码消息对象
      *
@@ -137,10 +139,10 @@ public class Ft8Message {
             } else {
                 callsignTo = message.callsignTo;
             }
-            if (message.i3==4){
-                hashList.addHash(FT8Package.getHash22(message.callsignFrom),message.callsignFrom);
-                hashList.addHash(FT8Package.getHash12(message.callsignFrom),message.callsignFrom);
-                hashList.addHash(FT8Package.getHash10(message.callsignFrom),message.callsignFrom);
+            if (message.i3 == 4) {
+                hashList.addHash(FT8Package.getHash22(message.callsignFrom), message.callsignFrom);
+                hashList.addHash(FT8Package.getHash12(message.callsignFrom), message.callsignFrom);
+                hashList.addHash(FT8Package.getHash10(message.callsignFrom), message.callsignFrom);
             }
 
             extraInfo = message.extraInfo;
@@ -187,16 +189,16 @@ public class Ft8Message {
      */
     public String getMessageText() {
 
-        if (i3==0&&n3==0){//说明是自由文本
-            if (extraInfo.length()<13){
-                return String.format("%-13s",extraInfo.toUpperCase());
-            }else {
-                return extraInfo.toUpperCase().substring(0,13);
+        if (i3 == 0 && n3 == 0) {//说明是自由文本
+            if (extraInfo.length() < 13) {
+                return String.format("%-13s", extraInfo.toUpperCase());
+            } else {
+                return extraInfo.toUpperCase().substring(0, 13);
             }
         }
-        if (modifier!=null&&checkIsCQ()){//修饰符
-            if (modifier.matches("[0-9]{3}|[A-Z]{1,4}")){
-                return String.format("%s %s %s %s", callsignTo,modifier, callsignFrom, extraInfo).trim();
+        if (modifier != null && checkIsCQ()) {//修饰符
+            if (modifier.matches("[0-9]{3}|[A-Z]{1,4}")) {
+                return String.format("%s %s %s %s", callsignTo, modifier, callsignFrom, extraInfo).trim();
             }
         }
         return String.format("%s %s %s", callsignTo, callsignFrom, extraInfo).trim();
@@ -204,11 +206,12 @@ public class Ft8Message {
 
     /**
      * 返回解码消息带信噪比的内容
+     *
      * @return 内容
      */
     @SuppressLint("DefaultLocale")
-    public String getMessageTextWithDb(){
-        return String.format("%d %s %s %s",snr, callsignTo, callsignFrom, extraInfo).trim();
+    public String getMessageTextWithDb() {
+        return String.format("%d %s %s %s", snr, callsignTo, callsignFrom, extraInfo).trim();
     }
 
     /**
@@ -269,11 +272,13 @@ public class Ft8Message {
     /**
      * 消息中含有mycall呼号的
      *
-     * @param mycall 我的呼号
      * @return boolean
      */
-    public boolean inMyCall(String mycall) {
-        return (this.callsignFrom.contains(mycall) || this.callsignTo.contains(mycall)) && (!mycall.equals(""));
+    public boolean inMyCall() {
+        if (GeneralVariables.myCallsign.length() == 0) return false;
+        return this.callsignFrom.contains(GeneralVariables.myCallsign)
+                || this.callsignTo.contains(GeneralVariables.myCallsign);
+        //return (this.callsignFrom.contains(mycall) || this.callsignTo.contains(mycall)) && (!mycall.equals(""));
     }
 /*
 i3.n3类型	基本目的	消息范例	位字段标签
@@ -327,7 +332,7 @@ t71	遥感数据，最多18位十六进制数字
         if (callsignFrom == null) {
             return "";
         }
-        return callsignFrom.replace("<","").replace(">","");
+        return callsignFrom.replace("<", "").replace(">", "");
     }
 
     /**
@@ -346,7 +351,7 @@ t71	遥感数据，最多18位十六进制数字
                 || callsignTo.substring(0, 3).equals("QRZ")) {
             return "";
         }
-        return callsignTo.replace("<","").replace(">","");
+        return callsignTo.replace("<", "").replace(">", "");
     }
 
     /**
@@ -356,20 +361,21 @@ t71	遥感数据，最多18位十六进制数字
      */
     public String getMaidenheadGrid(DatabaseOpr db) {
         if (i3 != 1 && i3 != 2) {//一般只有i3=1或i3=2，标准消息，甚高频消息才有网格
-            return GeneralVariables.getGridByCallsign(callsignFrom,db);//到对应表中找一下网格
+            return GeneralVariables.getGridByCallsign(callsignFrom, db);//到对应表中找一下网格
         } else {
             String[] msg = getMessageText().split(" ");
             if (msg.length < 1) {
-                return GeneralVariables.getGridByCallsign(callsignFrom,db);//到对应表中找一下网格
+                return GeneralVariables.getGridByCallsign(callsignFrom, db);//到对应表中找一下网格
             }
             String s = msg[msg.length - 1];
             if (MaidenheadGrid.checkMaidenhead(s)) {
                 return s;
             } else {//不是网格信息，就可能是信号报告
-                return GeneralVariables.getGridByCallsign(callsignFrom,db);//到对应表中找一下网格
+                return GeneralVariables.getGridByCallsign(callsignFrom, db);//到对应表中找一下网格
             }
         }
     }
+
     public String getToMaidenheadGrid(DatabaseOpr db) {
         if (checkIsCQ()) return "";
         return GeneralVariables.getGridByCallsign(callsignTo, db);
@@ -392,39 +398,50 @@ t71	遥感数据，最多18位十六进制数字
     /**
      * 查消息的类型。i3.n3。
      *
-     * @return String
+     * @return 消息类型
+     */
+
+    public String getCommandInfo() {
+        return getCommandInfoByI3N3(i3, n3);
+    }
+
+    /**
+     * 查消息的类型。i3.n3。
+     *
+     * @param i i3
+     * @param n n3
+     * @return 消息类型
      */
     @SuppressLint("DefaultLocale")
-    public String getCommandInfo() {
+    public static String getCommandInfoByI3N3(int i, int n) {
         String format = "%d.%d:%s";
-        switch (i3) {
+        switch (i) {
             case 1:
             case 2:
-                return String.format(format, i3, 0, GeneralVariables.getStringFromResource(R.string.std_msg));
+                return String.format(format, i, 0, GeneralVariables.getStringFromResource(R.string.std_msg));
             case 5:
             case 3:
             case 4:
-                return String.format(format, i3, 0, GeneralVariables.getStringFromResource(R.string.none_std_msg));
+                return String.format(format, i, 0, GeneralVariables.getStringFromResource(R.string.none_std_msg));
             case 0:
-                switch (n3) {
+                switch (n) {
                     case 0:
-                        return String.format(format, i3, n3, GeneralVariables.getStringFromResource(R.string.free_text));
+                        return String.format(format, i, n, GeneralVariables.getStringFromResource(R.string.free_text));
                     case 1:
-                        return String.format(format, i3, n3, GeneralVariables.getStringFromResource(R.string.dXpedition));
+                        return String.format(format, i, n, GeneralVariables.getStringFromResource(R.string.dXpedition));
                     case 3:
                     case 4:
-                        return String.format(format, i3, n3, GeneralVariables.getStringFromResource(R.string.field_day));
+                        return String.format(format, i, n, GeneralVariables.getStringFromResource(R.string.field_day));
                     case 5:
-                        return String.format(format, i3, n3, GeneralVariables.getStringFromResource(R.string.telemetry));
+                        return String.format(format, i, n, GeneralVariables.getStringFromResource(R.string.telemetry));
                 }
         }
         return "";
     }
 
-
     //获取发送者的传输对象
     public TransmitCallsign getFromCallTransmitCallsign() {
-        return new TransmitCallsign(this.i3,this.n3,this.callsignFrom, freq_hz
+        return new TransmitCallsign(this.i3, this.n3, this.callsignFrom, freq_hz
                 , this.getSequence()
                 , snr);
     }
@@ -432,9 +449,9 @@ t71	遥感数据，最多18位十六进制数字
     //获取发送者的传输对象，注意！！！与发送者的时序是相反的！！！
     public TransmitCallsign getToCallTransmitCallsign() {
         if (report == -100) {//如果消息中没有信号报告，就用发送方的SNR代替
-            return new TransmitCallsign(this.i3,this.n3,this.callsignTo, freq_hz, (this.getSequence() + 1) % 2, snr);
+            return new TransmitCallsign(this.i3, this.n3, this.callsignTo, freq_hz, (this.getSequence() + 1) % 2, snr);
         } else {
-            return new TransmitCallsign(this.i3,this.n3,this.callsignTo, freq_hz, (this.getSequence() + 1) % 2, report);
+            return new TransmitCallsign(this.i3, this.n3, this.callsignTo, freq_hz, (this.getSequence() + 1) % 2, report);
         }
     }
 

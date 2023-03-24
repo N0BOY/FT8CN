@@ -7,14 +7,18 @@ import android.os.ParcelUuid;
 
 import com.bg7yoz.ft8cn.BuildConfig;
 
+/**
+ * 与蓝牙有关的常量
+ */
 
 public class BluetoothConstants {
 
+    // values have to be globally unique
     static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";
     static final String NOTIFICATION_CHANNEL = BuildConfig.APPLICATION_ID + ".Channel";
     static final String INTENT_CLASS_MAIN_ACTIVITY = BuildConfig.APPLICATION_ID + ".MainActivity";
 
-
+    // values have to be unique within each app
     static final int NOTIFY_MANAGER_START_FOREGROUND_SERVICE = 1001;
 
 

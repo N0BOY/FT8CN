@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 解码界面
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
@@ -383,8 +388,7 @@ public class CallingListFragment extends Fragment {
      * @param callsign 呼号
      */
     private void showQrzFragment(String callsign) {
-        NavHostFragment navHostFragment = (NavHostFragment) requireActivity()
-                .getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
+        NavHostFragment navHostFragment = (NavHostFragment) requireActivity().getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
         assert navHostFragment != null;//断言不为空
         Bundle bundle = new Bundle();
         bundle.putString(QRZ_Fragment.CALLSIGN_PARAM, callsign);

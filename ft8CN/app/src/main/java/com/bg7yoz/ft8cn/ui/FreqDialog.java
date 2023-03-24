@@ -1,4 +1,9 @@
 package com.bg7yoz.ft8cn.ui;
+/**
+ * 快速切换频率的对话框。
+ * @author BGY70Z
+ * @date 2023-03-20
+ */
 
 import android.app.Dialog;
 import android.content.Context;
@@ -26,6 +31,7 @@ public class FreqDialog extends Dialog {
     private MainViewModel mainViewModel;
     private RecyclerView freqRecyclerView;
     private FreqAdapter freqAdapter;
+    //private BandsSpinnerAdapter bandsSpinnerAdapter;
 
 
     public FreqDialog(Context  context, MainViewModel mainViewModel) {
@@ -46,6 +52,14 @@ public class FreqDialog extends Dialog {
         freqRecyclerView.setAdapter(freqAdapter);
 
         freqRecyclerView.scrollToPosition(OperationBand.getIndexByFreq(GeneralVariables.band));
+//
+//        View.OnClickListener onClickListener=new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                FreqDialog.this.dismiss();
+//            }
+//        };
+
     }
 
 
