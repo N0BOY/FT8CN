@@ -15,6 +15,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -75,6 +76,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
     private boolean configBarIsClose = false;
     private QSLRecordStr qlsRecorder = null;//用于历史显示消息
     private MutableLiveData<ArrayList<QSLRecordStr>> qslRecordList = new MutableLiveData<>();
+
 
 
     @SuppressLint("NotifyDataSetChanged")
@@ -328,7 +330,6 @@ public class GridTrackerMainActivity extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                //onCreateDelay();
                 closeMessages();
                 closeConfigBar();
                 doAfterCreate();
@@ -357,8 +358,15 @@ public class GridTrackerMainActivity extends AppCompatActivity {
     }
 
     private GridOsmMapView.GridPolyLine drawMessage(QSLRecordStr recordStr) {
-        gridOsmMapView.upgradeGridInfo(recordStr);
-        return gridOsmMapView.drawLine(recordStr);
+        gridOsmMapView.gridMapView.post(new Runnable() {
+            @Override
+            public void run() {
+                gridOsmMapView.upgradeGridInfo(recordStr);
+                gridOsmMapView.drawLine(recordStr);
+            }
+        });
+
+        return null;
     }
 
     private void setShowTipsSwitchClickerListener() {
