@@ -1,3 +1,7 @@
+#v0.88 has a bug in map view. Source code revet to v0.87.
+
+APK file is update to v0.88 patch 1, as a temporary hotfix. 
+
 # FT8CN
 Developed by BG7YOZ and hosted by N0BOY
 
@@ -18,11 +22,10 @@ Please comply with local laws and regulations when using FT8CN.
 Considering the performance and endurance limitations of the mobile phone, the processing of the signal adopts lightweight operations instead of deep decoding and other processing.
 Please click "FAQ" if you have good suggestions or questions .
 
-
 BG7YOZ
 2022-07-01
 
- 致敬：
+致敬：
    Steve Franke(K9AN)、Bill Somerville(G4WJS)、Joe Taylor(K1JT)，提出FT8和FT4协议（FT是Franke和Taylor的首字母），并在论文《The FT4 and FT8 Communication Protocols》详细介绍了FT4和FT8的设计初衷和在WSJT-X中的具体实现细节，成为完成本APP的根本指南。
    Karlis Goba(YL3JG)在代码的具体实现上提供了参考。
 鸣谢：
