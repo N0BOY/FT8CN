@@ -5,7 +5,7 @@ plugins {
     id 'com.android.application'
 }
 
-def currentTime = getCurrentTime()
+def currentTime = getCurrentTime();
 
 static def getCurrentTime() {
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd")
@@ -22,7 +22,7 @@ android {
         minSdk 23
         targetSdk 33
         versionCode 1
-        versionName '0.88'
+        versionName '0.87'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         dataBinding{

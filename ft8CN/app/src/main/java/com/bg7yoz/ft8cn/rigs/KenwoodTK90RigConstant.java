@@ -28,7 +28,6 @@ public class KenwoodTK90RigConstant {
 
 
     private static final String TS590_VFO_A="FR0;";//KENWOOD TS590,设置VFO -A
-    private static final String TS2000_PTT_ON="TX0;";//KENWOOD TS2000,PTT
     private static final String TS590_PTT_ON="TX1;";//KENWOOD TS590,PTT
     private static final String FLEX_6000_PTT_ON="TX01;";//FLEX_6000,PTT
     private static final String TS590_PTT_OFF="RX;";//KENWOOD TS590,PTT
@@ -72,13 +71,6 @@ public class KenwoodTK90RigConstant {
     public static byte[] setTS590PTTState(boolean on) {
         if (on) {
             return TS590_PTT_ON.getBytes();
-        } else {
-            return TS590_PTT_OFF.getBytes();
-        }
-
-    }    public static byte[] setTS2000PTTState(boolean on) {
-        if (on) {
-            return TS2000_PTT_ON.getBytes();
         } else {
             return TS590_PTT_OFF.getBytes();
         }

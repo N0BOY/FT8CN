@@ -5,7 +5,6 @@ Run FT8 natively on Android
 
 Check [Releases](https://github.com/N0BOY/FT8CN/releases) to download the latest apk file.
 
-
 ```
 免责声明：
    FT8CN旨在研究的目的，学习如何对FT8信号进行解码、发射等操作，不对使用者操作本APP所产生的后果负责。

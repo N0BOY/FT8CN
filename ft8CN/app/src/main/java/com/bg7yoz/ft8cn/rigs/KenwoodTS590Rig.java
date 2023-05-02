@@ -176,7 +176,7 @@ public class KenwoodTS590Rig extends BaseRig {
 
     @Override
     public String getName() {
-        return "KENWOOD TS-480/590";
+        return "KENWOOD TS-480/590/2000";
     }
 
     public KenwoodTS590Rig() {
