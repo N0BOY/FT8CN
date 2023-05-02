@@ -21,6 +21,7 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
@@ -75,7 +76,7 @@ public class GridOsmMapView {
     private boolean showCQ = true;
     private boolean showQSX = false;
 
-    private final MapView gridMapView;
+    public final MapView gridMapView;
     private final Context context;
     // public ItemizedIconOverlay<OverlayItem> markerOverlay;
     // private final ArrayList<OverlayItem> markerItems = new ArrayList<>();
