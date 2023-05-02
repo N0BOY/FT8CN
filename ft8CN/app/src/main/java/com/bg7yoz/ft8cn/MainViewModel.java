@@ -71,6 +71,7 @@ import com.bg7yoz.ft8cn.rigs.GuoHeQ900Rig;
 import com.bg7yoz.ft8cn.rigs.IcomRig;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.rigs.KenwoodKT90Rig;
+import com.bg7yoz.ft8cn.rigs.KenwoodTS2000Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS590Rig;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
 import com.bg7yoz.ft8cn.rigs.XieGu6100Rig;
@@ -366,12 +367,12 @@ public class MainViewModel extends ViewModel {
             }
 
             @Override
-            public void onAfterGenerate(float[] data) {
+            public void onTransmitByWifi(Ft8Message msg) {
                 if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
                     if (baseRig != null) {
                         if (baseRig.isConnected()) {
                             sendWaveDataRunnable.baseRig=baseRig;
-                            sendWaveDataRunnable.data=data;
+                            sendWaveDataRunnable.message=msg;
                             //以线程池的方式执行网络数据包发送
                             sendWaveDataThreadPool.execute(sendWaveDataRunnable);
                         }
@@ -746,6 +747,9 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.XIEGU_6100:
                 baseRig = new XieGu6100Rig(GeneralVariables.civAddress);//协谷6100
                 break;
+            case InstructionSet.KENWOOD_TS2000:
+                baseRig = new KenwoodTS2000Rig();//建伍TS2000
+                break;
         }
 
         mutableIsFlexRadio.postValue(GeneralVariables.instructionSet==InstructionSet.FLEX_NETWORK);
@@ -881,11 +885,12 @@ public class MainViewModel extends ViewModel {
     }
     private static class SendWaveDataRunnable implements Runnable{
         BaseRig baseRig;
-        float[] data;
+        //float[] data;
+        Ft8Message message;
         @Override
         public void run() {
-            if (baseRig!=null&&data!=null){
-                baseRig.sendWaveData(data);//实际生成的数据是12.64+0.04,0.04是生成的0数据
+            if (baseRig!=null&&message!=null){
+                baseRig.sendWaveData(message);//实际生成的数据是12.64+0.04,0.04是生成的0数据
             }
         }
     }

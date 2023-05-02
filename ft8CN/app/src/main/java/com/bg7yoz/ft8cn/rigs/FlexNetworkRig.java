@@ -3,6 +3,7 @@ package com.bg7yoz.ft8cn.rigs;
 import android.annotation.SuppressLint;
 import android.util.Log;
 
+import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.connector.FlexConnector;
 import com.bg7yoz.ft8cn.flex.FlexCommand;
 import com.bg7yoz.ft8cn.flex.FlexRadio;
@@ -79,12 +80,12 @@ public class FlexNetworkRig extends BaseRig{
     }
 
     @Override
-    public void sendWaveData(float[] data) {
-        Log.e(TAG, "sendWaveData: "+data.length );
-        if (getConnector()!=null){
-            getConnector().sendWaveData(data);
-        }
-        //super.sendWaveData(data);
+    public void sendWaveData(Ft8Message message) {
+//        Log.e(TAG, "sendWaveData: "+data.length );
+//        if (getConnector()!=null){
+//            getConnector().sendWaveData(data);
+//        }
+
     }
 
     @Override
