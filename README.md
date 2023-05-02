@@ -1,7 +1,3 @@
-#v0.88 has a bug in map view. Source code revet to v0.87.
-
-APK file is update to v0.88 patch 1, as a temporary hotfix. 
-
 # FT8CN
 Developed by BG7YOZ and hosted by N0BOY
 
