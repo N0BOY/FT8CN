@@ -172,9 +172,7 @@
     <string name="qsl_start_time">起始時間:%s</string>
     <string name="qsl_end_time">結束時間:%s</string>
     <string name="qsl_rst_rcvd">接收報告:%s</string>
-    <string name="html_rst_rcvd">接收報告</string>
     <string name="qsl_rst_sent">發送報告:%s</string>
-    <string name="html_rst_sent">發送報告</string>
     <string name="qsl_band">頻段:%s</string>
     <string name="qsl_freq">頻率:%s</string>
     <string name="qsl_mode">模式:%s</string>
@@ -211,9 +209,7 @@
     <string name="html_operation">操作</string>
     <string name="html_delete">刪除</string>
     <string name="html_qsl_start_time">通聯開始時間</string>
-    <string name="html_qsl_start_day">通聯開始日期</string>
     <string name="html_qsl_end_time">通聯結束時間</string>
-    <string name="html_qsl_end_date">通聯結束日期</string>
     <string name="html_qsl_mode">模式</string>
     <string name="html_qsl_grid">網格</string>
     <string name="html_qsl_band">頻段</string>
@@ -429,45 +425,6 @@
     <string name="html_export_adi">導出到ADIF文件</string>
     <string name="log_statistics_swl_qso">收聽到的QSO數</string>
     <string name="config_clear_swl_qso">SWL記錄</string>
-    <string name="audioOutput">音頻輸出</string>
-    <string name="audio16_bit">16位整型</string>
-    <string name="audio32_bit">32位浮點</string>
-    <string name="html_audio_bits">音頻輸出位數</string>
-    <string name="audio_rate_12k">12kHz</string>
-    <string name="audio_rate_24k">24kHz</string>
-    <string name="audio_rate_48k">48kHz</string>
-    <string name="audio_rate">采樣頻率</string>
-    <string name="html_audio_rate">音頻輸出采樣率</string>
-    <string name="audio_bit_depth">位深</string>
-    <string name="callsign_help">callsign.txt</string>
-    <string name="maidenhead_help">maidenhead.txt</string>
-    <string name="frequency_help">frequency.txt</string>
-    <string name="transDelay_help">transDelay.txt</string>
-    <string name="timeoffset_help">timeoffset.txt</string>
-    <string name="pttdelay_help">pttdelay.txt</string>
-    <string name="operationBand_help">operationBand.txt</string>
-    <string name="controlMode_help">controlMode.txt</string>
-    <string name="civ_help">civ_help.txt</string>
-    <string name="rig_model_help">rig_model_help.txt</string>
-    <string name="launch_supervision_help">launch_supervision_help.txt</string>
-    <string name="no_response_help">no_response_help.txt</string>
-    <string name="auto_follow_help">auto_follow_help.txt</string>
-    <string name="connectMode_help">connectMode.txt</string>
-    <string name="excludeCallsign_help">excludeCallsign.txt</string>
-    <string name="swlMode_help">swlMode.txt</string>
-    <string name="audio_output_help">audio_output_help.txt</string>
-    <string name="clear_cache_data_help">clear_cache_data.txt</string>
-    <string name="html_query_logs">查詢日誌</string>
-    <string name="html_qso_all">全部</string>
-    <string name="html_qso_source">數據來源</string>
-    <string name="html_qso_unconfirmed">未確認</string>
-    <string name="html_qso_confirmed">已確認</string>
-    <string name="html_qso_raw_log">本地日誌</string>
-    <string name="html_qso_external_logs">外部日誌</string>
-    <string name="html_qso_external">外部日誌</string>
-    <string name="html_qso_raw">本地日誌</string>
-    <string name="html_protocol">協定</string>
-    <string name="html_comment">備註</string>
 
 
 </resources>

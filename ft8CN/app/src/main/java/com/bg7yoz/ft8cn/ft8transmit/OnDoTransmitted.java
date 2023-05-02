@@ -10,5 +10,5 @@ import com.bg7yoz.ft8cn.Ft8Message;
 public interface OnDoTransmitted {
     void onBeforeTransmit(Ft8Message message,int functionOder);
     void onAfterTransmit(Ft8Message message, int functionOder);
-    void onTransmitByWifi(Ft8Message message);
+    void onAfterGenerate(float[] data);
 }
