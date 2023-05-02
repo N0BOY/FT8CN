@@ -5,6 +5,7 @@ package com.bg7yoz.ft8cn.html;
  * @date 2023-03-20
  */
 
+import android.annotation.SuppressLint;
 import android.database.Cursor;
 
 import com.bg7yoz.ft8cn.BuildConfig;
@@ -29,9 +30,10 @@ public class HtmlContext {
             "  UL {\tCOLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
             "  P {\tCOLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
             "  BODY {\tCOLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
-            "  TD {\tCOLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
+            "  FIELDSET {max-width:  fit-content}\n" +
+            "  TD {\tCOLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif; FONT-SIZE: 8pt}\n" +
             "  TR {\tBACKGROUND-COLOR: WHITE;COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
-            "  TR.bbb {\tBACKGROUND-COLOR: #F6FBFF; COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
+            "  TR.bbb {\tBACKGROUND-COLOR: #DDF0FE; COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
             "  TH {\tBACKGROUND-COLOR: C8C2FF;COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif;FONT-SIZE: 8pt; }\n" +
             "  FONT.title {\tBACKGROUND-COLOR: white; COLOR: #363636; FONT-FAMILY:tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt; FONT-WEIGHT: bold }\n" +
             "  FONT.sub {\tBACKGROUND-COLOR: white; COLOR: #000000; FONT-FAMILY:tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt }\n" +
@@ -48,11 +50,11 @@ public class HtmlContext {
             "</style>\n" +
             "</head>\n" +
             "\n";
-    private static final String HTML_TITLE = "<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td class=\"title\" colspan=\"15\">" +
+    private static final String HTML_TITLE = "<table bgcolor=#a1a1a1 border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\"><tr><td class=\"title\" colspan=\"15\">" +
             "Welcome to FT8CN "+ BuildConfig.VERSION_NAME+"</a></td></tr><tr><td class=\"default\" colspan=\"15\"><a href=/>"
                     +GeneralVariables.getStringFromResource(R.string.html_return)
             +"</a></td></tr></table>\n";
-    private static final String HTML_FOOTER = "<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">" +
+    private static final String HTML_FOOTER = "<table bgcolor=#a1a1a1 border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">" +
             "<tr><td class=\"title\">BG7YOZ</td></tr><tr><td class=\"default\" colspan=\"15\">" +
             "<a href=/>"+GeneralVariables.getStringFromResource(R.string.html_return)+"</a></td></tr></table>\n";
 
@@ -66,7 +68,7 @@ public class HtmlContext {
 
 
     public static String DEFAULT_HTML() {
-        return HTML_STRING("<table bgcolor=\"#a1a1a1\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">" +
+        return HTML_STRING("<table bgcolor=#a1a1a1 border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">" +
                 "<tr><td class=\"default\" colspan=\"15\"><a href=/debug>"
                 + GeneralVariables.getStringFromResource(R.string.html_track_operation_information) +"</a></td></tr>" +
                 "<tr><td class=\"default\" colspan=\"15\"><a href=/showHash>"
@@ -99,6 +101,9 @@ public class HtmlContext {
                 "<tr><td class=\"default\" colspan=\"15\"><a href=/getCallsignQTH>"
                 +GeneralVariables.getStringFromResource(R.string.html_callsign_qth)+"</a></td></tr>" +
 
+                "<tr><td class=\"default\" colspan=\"15\"><a href=/QSOLogs>"//查询日志
+                +GeneralVariables.getStringFromResource(R.string.html_query_logs)+"</a></td></tr>" +
+
                 "<tr><td class=\"default\" colspan=\"15\"><a href=/QSLTable>"
                         +GeneralVariables.getStringFromResource(R.string.html_export_log)
                 +"</a>"+GeneralVariables.getStringFromResource(R.string.html_to_the_third_party)+"</td></tr>" +
@@ -109,36 +114,104 @@ public class HtmlContext {
                 "</table>");
     }
 
-    public static String ListTableContext(Cursor cursor) {
+    /**
+     * 生成表格的内容
+     * @param sb html
+     * @param s 内容
+     * @return html
+     */
+    public static StringBuilder tableCell(StringBuilder sb, String... s){
+        for (String c: s) {
+            sb.append(String.format("<td>%s</td>",c));
+        }
+        sb.append("\n");
+       return sb;
+    }
+
+    /**
+     * 生成表格标题
+     * @param sb html
+     * @param s 标题
+     * @return html
+     */
+    public static StringBuilder tableCellHeader(StringBuilder sb, String... s){
+        for (String c: s) {
+            sb.append(String.format("<th>%s</th>",c));
+        }
+        sb.append("\n");
+        return sb;
+    }
+    @SuppressLint("DefaultLocale")
+    public static StringBuilder tableKeyRow(StringBuilder sb , Boolean darkMode, String key, int value){
+        sb.append(String.format("<tr %s><td>%s</td><td>%d</td></tr>\n"
+                ,darkMode ? "class=\"bbb\"" : ""
+                ,key,value));
+        return sb;
+    }
+
+    public static StringBuilder tableKeyRow(StringBuilder sb ,Boolean darkMode,String key,String value){
+        sb.append(String.format("<tr %s><td>%s</td><td>%s</td></tr>\n"
+                ,darkMode ? "class=\"bbb\"" : ""
+                ,key,value));
+        return sb;
+    }
+
+    public static StringBuilder tableRowBegin(StringBuilder sb){
+       return tableRowBegin(sb,false,false);
+    }
+    public static StringBuilder tableRowBegin(StringBuilder sb,Boolean alignCenter,boolean darkMode){
+       sb.append(String.format("<tr %s %s>"
+               ,alignCenter?"align=center":""
+                ,darkMode ? "class=\"bbb\"":""));
+       return sb;
+    }
+    public static StringBuilder tableRowEnd(StringBuilder sb){
+        sb.append("</tr>");
+        return sb;
+    }
+
+    public static StringBuilder tableBegin(StringBuilder sb){
+        return tableBegin(sb,false,1,true);
+    }
+    public static StringBuilder tableBegin(StringBuilder sb,boolean hasBorder,boolean fullWidth){
+        return tableBegin(sb,hasBorder,1,fullWidth);
+    }
+    @SuppressLint("DefaultLocale")
+    public static StringBuilder tableBegin(StringBuilder sb, boolean hasBorder, int cellpadding,boolean fullWidth){
+        sb.append(String.format("<table bgcolor=#a1a1a1 %s cellpadding=\"%d\" cellspacing=\"0\" %s >"
+                ,hasBorder ? "border=\"1\"" :""
+                ,cellpadding
+                ,fullWidth ? "width=\"100%\"":""));
+        return sb;
+    }
+
+    public static StringBuilder tableEnd(StringBuilder sb){
+        sb.append("</table>");
+        return sb;
+    }
+    public static String ListTableContext(Cursor cursor,boolean fullWidth){
+        return ListTableContext(cursor,false,0,fullWidth);
+    }
+    public static String ListTableContext(Cursor cursor,boolean hasBorder,int cellpadding ,boolean fullWidth) {
         StringBuilder result = new StringBuilder();
-        result.append("<table bgcolor=\"#a1a1a1\" border=\"1\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\">");
+        HtmlContext.tableBegin(result,hasBorder,cellpadding,fullWidth).append("\n");
 
         //写字段名
-        result.append("<tr>");
+        HtmlContext.tableRowBegin(result);
         for (int i = 0; i < cursor.getColumnCount(); i++) {
-            result.append("<th >");
-            result.append(cursor.getColumnName(i));
-            result.append("</th>");
+            HtmlContext.tableCellHeader(result,cursor.getColumnName(i));
         }
-        result.append("</tr>\n");
+        HtmlContext.tableRowEnd(result).append("\n");
         int order=0;
         while (cursor.moveToNext()) {
-            if (order%2==0) {
-                result.append("<tr>");
-            }else {
-                result.append("<tr class=\"bbb\">");
-            }
+            HtmlContext.tableRowBegin(result,false,order % 2 !=0);
             for (int i = 0; i < cursor.getColumnCount(); i++) {
-                result.append("<td class=\"default\">");
-                if (cursor.getString(i)!=null) {
-                    result.append(cursor.getString(i));
-                }
-                result.append("</td>");
+                HtmlContext.tableCell(result,(cursor.getString(i)!=null) ? cursor.getString(i) :"");
             }
-            result.append("</tr>\n");
+            HtmlContext.tableRowEnd(result).append("\n");
             order++;
         }
-        result.append("</table>");
+        HtmlContext.tableEnd(result).append("\n");
         cursor.close();
         return result.toString();
     }

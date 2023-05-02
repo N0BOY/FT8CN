@@ -1147,9 +1147,19 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         @Override
         protected Void doInBackground(Void... voids) {
             String querySQL;
-            querySQL = "INSERT INTO SWLQSOTable(call, gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
-                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
-                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            //删除之前重复的记录
+            querySQL = "DELETE FROM  SWLQSOTable where ([call]=?) and (station_callsign=?) and (qso_date=?) and(time_on=?) and (freq=?)";
+            databaseOpr.db.execSQL(querySQL, new String[]{
+                             qslRecord.getToCallsign()
+                            , qslRecord.getMyCallsign()
+                            , qslRecord.getQso_date()
+                            , qslRecord.getTime_on()
+                            , BaseRigOperation.getFrequencyFloat(qslRecord.getBandFreq())
+                    });
+            //添加记录
+            querySQL = "INSERT INTO SWLQSOTable([call], gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
+                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare,comment)\n" +
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             databaseOpr.db.execSQL(querySQL, new String[]{qslRecord.getToCallsign()
                     , qslRecord.getToMaidenGrid()
@@ -1449,7 +1459,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             String querySQL = "select * from QSLTable where ([call] like ?) \n" +
                     filterStr +
-                    " order by ID desc\n"+
+                    " ORDER BY qso_date DESC, time_off DESC\n"+
+                    //" order by ID desc\n"+
                     limitStr;
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
             ArrayList<QSLRecordStr> records = new ArrayList<>();
@@ -1832,6 +1843,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 }
                 if (name.equalsIgnoreCase("saveSWLQSO")) {//保存解码信息
                     GeneralVariables.saveSWL_QSO = result.equals("1");
+                }
+                if (name.equalsIgnoreCase("audioBits")) {//输出音频是否32位浮点
+                    GeneralVariables.audioOutput32Bit = result.equals("1");
+                }
+                if (name.equalsIgnoreCase("audioRate")) {//输出音频是否32位浮点
+                    GeneralVariables.audioSampleRate =Integer.parseInt( result);
                 }
             }
 

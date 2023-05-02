@@ -346,6 +346,168 @@
 
 
                     <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/audioOutputLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/swlOprLayout">
+
+                        <TextView
+                            android:id="@+id/audioOutputText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/audioOutput"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <RadioGroup
+                            android:id="@+id/audioBitsRadioGroup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_layout_style"
+                            android:orientation="horizontal"
+                            app:layout_constraintEnd_toStartOf="@+id/audioOutputImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <RadioButton
+                                android:id="@+id/audio16BitsRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="2dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio16_bit"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <RadioButton
+                                android:id="@+id/audio32BitsRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio32_bit"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="@+id/audio16BitsRadioButton"
+                                app:layout_constraintStart_toEndOf="@+id/audio16BitsRadioButton"
+                                app:layout_constraintTop_toTopOf="@+id/audio16BitsRadioButton" />
+                        </RadioGroup>
+
+                        <RadioGroup
+                            android:id="@+id/audioRateRadioGroup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="2dp"
+
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/editor_layout_style"
+                            android:orientation="horizontal"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/audioOutputImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                            app:layout_constraintTop_toBottomOf="@+id/audioBitsRadioGroup">
+
+                            <RadioButton
+                                android:id="@+id/audio12kRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="2dp"
+                                android:layout_marginTop="3dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio_rate_12k"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <RadioButton
+                                android:id="@+id/audio24kRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginTop="3dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio_rate_24k"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <RadioButton
+                                android:id="@+id/audio48kRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_marginTop="3dp"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/audio_rate_48k"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toEndOf="@+id/audioOutputText"
+                                app:layout_constraintTop_toTopOf="parent" />
+                        </RadioGroup>
+
+                        <ImageButton
+                            android:id="@+id/audioOutputImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                        <TextView
+                            android:id="@+id/sampleRateLableTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:text="@string/audio_rate"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/audioRateRadioGroup"
+                            app:layout_constraintTop_toBottomOf="@+id/audioOutputText" />
+
+                        <TextView
+                            android:id="@+id/bitDepthTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="@string/audio_bit_depth"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toTopOf="@+id/audioOutputText"
+                            app:layout_constraintEnd_toStartOf="@+id/audioBitsRadioGroup"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/operatonBandLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -1193,7 +1355,6 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/clearCacheLayout"
                         android:layout_width="0dp"
@@ -1202,7 +1363,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/swlOprLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/audioOutputLayout">
 
                         <TextView
                             android:id="@+id/clearCacheText"
