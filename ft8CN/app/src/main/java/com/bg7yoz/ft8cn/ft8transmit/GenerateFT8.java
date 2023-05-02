@@ -29,7 +29,7 @@ public class GenerateFT8 {
     private static final float symbol_bt = FT8_SYMBOL_BT;//FT8_SYMBOL_BT=2.0f
     private static final float slot_time = FT8_SLOT_TIME;//FT8_SLOT_TIME=15f
     //public static int sample_rate = 48000;//采样率
-    //public static int sample_rate = 12000;//采样率
+    public static int sample_rate = 12000;//采样率
 
 
     static {
@@ -121,7 +121,7 @@ public class GenerateFT8 {
     }
 
 
-    public static float[] generateFt8(Ft8Message msg, float frequency,int sample_rate) {
+    public static float[] generateFt8(Ft8Message msg, float frequency) {
         if (msg.callsignFrom.length()<3){
             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.callsign_error));
             return null;

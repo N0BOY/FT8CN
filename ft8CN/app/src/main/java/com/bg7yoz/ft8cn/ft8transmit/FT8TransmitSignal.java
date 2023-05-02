@@ -365,36 +365,12 @@ public class FT8TransmitSignal {
         setCurrentFunctionOrder(functionOrder);//设置当前消息
     }
 
-    /**
-     * 为了最大限度兼容，把32位浮点转换成16位整型，有些声卡不支持32位的浮点。
-     * @param buffer 32位浮点音频
-     * @return 16位整型
-     */
-    private short[] float2Short(float[] buffer){
-        short[] temp =new short[buffer.length+8];//多出8个为0的数据包，是为了兼容QP-7C的RP2040音频判断
-        for (int i = 0; i < buffer.length; i++) {
-            float x = buffer[i];
-            if (x > 1.0)
-                x = 1.0f;
-            else if (x < -1.0)
-                x = -1.0f;
-            temp[i] = (short) (0.5 + (x * 32767.0));
-        }
-        return  temp;
-    }
 
-    //private void playFT8Signal(float[] buffer) {
-    private void playFT8Signal(Ft8Message msg) {
+    private void playFT8Signal(float[] buffer) {
 
+        //todo--实现网络发送模式
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {//网络方式就不播放音频了
             Log.d(TAG, "playFT8Signal: 进入网络发射程序，等待音频发送。");
-
-
-            if (onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
-                onDoTransmitted.onTransmitByWifi(msg);
-            }
-
-
             long now = System.currentTimeMillis();
             while (isTransmitting) {//等待音频数据包发送完毕再退出，以触发afterTransmitting
                 try {
@@ -414,46 +390,26 @@ public class FT8TransmitSignal {
         }
 
 
-        //进入声卡模式
-        float[] buffer;
-        buffer=GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency()
-                ,GeneralVariables.audioSampleRate);
-        if (buffer==null) {
-            afterPlayAudio();
-            return;
-        }
-
-        Log.d(TAG, String.format("playFT8Signal: 准备声卡播放....位数：%s,采样率：%d"
-                ,GeneralVariables.audioOutput32Bit ? "Float32":"Int16"
-                ,GeneralVariables.audioSampleRate));
+        Log.d(TAG, "playFT8Signal: 准备声卡播放....");
         attributes = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
                 .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                 .build();
 
-        //myFormat = new AudioFormat.Builder().setSampleRate(FT8Common.SAMPLE_RATE)
-        myFormat = new AudioFormat.Builder().setSampleRate(GeneralVariables.audioSampleRate)
-                .setEncoding(GeneralVariables.audioOutput32Bit ? //浮点与整型
-                        AudioFormat.ENCODING_PCM_FLOAT : AudioFormat.ENCODING_PCM_16BIT)
+        myFormat = new AudioFormat.Builder().setSampleRate(FT8Common.SAMPLE_RATE)
+                //.setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setEncoding(AudioFormat.ENCODING_PCM_FLOAT)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build();
         int mySession = 0;
         audioTrack = new AudioTrack(attributes, myFormat
-                , GeneralVariables.audioOutput32Bit ? GeneralVariables.audioSampleRate * 15 * 4
-                                                    : GeneralVariables.audioSampleRate * 15 * 2//浮点与整型
-                , AudioTrack.MODE_STATIC
+                , 12000 * 15 * 4, AudioTrack.MODE_STATIC
                 , mySession);
 
-        //区分32浮点和整型
-        int writeResult;
-        if (GeneralVariables.audioOutput32Bit) {
-            writeResult = audioTrack.write(buffer, 0, buffer.length
-                    , AudioTrack.WRITE_NON_BLOCKING);
-        }
-        else{
-            short[] audio_data = float2Short(buffer);
-            writeResult = audioTrack.write(audio_data, 0, audio_data.length
-                    , AudioTrack.WRITE_NON_BLOCKING);
-        }
+
+        //写入数据大小 array 就是预先将音频数据加载到array数组中
+        int writeResult = audioTrack.write(buffer, 0, buffer.length
+                , AudioTrack.WRITE_NON_BLOCKING);
+
 
         if (buffer.length > writeResult) {
             Log.e(TAG, String.format("播放缓冲区不足：%d--->%d", buffer.length, writeResult));
@@ -1049,6 +1005,12 @@ public class FT8TransmitSignal {
                 //此处用于处理PTT等事件
                 transmitSignal.onDoTransmitted.onBeforeTransmit(msg, transmitSignal.functionOrder);
             }
+            //short[] buffer = new short[FT8Common.SAMPLE_RATE * FT8Common.FT8_SLOT_TIME];
+            //79个符号，每个符号0.16秒，采样率12000，
+//            short[] buffer = new short[(int) (0.5f +
+//                    GenerateFT8.num_tones * GenerateFT8.symbol_period
+//                            * GenerateFT8.sample_rate)]; // 数据信号中的采样数0.5+79*0.16*12000];
+
 
             transmitSignal.isTransmitting = true;
             transmitSignal.mutableIsTransmitting.postValue(true);
@@ -1058,11 +1020,11 @@ public class FT8TransmitSignal {
                     , GeneralVariables.getBaseFrequency()
                     , msg.getMessageText()));
             //生成信号
-//            float[] buffer=GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency());
-//            if (buffer==null) {
-//                return;
-//            }
-
+            float[] buffer=GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency());
+            if (buffer==null) {
+                return;
+            }
+            ;
             //电台动作可能有要有个延迟时间，所以时间并不一定完全准确
             try {//给电台一个100毫秒的响应时间
                 Thread.sleep(GeneralVariables.pttDelay);//给PTT指令后，电台一个响应时间，默认100毫秒
@@ -1070,12 +1032,11 @@ public class FT8TransmitSignal {
                 e.printStackTrace();
             }
 
-//            if (transmitSignal.onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
-//                transmitSignal.onDoTransmitted.onAfterGenerate(buffer);
-//            }
+            if (transmitSignal.onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
+                transmitSignal.onDoTransmitted.onAfterGenerate(buffer);
+            }
             //播放音频
-            //transmitSignal.playFT8Signal(buffer);
-            transmitSignal.playFT8Signal(msg);
+            transmitSignal.playFT8Signal(buffer);
         }
     }
 }

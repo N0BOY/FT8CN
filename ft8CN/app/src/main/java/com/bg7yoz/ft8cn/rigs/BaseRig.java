@@ -2,7 +2,6 @@ package com.bg7yoz.ft8cn.rigs;
 
 import androidx.lifecycle.MutableLiveData;
 
-import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.connector.BaseRigConnector;
 
 /**
@@ -46,10 +45,7 @@ public abstract class BaseRig {
         }
     }
 
-//    public void sendWaveData(float[] data) {
-//        //留给ICOM电台使用
-//    }
-    public void sendWaveData(Ft8Message message) {
+    public void sendWaveData(float[] data) {
         //留给ICOM电台使用
     }
 
