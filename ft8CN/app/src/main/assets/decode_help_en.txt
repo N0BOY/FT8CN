@@ -1,0 +1,4 @@
+Decode mode:
+Fast decode: Default mode, one decoding pass on received audio.
+Deep decode: Recursive decoding that process received audio in multiple passes .
+* Note: Deep decoding requires longer decoding time and more battery consumption. 

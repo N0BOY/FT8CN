@@ -87,7 +87,7 @@ public class WaveFileWriter {
 	}
 
 	public void close() {
-   // TODO document why this method is empty
+
  }
 
 	private void writeString(String str, int len) {

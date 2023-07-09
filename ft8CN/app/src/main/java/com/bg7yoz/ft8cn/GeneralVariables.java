@@ -14,6 +14,8 @@ import com.bg7yoz.ft8cn.connector.ConnectMode;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.ft8transmit.QslRecordList;
+import com.bg7yoz.ft8cn.html.HtmlContext;
+import com.bg7yoz.ft8cn.icom.IcomAudioUdp;
 import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -32,6 +34,11 @@ public class GeneralVariables {
     public static int MESSAGE_COUNT = 3000;//消息的最大缓存数量
     public static boolean saveSWLMessage=false;//保存解码消息开关
     public static boolean saveSWL_QSO=false;//保存解码消息消息中的QSO开关
+
+    public static boolean deepDecodeMode=false;//是否开启深度解码
+
+    public static boolean audioOutput32Bit =true;//音频输出类型true=float,false=int16
+    public static int audioSampleRate=12000;//发射音频的采样率
 
     public static MutableLiveData<Float> mutableVolumePercent = new MutableLiveData<>();
     public static float volumePercent = 0.5f;//播放音频的音量,是百分比
@@ -151,7 +158,7 @@ public class GeneralVariables {
     //private static final Map<String,String> callsignAndGrids=new HashMap<>();
 
     public static String myCallsign = "";//我的呼号
-    public static String toModifier = "ADFG";//呼叫的修饰符
+    public static String toModifier = "";//呼叫的修饰符
     private static float baseFrequency = 1000;//声音频率
     public static MutableLiveData<Float> mutableBaseFrequency = new MutableLiveData<>();
 
@@ -543,21 +550,9 @@ public class GeneralVariables {
         int order = 0;
         for (String key : callsignAndGrids.keySet()) {
             order++;
-            if (order % 2 == 0) {
-                result.append("<tr class=\"bbb\" >");
-            } else {
-                result.append("<tr>");
-            }
-            result.append("<td align=center class=\"default\" >");
-            result.append(key);
-            result.append("</td>\n");
-            result.append("<td align=center class=\"default\" >");
-            result.append(callsignAndGrids.get(key));
-            result.append("</tr>\n");
-
+            HtmlContext.tableKeyRow(result,order % 2 != 0,key,callsignAndGrids.get(key));
         }
         return result.toString();
-
     }
 
     public static synchronized void deleteArrayListMore(ArrayList<Ft8Message> list) {
@@ -582,4 +577,11 @@ public class GeneralVariables {
             return false;
     }
 
+    /**
+     * 输出音频的数据类型，网络模式不可用
+     */
+    public  enum AudioOutputBitMode{
+        Float32,
+        Int16
+    }
 }

@@ -9,6 +9,7 @@ package com.bg7yoz.ft8cn.ui;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Paint;
+import android.opengl.Visibility;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -169,6 +170,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         holder.callingUtcTextView.setText(UtcTimer.getTimeHHMMSS(holder.ft8Message.utcTime));
         //时序，包括颜色,
         holder.callingListSequenceTextView.setText(holder.ft8Message.getSequence() == 0 ? "0" : "1");
+        holder.isWeakSignalImageView.setVisibility(holder.ft8Message.isWeakSignal ? View.VISIBLE:View.INVISIBLE);
 
         if (showMode==ShowMode.MY_CALLING) {//在呼叫界面
             holder.callingListSequenceTextView.setTextColor(context.getColor(R.color.follow_call_text_color));
@@ -221,7 +223,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         }
 
 
-        holder.callListMessageTextView.setText(holder.ft8Message.getMessageText());
+        holder.callListMessageTextView.setText(holder.ft8Message.getMessageText(true));
 
         //载波频率
         holder.bandItemTextView.setText(BaseRigOperation.getFrequencyStr(holder.ft8Message.band));
@@ -371,9 +373,11 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         ConstraintLayout callListHolderConstraintLayout;
         TextView callingListIdBTextView, callListDtTextView, callingListFreqTextView,
                 callListMessageTextView, callingListDistTextView, callingListSequenceTextView,
-                callingListCallsignFromTextView, callingListCallsignToTextView, callingListCommandIInfoTextView,
+                callingListCallsignFromTextView, callingListCallsignToTextView
+                , callingListCommandIInfoTextView,
                 bandItemTextView, callingUtcTextView;
-        ImageView dxccToImageView, ituToImageView, cqToImageView, dxccFromImageView, ituFromImageView, cqFromImageView;
+        ImageView dxccToImageView, ituToImageView, cqToImageView, dxccFromImageView
+                , ituFromImageView, cqFromImageView,isWeakSignalImageView;
         public Ft8Message ft8Message;
         //boolean showFollow;
         ShowMode showMode;
@@ -403,6 +407,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             dxccFromImageView = itemView.findViewById(R.id.dxccFromImageView);
             ituFromImageView = itemView.findViewById(R.id.ituFromImageView);
             cqFromImageView = itemView.findViewById(R.id.cqFromImageView);
+            isWeakSignalImageView=itemView.findViewById(R.id.isWeakSignalImageView);
 
             dxccToImageView.setVisibility(View.GONE);
             ituToImageView.setVisibility(View.GONE);

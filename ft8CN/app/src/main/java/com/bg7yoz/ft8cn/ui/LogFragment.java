@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.ui;
 /**
  * 通联纪录的主界面。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -65,7 +66,7 @@ public class LogFragment extends Fragment {
 
     private LogCallsignAdapter logCallsignAdapter;
     private LogQSLAdapter logQSLAdapter;
-    private boolean loading=false;//防止滑动触发多次查询
+    private boolean loading = false;//防止滑动触发多次查询
     private int lastItemPosition;
 
 
@@ -113,12 +114,12 @@ public class LogFragment extends Fragment {
         });
 
         binding.inputMycallEdit.setText(mainViewModel.queryKey);
-        queryByCallsign(mainViewModel.queryKey,0);
+        queryByCallsign(mainViewModel.queryKey, 0);
 
         mainViewModel.mutableQueryFilter.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
-                queryByCallsign(mainViewModel.queryKey,0);
+                queryByCallsign(mainViewModel.queryKey, 0);
             }
         });
 
@@ -137,7 +138,7 @@ public class LogFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable editable) {
                 mainViewModel.queryKey = editable.toString();
-                queryByCallsign(mainViewModel.queryKey,0);
+                queryByCallsign(mainViewModel.queryKey, 0);
             }
         });
 
@@ -153,10 +154,16 @@ public class LogFragment extends Fragment {
         binding.exportImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new HelpDialog(requireContext(), requireActivity()
-                        , String.format(GeneralVariables.getStringFromResource(R.string.export_info)
-                        , getLocalIp(), LogHttpServer.DEFAULT_PORT)
-                        , false).show();
+                if (getLocalIp()==null) {
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.export_null)
+                            ,false).show();
+                }else {
+                    new HelpDialog(requireContext(), requireActivity()
+                            , String.format(GeneralVariables.getStringFromResource(R.string.export_info)
+                            , getLocalIp(), LogHttpServer.DEFAULT_PORT)
+                            , false).show();
+                }
 
             }
         });
@@ -166,7 +173,7 @@ public class LogFragment extends Fragment {
             public void onClick(View view) {
                 mainViewModel.logListShowCallsign = !mainViewModel.logListShowCallsign;
                 setShowStyle();
-                queryByCallsign(binding.inputMycallEdit.getText().toString(),0);//偏移量0，就是重新查询
+                queryByCallsign(binding.inputMycallEdit.getText().toString(), 0);//偏移量0，就是重新查询
             }
         });
 
@@ -176,7 +183,7 @@ public class LogFragment extends Fragment {
             public void onClick(View view) {
                 Intent intent = new Intent(requireContext(), GridTrackerMainActivity.class);
                 intent.putExtra("qslAll", mainViewModel.queryKey);
-                intent.putExtra("queryFilter",mainViewModel.queryFilter);
+                intent.putExtra("queryFilter", mainViewModel.queryFilter);
                 startActivity(intent);
             }
         });
@@ -209,6 +216,8 @@ public class LogFragment extends Fragment {
                     break;
                 case 3:
                     Intent intent = new Intent(requireContext(), GridTrackerMainActivity.class);
+                    //ArrayList<QSLRecordStr> records=new ArrayList<>();
+                    //records.add(logQSLAdapter.getRecord(position));
                     intent.putExtra("qslList", logQSLAdapter.getRecord(position));
                     startActivity(intent);
                     break;
@@ -222,6 +231,7 @@ public class LogFragment extends Fragment {
 
         return super.onContextItemSelected(item);
     }
+
     private boolean itemIsOnScreen(View view) {
         if (view != null) {
             int width = view.getWidth();
@@ -232,15 +242,20 @@ public class LogFragment extends Fragment {
         return false;
     }
 
-    private void loadQueryData(RecyclerView recyclerView){
-            if ((!loading)) {
-                if (mainViewModel.logListShowCallsign){
-                   queryByCallsign(mainViewModel.queryKey, logCallsignAdapter.getItemCount());
-                }else {
-                   queryByCallsign(mainViewModel.queryKey, logQSLAdapter.getItemCount());
+    private void loadQueryData(RecyclerView recyclerView) {
+//        if ((!loading)&&(recyclerView.computeVerticalScrollRange()
+//                - recyclerView.computeVerticalScrollExtent()
+//                - recyclerView.computeVerticalScrollOffset() < 100)) {
+        if ((!loading)) {
+            //ToastMessage.show("查询");
+            if (mainViewModel.logListShowCallsign) {
+                queryByCallsign(mainViewModel.queryKey, logCallsignAdapter.getItemCount());
+            } else {
+                queryByCallsign(mainViewModel.queryKey, logQSLAdapter.getItemCount());
             }
         }
     }
+
     /**
      * 设置列表滑动动作
      */
@@ -252,13 +267,13 @@ public class LogFragment extends Fragment {
                 super.onScrollStateChanged(recyclerView, newState);
 
                 int itemCount;
-                if (mainViewModel.logListShowCallsign){
-                    itemCount=logCallsignAdapter.getItemCount();
-                }else {
-                    itemCount=logQSLAdapter.getItemCount();
+                if (mainViewModel.logListShowCallsign) {
+                    itemCount = logCallsignAdapter.getItemCount();
+                } else {
+                    itemCount = logQSLAdapter.getItemCount();
                 }
                 if (newState == SCROLL_STATE_IDLE &&
-                        lastItemPosition == itemCount){
+                        lastItemPosition == itemCount) {
                     loadQueryData(recyclerView);
 
                 }
@@ -268,14 +283,28 @@ public class LogFragment extends Fragment {
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
                 RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
-                if (layoutManager instanceof LinearLayoutManager){
+                if (layoutManager instanceof LinearLayoutManager) {
                     LinearLayoutManager manager = (LinearLayoutManager) layoutManager;
                     int firstVisibleItem = manager.findFirstVisibleItemPosition();
                     int l = manager.findLastCompletelyVisibleItemPosition();
-                    lastItemPosition = firstVisibleItem+(l-firstVisibleItem)+1;
+                    lastItemPosition = firstVisibleItem + (l - firstVisibleItem) + 1;
 
                 }
 
+//                if (dy>0){//列表向上移动
+//                    loadQueryData(recyclerView);
+//                }
+                //当列表上滑，接近底部时，开始查询
+//                if ((!loading)&&(dy>0)&&(recyclerView.computeVerticalScrollRange()
+//                        - recyclerView.computeVerticalScrollExtent()
+//                        - recyclerView.computeVerticalScrollOffset() < 100)) {
+//                    ToastMessage.show("查询");
+//                    if (mainViewModel.logListShowCallsign){
+//                        queryByCallsign(mainViewModel.queryKey, logCallsignAdapter.getItemCount());
+//                    }else {
+//                        queryByCallsign(mainViewModel.queryKey, logQSLAdapter.getItemCount());
+//                    }
+//                }
             }
         });
 
@@ -425,15 +454,15 @@ public class LogFragment extends Fragment {
      *
      * @param callsign 呼号
      */
-    private void queryByCallsign(String callsign,int offset) {
-        loading=true;//开始读数据
+    private void queryByCallsign(String callsign, int offset) {
+        loading = true;//开始读数据
         //分两种查询
         if (mainViewModel.logListShowCallsign) {
-            if (offset==0) {//说明是新增记录
+            if (offset == 0) {//说明是新增记录
                 logCallsignAdapter.clearRecords();//清空记录
             }
 
-            mainViewModel.databaseOpr.getQSLCallsignsByCallsign(false,offset,callsign, mainViewModel.queryFilter
+            mainViewModel.databaseOpr.getQSLCallsignsByCallsign(false, offset, callsign, mainViewModel.queryFilter
                     , new OnQueryQSLCallsign() {
                         @Override
                         public void afterQuery(ArrayList<QSLCallsignRecord> records) {
@@ -441,16 +470,16 @@ public class LogFragment extends Fragment {
                                 @Override
                                 public void run() {
                                     logCallsignAdapter.setQSLCallsignList(records);
-                                    loading=false;
+                                    loading = false;
                                 }
                             });
                         }
                     });
         } else {
-            if (offset==0){//说明是新增记录
+            if (offset == 0) {//说明是新增记录
                 logQSLAdapter.clearRecords();
             }
-            mainViewModel.databaseOpr.getQSLRecordByCallsign(false,offset,callsign, mainViewModel.queryFilter
+            mainViewModel.databaseOpr.getQSLRecordByCallsign(false, offset, callsign, mainViewModel.queryFilter
                     , new OnQueryQSLRecordCallsign() {
                         @Override
                         public void afterQuery(ArrayList<QSLRecordStr> records) {
@@ -458,7 +487,7 @@ public class LogFragment extends Fragment {
                                 @Override
                                 public void run() {
                                     logQSLAdapter.setQSLList(records);
-                                    loading=false;
+                                    loading = false;
                                 }
                             });
                         }

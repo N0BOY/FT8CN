@@ -111,10 +111,15 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
                 , holder.record.getTime_on()));
         holder.logQSOEndTimeTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_end_time)
                 , holder.record.getTime_off()));
+
         holder.logQSOReceiveTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_rcvd)
-                , holder.record.getRst_rcvd()));
+                , holder.record.getRst_rcvd().equals("-120")
+                        ||holder.record.getRst_rcvd().equals("-100")
+                        ?"":holder.record.getRst_rcvd()));
         holder.logQSOSendTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_rst_sent)
-                , holder.record.getRst_sent()));
+                ,holder.record.getRst_sent().equals("-120")
+                        ||holder.record.getRst_sent().equals("-100")
+                        ?"": holder.record.getRst_sent()));
         holder.logQSLBandTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_band)
                 , holder.record.getBand()));
         holder.logQSLFreqTextView.setText(String.format(GeneralVariables.getStringFromResource(R.string.qsl_freq)

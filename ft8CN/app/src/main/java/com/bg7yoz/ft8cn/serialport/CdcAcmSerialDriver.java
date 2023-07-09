@@ -305,6 +305,8 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 new int[] {
                     UsbId.VAN_OOIJEN_TECH_TEENSYDUINO_SERIAL,
                 });
+
+
         supportedDevices.put(UsbId.VENDOR_ATMEL,
                 new int[] {
                     UsbId.ATMEL_LUFA_CDC_DEMO_APP,
@@ -321,7 +323,8 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
                 new int[] {
                         UsbId.ST_CDC,
                         UsbId.ST_CDC2,
-                        UsbId.ST_CDC3
+                        UsbId.ST_CDC3,
+                        UsbId.CDC_WOLF_PID
                 });
         supportedDevices.put(UsbId.VENDOR_RASPBERRY_PI,
                 new int[] {

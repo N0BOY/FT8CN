@@ -215,7 +215,7 @@ public class FloatView extends ConstraintLayout {
             WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
             width = wm.getDefaultDisplay().getWidth();
             height = wm.getDefaultDisplay().getHeight();
-        } else {//--TODO--这部分基本没有执行过
+        } else {//这部分基本没有执行过
             width = parentViewWidth;
             height = parentViewHeight;
         }

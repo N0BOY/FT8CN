@@ -105,9 +105,12 @@ public class CallsignDatabase extends SQLiteOpenHelper {
     /**
      * 更新消息中的位置及经纬度信息
      *
-     * @param messages 消息列表
+     * @param ft8Messages 消息列表
      */
-    public static void getMessagesLocation(SQLiteDatabase db, ArrayList<Ft8Message> messages) {
+    public static synchronized void getMessagesLocation(SQLiteDatabase db, ArrayList<Ft8Message> ft8Messages ) {
+        if (ft8Messages==null) return;
+        ArrayList<Ft8Message> messages = new ArrayList<>(ft8Messages);//防止线程访问冲突
+
         for (Ft8Message msg : messages) {
             if (msg.i3==0&&msg.n3==0) continue;//如果是自由文本，就不查了
             CallsignInfo fromCallsignInfo = getCallsignInfo(db,
@@ -142,7 +145,6 @@ public class CallsignDatabase extends SQLiteOpenHelper {
                 }
                 msg.toLatLng = new LatLng(toCallsignInfo.Latitude, toCallsignInfo.Longitude*-1);
             }
-
         }
     }
 

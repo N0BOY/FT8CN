@@ -17,6 +17,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+
 import com.bg7yoz.ft8cn.FAQActivity;
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
@@ -33,10 +37,6 @@ import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.io.IOException;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -279,6 +279,15 @@ public class ConfigFragment extends Fragment {
 
         //设置电台名称，参数列表
         setRigNameSpinner();
+
+        //设置解码模式
+        setDecodeMode();
+
+        //设置音频输出的位数
+        setAudioOutputBitsMode();
+
+        //设置音频输出采样率
+        setAudioOutputRateMode();
 
         //设置控制模式 VOX CAT
         setControlMode();
@@ -762,6 +771,80 @@ public class ConfigFragment extends Fragment {
     }
 
 
+    private void setDecodeMode() {
+        binding.decodeModeRadioGroup.clearCheck();
+        binding.fastDecodeRadioButton.setChecked(!GeneralVariables.deepDecodeMode);
+        binding.deepDecodeRadioButton.setChecked(GeneralVariables.deepDecodeMode);
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int buttonId = binding.decodeModeRadioGroup.getCheckedRadioButtonId();
+                GeneralVariables.deepDecodeMode= buttonId ==binding.deepDecodeRadioButton.getId();
+                writeConfig("deepMode", GeneralVariables.deepDecodeMode? "1" : "0");
+            }
+        };
+
+        binding.fastDecodeRadioButton.setOnClickListener(listener);
+        binding.deepDecodeRadioButton.setOnClickListener(listener);
+
+    }
+
+
+    /**
+     * 设置音频输出的位数
+     */
+    private void setAudioOutputBitsMode() {
+        //binding.controlModeRadioGroup.setOnCheckedChangeListener(null);
+        binding.audioBitsRadioGroup.clearCheck();
+        binding.audio32BitsRadioButton.setChecked(GeneralVariables.audioOutput32Bit);
+        binding.audio16BitsRadioButton.setChecked(!GeneralVariables.audioOutput32Bit);
+
+
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int buttonId = binding.audioBitsRadioGroup.getCheckedRadioButtonId();
+                GeneralVariables.audioOutput32Bit= buttonId ==binding.audio32BitsRadioButton.getId();
+                writeConfig("audioBits", GeneralVariables.audioOutput32Bit? "1" : "0");
+            }
+        };
+
+        binding.audio32BitsRadioButton.setOnClickListener(listener);
+        binding.audio16BitsRadioButton.setOnClickListener(listener);
+
+    }
+
+    /**
+     * 输出音频的采样率设置
+     */
+    private void setAudioOutputRateMode() {
+        binding.audioRateRadioGroup.clearCheck();
+        binding.audio12kRadioButton.setChecked(GeneralVariables.audioSampleRate==12000);
+        binding.audio24kRadioButton.setChecked(GeneralVariables.audioSampleRate==24000);
+        binding.audio48kRadioButton.setChecked(GeneralVariables.audioSampleRate==48000);
+
+
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (binding.audio12kRadioButton.isChecked()) GeneralVariables.audioSampleRate=12000;
+                if (binding.audio24kRadioButton.isChecked()) GeneralVariables.audioSampleRate=24000;
+                if (binding.audio48kRadioButton.isChecked()) GeneralVariables.audioSampleRate=48000;
+                writeConfig("audioRate", String.valueOf(GeneralVariables.audioSampleRate));
+            }
+        };
+
+        binding.audio12kRadioButton.setOnClickListener(listener);
+        binding.audio24kRadioButton.setOnClickListener(listener);
+        binding.audio48kRadioButton.setOnClickListener(listener);
+
+    }
+
+
+
     /**
      * 设置控制模式VOX CAT
      */
@@ -897,66 +980,54 @@ public class ConfigFragment extends Fragment {
         binding.callsignHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "callsign.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "callsign_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.callsign_help)
+                            , true).show();
             }
         });
         //梅登海德网格的帮助
         binding.maidenGridImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "maidenhead.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "maidenhead_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.maidenhead_help)
+                            , true).show();
             }
         });
         //发射频率的帮助
         binding.frequencyImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "frequency.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "frequency_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.frequency_help)
+                            , true).show();
             }
         });
         //延迟发射帮助
         binding.transDelayImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "transDelay.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "transDelay_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.transDelay_help)
+                            , true).show();
             }
         });
         //时间偏移帮助
         binding.timeOffsetImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "timeoffset.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "timeoffset_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.timeoffset_help)
+                            , true).show();
             }
         });
         //PTT延时帮助
         binding.pttDelayImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "pttdelay.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "pttdelay_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.pttdelay_help)
+                            , true).show();
             }
         });
         //设置ABOUT
@@ -970,110 +1041,110 @@ public class ConfigFragment extends Fragment {
         binding.operationHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "operationBand.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "operationBand_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.operationBand_help)
+                            , true).show();
             }
         });
         //设置操作模式
         binding.controlModeHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "controlMode.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "controlMode_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.controlMode_help)
+                            , true).show();
             }
         });
         //设置CI-V地址和波特率帮助
         binding.baudRateHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "civ_help.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "civ_help_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.civ_help)
+                            , true).show();
             }
         });
         //电台型号列表
         binding.rigNameHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "rig_model_help.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "rig_model_help_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.rig_model_help)
+                            , true).show();
             }
         });
         //发射监管
         binding.launchSupervisionImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "launch_supervision_help.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "launch_supervision_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.launch_supervision_help)
+                            , true).show();
             }
         });
         //无回应次数
         binding.noResponseCountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "no_response_help.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "no_response_help_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.no_response_help)
+                            , true).show();
             }
         });
         //自动呼叫
         binding.autoFollowCountButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "auto_follow_help.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "auto_follow_help_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.auto_follow_help)
+                            , true).show();
             }
         });
         //连接模式
         binding.connectModeHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "connectMode.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "connectMode_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.connectMode_help)
+                            , true).show();
             }
         });
         //排除选项
         binding.excludedHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "excludeCallsign.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "excludeCallsign_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.excludeCallsign_help)
+                            , true).show();
             }
         });
 
         binding.swlHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "swlMode.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "swlMode_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.swlMode_help)
+                            , true).show();
+            }
+        });
+
+        //解码模式
+        binding.decodeModeHelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(),requireActivity()
+                        ,GeneralVariables.getStringFromResource(R.string.deep_mode_help)
+                        ,true).show();
+            }
+        });
+
+        //音频输出帮助
+        binding.audioOutputImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.audio_output_help)
+                            , true).show();
             }
         });
 
@@ -1081,11 +1152,9 @@ public class ConfigFragment extends Fragment {
         binding.clearCacheHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (GeneralVariables.isChina) {
-                    new HelpDialog(requireContext(), requireActivity(), "clear_cache_data.txt", true).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity(), "clear_cache_data_en.txt", true).show();
-                }
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.clear_cache_data_help)
+                            , true).show();
             }
         });
         binding.clearFollowButton.setOnClickListener(new View.OnClickListener() {

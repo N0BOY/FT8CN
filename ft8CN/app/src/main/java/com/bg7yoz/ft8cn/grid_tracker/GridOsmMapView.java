@@ -449,13 +449,11 @@ public class GridOsmMapView {
         if (fromLatLng == null) {
             //todo 把呼号转为国家的经纬度
             return null;
-            //fromLatLng = message.fromLatLng;
         }
 
         if (toLatLng == null) {
             //todo 把呼号转为国家的经纬度
             return null;
-            //toLatLng = message.toLatLng;
         }
         final GridPolyLine line = new GridPolyLine(gridMapView, fromLatLng, toLatLng, recordStr);
         return line;

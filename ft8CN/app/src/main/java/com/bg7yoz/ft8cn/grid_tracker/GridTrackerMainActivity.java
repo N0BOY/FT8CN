@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.grid_tracker;
 /**
  * 网格追踪的主窗口。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -78,7 +79,6 @@ public class GridTrackerMainActivity extends AppCompatActivity {
     private MutableLiveData<ArrayList<QSLRecordStr>> qslRecordList = new MutableLiveData<>();
 
 
-
     @SuppressLint("NotifyDataSetChanged")
     protected void doAfterCreate() {
         //设置消息列表
@@ -101,7 +101,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
         }
         //画日志界面查询出的全部消息
         String queryKey = intentGet.getStringExtra("qslAll");
-        int queryFilter=intentGet.getIntExtra("queryFilter",0);
+        int queryFilter = intentGet.getIntExtra("queryFilter", 0);
         if (queryKey != null) {
             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.tracker_query_qso_info));
             mainViewModel.databaseOpr.getQSLRecordByCallsign(true, 0, queryKey, queryFilter
@@ -187,30 +187,68 @@ public class GridTrackerMainActivity extends AppCompatActivity {
             @SuppressLint({"DefaultLocale", "NotifyDataSetChanged"})
             @Override
             public void onChanged(Integer integer) {
-                callingListAdapter.notifyDataSetChanged();
+//                callingListAdapter.notifyDataSetChanged();
                 //当列表下部稍微多出一些，自动上移
+//                if (callMessagesRecyclerView.computeVerticalScrollRange()
+//                        - callMessagesRecyclerView.computeVerticalScrollExtent()
+//                        - callMessagesRecyclerView.computeVerticalScrollOffset() < 500) {
+//                    callMessagesRecyclerView.scrollToPosition(callingListAdapter.getItemCount() - 1);
+//                }
+//                if (mainViewModel.currentMessages != null) {
+//
+//                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
+//                                    R.string.tracker_decoded_new)
+//                            , mainViewModel.currentDecodeCount)
+//                            + " " + String.format(
+//                            getString(R.string.decoding_takes_milliseconds)
+//                            , mainViewModel.ft8SignalListener.decodeTimeSec.getValue()));
+//                    //画电台之间的连线
+//                    //对CQ的电台打点
+//                    gridOsmMapView.clearLines();
+//                    gridOsmMapView.clearMarkers();
+//                    for (Ft8Message msg : mainViewModel.currentMessages) {
+//                        drawMessage(msg);//在地图上画每一个消息
+//                    }
+//                    gridOsmMapView.showInfoWindows();
+//                }
+            }
+        });
+        mainViewModel.mutableIsDecoding.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    gridOsmMapView.clearLines();
+                    gridOsmMapView.clearMarkers();
+                }
+            }
+        });
+        mainViewModel.mutableFt8MessageList.observe(this, new Observer<ArrayList<Ft8Message>>() {
+            @SuppressLint("NotifyDataSetChanged")
+            @Override
+            public void onChanged(ArrayList<Ft8Message> messages) {
+                if (mainViewModel.currentMessages == null) return;
+                ArrayList<Ft8Message> tempMsg = new ArrayList<>(mainViewModel.currentMessages);
+                callingListAdapter.notifyDataSetChanged();
                 if (callMessagesRecyclerView.computeVerticalScrollRange()
                         - callMessagesRecyclerView.computeVerticalScrollExtent()
                         - callMessagesRecyclerView.computeVerticalScrollOffset() < 500) {
                     callMessagesRecyclerView.scrollToPosition(callingListAdapter.getItemCount() - 1);
                 }
-                if (mainViewModel.currentMessages != null) {
 
-                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
-                                    R.string.tracker_decoded_new)
-                            , mainViewModel.currentDecodeCount)
-                            + " " + String.format(
-                            getString(R.string.decoding_takes_milliseconds)
-                            , mainViewModel.ft8SignalListener.decodeTimeSec.getValue()));
-                    //画电台之间的连线
-                    //对CQ的电台打点
-                    gridOsmMapView.clearLines();
-                    gridOsmMapView.clearMarkers();
-                    for (Ft8Message msg : mainViewModel.currentMessages) {
-                        drawMessage(msg);//在地图上画每一个消息
-                    }
-                    gridOsmMapView.showInfoWindows();
+                binding.gridMessageTextView.setText(String.format("%s %s"
+                        , String.format(GeneralVariables.getStringFromResource(
+                                        R.string.tracker_decoded_new)
+                                , mainViewModel.currentDecodeCount), String.format(
+                                getString(R.string.decoding_takes_milliseconds)
+                                , mainViewModel.ft8SignalListener.decodeTimeSec.getValue())));
+
+                //画电台之间的连线
+                //对CQ的电台打点
+                for (Ft8Message msg : tempMsg) {
+                    drawMessage(msg);//在地图上画每一个消息
                 }
+                gridOsmMapView.showInfoWindows();
+                //}
             }
         });
 

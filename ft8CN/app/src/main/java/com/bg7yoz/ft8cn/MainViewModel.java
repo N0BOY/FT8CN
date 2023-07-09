@@ -5,19 +5,16 @@ package com.bg7yoz.ft8cn;
  * 1.解码的总条数。decoded_counter和mutable_Decoded_Counter。
  * 2.解码消息的列表。消息以Ft8Message展示，列表用ArrayList泛型实现。ft8Messages，mutableFt8MessageList。
  * 3.解码和录音都需要时间同步，也就是以UTC时间的每15秒为一个周期。同步事件的触发由UtcTimer类来实现。
- * 录音方法runRecode，解码暂时用testFt8实现，后续应改为类方式。--------TODO------------
  * 4.当前的UTC时间。timerSec，更新频率（心跳频率）由UtcTimer确定，暂定100毫秒。
- * <p>
  * 5.通过类方法getInstance获取当前的MainViewModel的实例，确保有唯一的实例。
  * 6.用HamAudioRecorder类实现录音，目前只实现录音成文件，然后读取文件的数据给解码模块，后面要改成直接给数组的方式----TO DO---
- * <p>
  * 7.解码采用JNI接口调用原生C语言。调用接口名时ft8cn，由cpp文件夹下的CMakeLists.txt维护。各函数的调用接口在decode_ft8.cpp中。
- * <p>
  * -----2022.5.9-----
  * 如果系统没有发射信号，触发器会在每一个周期触发录音动作，因录音开始和结束要浪费一些时间，如果不干预上一个录音的动作，将出现
  * 连续的周期内录音动作重叠，造成第二个录音动作失败。所以，第二个周期的录音开始前，要停止前一个周期的录音，造成的结果就是每一次录音
  * 的开始时间要晚于周期开始300毫秒（模拟器的结果），实际录音的长度一般在14.77秒左右
  * <p>
+ *
  * @author BG7YOZ
  * @date 2022.5.6
  */
@@ -71,6 +68,7 @@ import com.bg7yoz.ft8cn.rigs.GuoHeQ900Rig;
 import com.bg7yoz.ft8cn.rigs.IcomRig;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.rigs.KenwoodKT90Rig;
+import com.bg7yoz.ft8cn.rigs.KenwoodTS2000Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS590Rig;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
 import com.bg7yoz.ft8cn.rigs.XieGu6100Rig;
@@ -97,7 +95,7 @@ import java.util.concurrent.Executors;
 
 public class MainViewModel extends ViewModel {
     String TAG = "ft8cn MainViewModel";
-    public boolean configIsLoaded=false;
+    public boolean configIsLoaded = false;
 
     private static MainViewModel viewModel = null;//当前存在的实例。
     //public static Application application;
@@ -123,12 +121,12 @@ public class MainViewModel extends ViewModel {
     public MutableLiveData<Boolean> mutableIsDecoding = new MutableLiveData<>();//会触发频谱图中的标记动作
     public ArrayList<Ft8Message> currentMessages = null;//本周期解码的消息（用于画到频谱上）
 
-    public MutableLiveData<Boolean> mutableIsFlexRadio=new MutableLiveData<>();//是不是flex电台
+    public MutableLiveData<Boolean> mutableIsFlexRadio = new MutableLiveData<>();//是不是flex电台
 
     private final ExecutorService getQTHThreadPool = Executors.newCachedThreadPool();
     private final ExecutorService sendWaveDataThreadPool = Executors.newCachedThreadPool();
-    private final GetQTHRunnable getQTHRunnable=new GetQTHRunnable(this);
-    private final SendWaveDataRunnable sendWaveDataRunnable=new SendWaveDataRunnable();
+    private final GetQTHRunnable getQTHRunnable = new GetQTHRunnable(this);
+    private final SendWaveDataRunnable sendWaveDataRunnable = new SendWaveDataRunnable();
 
 
     public HamRecorder hamRecorder;//用于录音的对象
@@ -140,7 +138,7 @@ public class MainViewModel extends ViewModel {
     //控制电台的方式
     public OperationBand operationBand = null;
 
-    private SWLQsoList swlQsoList=new SWLQsoList();//用于记录SWL的QSO对象，对SWL QSO做判断，防止重复。
+    private SWLQsoList swlQsoList = new SWLQsoList();//用于记录SWL的QSO对象，对SWL QSO做判断，防止重复。
 
 
     public MutableLiveData<ArrayList<CableSerialPort.SerialPort>> mutableSerialPorts = new MutableLiveData<>();
@@ -189,7 +187,7 @@ public class MainViewModel extends ViewModel {
     //发射信号用的消息列表
     //public ArrayList<Ft8Message> transmitMessages = new ArrayList<>();
     //public MutableLiveData<ArrayList<Ft8Message>> mutableTransmitMessages = new MutableLiveData<>();
-    public MutableLiveData<Integer> mutableTransmitMessagesCount=new MutableLiveData<>();
+    public MutableLiveData<Integer> mutableTransmitMessagesCount = new MutableLiveData<>();
 
 
     public boolean deNoise = false;//在频谱中抑制噪声
@@ -199,7 +197,7 @@ public class MainViewModel extends ViewModel {
     public String queryKey = "";//查询的关键字
     public int queryFilter = 0;//过滤，0全部，1，确认，2，未确认
     public MutableLiveData<Integer> mutableQueryFilter = new MutableLiveData<>();
-    public ArrayList<QSLCallsignRecord> callsignRecords=new ArrayList<>();
+    public ArrayList<QSLCallsignRecord> callsignRecords = new ArrayList<>();
     //public ArrayList<QSLRecordStr> qslRecords=new ArrayList<>();
     //********************************************
     //关注呼号的列表
@@ -279,7 +277,9 @@ public class MainViewModel extends ViewModel {
             }
 
             @Override
-            public void afterDecode(long utc, float time_sec, int sequential, ArrayList<Ft8Message> messages) {
+            public void afterDecode(long utc, float time_sec, int sequential
+                    , ArrayList<Ft8Message> messages, boolean isDeep) {
+                if (messages.size() == 0) return;//没有解码出消息，不触发动作
 
                 synchronized (ft8Messages) {
                     ft8Messages.addAll(messages);//添加消息到列表
@@ -293,20 +293,37 @@ public class MainViewModel extends ViewModel {
                 findIncludedCallsigns(messages);//查找符合条件的消息，放到呼叫列表中
 
                 //检查发射程序。从消息列表中解析发射的程序
-                ft8TransmitSignal.parseMessageToFunction(messages);
+                //超出周期2秒钟，就不应该解析了
+                if (!ft8TransmitSignal.isTransmitting()
+                        && (ft8SignalListener.timeSec
+                        + GeneralVariables.pttDelay
+                        + GeneralVariables.transmitDelay <= 2000)) {//考虑网络模式，发射时长是13秒
+                    ft8TransmitSignal.parseMessageToFunction(messages);//解析消息，并处理
+                }
+
+                currentMessages = messages;
+
+                if (isDeep) {
+                    currentDecodeCount += messages.size();
+                } else {
+                    currentDecodeCount = messages.size();
+                }
 
                 mutableIsDecoding.postValue(false);//解码的状态，会触发频谱图中的标记动作
 
-                currentMessages = messages;//保存本次解码的消息
 
-                getQTHRunnable.messages=messages;
+                getQTHRunnable.messages = messages;
                 getQTHThreadPool.execute(getQTHRunnable);//用线程池的方式查询归属地
+
+                //此变量也是告诉消息列表变化的
+                mutable_Decoded_Counter.postValue(
+                        currentDecodeCount);//告知界面消息的总数量
 
                 if (GeneralVariables.saveSWLMessage) {
                     databaseOpr.writeMessage(messages);//把SWL消息写到数据库
                 }
                 //检查QSO of SWL,并保存到SWLQSOTable中的通联列表qsoList中
-                if (GeneralVariables.saveSWL_QSO){
+                if (GeneralVariables.saveSWL_QSO) {
                     swlQsoList.findSwlQso(messages, ft8Messages, new SWLQsoList.OnFoundSwlQso() {
                         @Override
                         public void doFound(QSLRecord record) {
@@ -366,12 +383,12 @@ public class MainViewModel extends ViewModel {
             }
 
             @Override
-            public void onAfterGenerate(float[] data) {
+            public void onTransmitByWifi(Ft8Message msg) {
                 if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
                     if (baseRig != null) {
                         if (baseRig.isConnected()) {
-                            sendWaveDataRunnable.baseRig=baseRig;
-                            sendWaveDataRunnable.data=data;
+                            sendWaveDataRunnable.baseRig = baseRig;
+                            sendWaveDataRunnable.message = msg;
                             //以线程池的方式执行网络数据包发送
                             sendWaveDataThreadPool.execute(sendWaveDataRunnable);
                         }
@@ -406,13 +423,14 @@ public class MainViewModel extends ViewModel {
         }
     }
 
-    public void setTransmitIsFreeText(boolean isFreeText){
-        if (ft8TransmitSignal!=null) {
+    public void setTransmitIsFreeText(boolean isFreeText) {
+        if (ft8TransmitSignal != null) {
             ft8TransmitSignal.setTransmitFreeText(isFreeText);
         }
     }
-    public boolean getTransitIsFreeText(){
-        if (ft8TransmitSignal!=null){
+
+    public boolean getTransitIsFreeText() {
+        if (ft8TransmitSignal != null) {
             return ft8TransmitSignal.isTransmitFreeText();
         }
         return false;
@@ -424,12 +442,12 @@ public class MainViewModel extends ViewModel {
      *
      * @param messages 消息
      */
-    private void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
+    private synchronized void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
         Log.d(TAG, "findIncludedCallsigns: 查找关注的呼号");
         if (ft8TransmitSignal.isActivated() && ft8TransmitSignal.sequential != UtcTimer.getNowSequential()) {
             return;
         }
-        int count=0;
+        int count = 0;
         for (Ft8Message msg : messages) {
             //与我的呼号有关，与关注的呼号有关
             if (msg.getCallsignFrom().equals(GeneralVariables.myCallsign)
@@ -746,9 +764,12 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.XIEGU_6100:
                 baseRig = new XieGu6100Rig(GeneralVariables.civAddress);//协谷6100
                 break;
+            case InstructionSet.KENWOOD_TS2000:
+                baseRig = new KenwoodTS2000Rig();//建伍TS2000
+                break;
         }
 
-        mutableIsFlexRadio.postValue(GeneralVariables.instructionSet==InstructionSet.FLEX_NETWORK);
+        mutableIsFlexRadio.postValue(GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK);
 
     }
 
@@ -863,8 +884,9 @@ public class MainViewModel extends ViewModel {
     private static class GetQTHRunnable implements Runnable {
         MainViewModel mainViewModel;
         ArrayList<Ft8Message> messages;
+
         public GetQTHRunnable(MainViewModel mainViewModel) {
-            this.mainViewModel=mainViewModel;
+            this.mainViewModel = mainViewModel;
         }
 
 
@@ -872,20 +894,19 @@ public class MainViewModel extends ViewModel {
         public void run() {
             CallsignDatabase.getMessagesLocation(
                     GeneralVariables.callsignDatabase.getDb(), messages);
-
-            mainViewModel.currentDecodeCount = messages.size();
-            //此变量也是告诉消息列表变化的
-            mainViewModel.mutable_Decoded_Counter.postValue(
-                    mainViewModel.currentDecodeCount);//告知界面消息的总数量
+            mainViewModel.mutableFt8MessageList.postValue(mainViewModel.ft8Messages);
         }
     }
-    private static class SendWaveDataRunnable implements Runnable{
+
+    private static class SendWaveDataRunnable implements Runnable {
         BaseRig baseRig;
-        float[] data;
+        //float[] data;
+        Ft8Message message;
+
         @Override
         public void run() {
-            if (baseRig!=null&&data!=null){
-                baseRig.sendWaveData(data);//实际生成的数据是12.64+0.04,0.04是生成的0数据
+            if (baseRig != null && message != null) {
+                baseRig.sendWaveData(message);//实际生成的数据是12.64+0.04,0.04是生成的0数据
             }
         }
     }

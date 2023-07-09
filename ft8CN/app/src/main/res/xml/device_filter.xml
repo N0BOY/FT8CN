@@ -39,4 +39,5 @@
     <usb-device vendor-id="11914" product-id="5"   /> <!-- 0x2E8A: Raspberry Pi Pico Micropython -->
     <usb-device vendor-id="0x0c26"  /> <!-- icom  -->
     <usb-device vendor-id="6790" product-id="21970" /> <!-- 0x7523: CH343CDC  xiegu-->
+    <usb-device vendor-id="1155" product-id="61441" /> <!-- 0x0483 / 0xF001: WOLF ST CDC-->
 </resources>
