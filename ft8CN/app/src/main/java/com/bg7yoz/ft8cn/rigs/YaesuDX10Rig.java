@@ -17,7 +17,7 @@ import java.util.TimerTask;
  * 3代的指令，不同电台还有不同，频率长度981，991是9位，其它的长度是8位
  */
 public class YaesuDX10Rig extends BaseRig {
-    private static final String TAG = "Yaesu3Rig";
+    private static final String TAG = "YaesuDX10Rig";
     private final StringBuilder buffer = new StringBuilder();
     private int swr = 0;
     private int alc = 0;

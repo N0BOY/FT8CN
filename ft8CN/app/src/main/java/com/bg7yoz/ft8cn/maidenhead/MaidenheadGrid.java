@@ -88,32 +88,6 @@ public class MaidenheadGrid {
         return new LatLng(lat,lng);
 
 
-
-//        if (grid.length() == 4) {
-//            grid = grid + "ll";
-//        }
-//        //计算纬度
-//        double two = grid.getBytes()[1];
-//        two -= 65;
-//        two *= 10;
-//        double four = grid.getBytes()[3] - '0';
-//        double six = grid.getBytes()[5];
-//        six -= 97;
-//        six /= 24;
-//        six += 1.0 / 48;
-//        six -= 90;
-//
-//        //计算经度
-//        double one = grid.getBytes()[0];
-//        one -= 65;
-//        one *= 20;
-//        double three = grid.getBytes()[2] - '0';
-//        three *= 2;
-//        double five = grid.getBytes()[4];
-//        five -= 97;
-//        five /= 12;
-//        five += 1.0 / 24;
-        //return new LatLng(two + four + six, one + three + five - 180);
     }
 
 
@@ -220,10 +194,6 @@ public class MaidenheadGrid {
         latLngs[2] = new LatLng(lat2,lng2);
         latLngs[3] = new LatLng(lat2,lng1);
 
-//        Log.e(TAG, "gridToPolygon: latLng0"+latLngs[0].toString() );
-//        Log.e(TAG, "gridToPolygon: latLng1"+latLngs[1].toString() );
-//        Log.e(TAG, "gridToPolygon: latLng2"+latLngs[2].toString() );
-//        Log.e(TAG, "gridToPolygon: latLng3"+latLngs[3].toString() );
         return latLngs;
 
 

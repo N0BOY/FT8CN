@@ -20,4 +20,6 @@ public final class FT8Common {
     public static final int FT8_5_SYMBOLS_TIME_M =8;//5个符号的时间长度0.8秒
     public static final int FT4_SLOT_TIME_M=75;//7.5秒
     public static final int FT8_TRANSMIT_DELAY=500;//默认发射延迟时长，毫秒
+    public static final long DEEP_DECODE_TIMEOUT=7*1000;//深度解码的最长时间范围
+    public static final int DECODE_MAX_ITERATIONS=1;//迭代次数
 }

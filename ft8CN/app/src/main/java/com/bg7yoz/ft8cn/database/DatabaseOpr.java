@@ -823,8 +823,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             return false;
         }
 
-        //record.getToCallsign()
-
         String querySQL;
         if (!checkQSLCallsign(record)) {//如果不存在记录，就添加
             querySQL = "INSERT INTO  QslCallsigns (callsign" +
@@ -1147,9 +1145,19 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         @Override
         protected Void doInBackground(Void... voids) {
             String querySQL;
-            querySQL = "INSERT INTO SWLQSOTable(call, gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
-                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
-                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            //删除之前重复的记录
+            querySQL = "DELETE FROM  SWLQSOTable where ([call]=?) and (station_callsign=?) and (qso_date=?) and(time_on=?) and (freq=?)";
+            databaseOpr.db.execSQL(querySQL, new String[]{
+                             qslRecord.getToCallsign()
+                            , qslRecord.getMyCallsign()
+                            , qslRecord.getQso_date()
+                            , qslRecord.getTime_on()
+                            , BaseRigOperation.getFrequencyFloat(qslRecord.getBandFreq())
+                    });
+            //添加记录
+            querySQL = "INSERT INTO SWLQSOTable([call], gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
+                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare,comment)\n" +
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             databaseOpr.db.execSQL(querySQL, new String[]{qslRecord.getToCallsign()
                     , qslRecord.getToMaidenGrid()
@@ -1449,7 +1457,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             String querySQL = "select * from QSLTable where ([call] like ?) \n" +
                     filterStr +
-                    " order by ID desc\n"+
+                    " ORDER BY qso_date DESC, time_off DESC\n"+
+                    //" order by ID desc\n"+
                     limitStr;
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
             ArrayList<QSLRecordStr> records = new ArrayList<>();
@@ -1774,8 +1783,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.baudRate = result.equals("") ? 19200 : Integer.parseInt(result);
                 }
                 if (name.equalsIgnoreCase("bandFreq")) {
-                    //--todo---把波段的索引数改成频率。用bandFreq值
-                    GeneralVariables.band = result.equals("") ? 14074000 : Long.valueOf(result);
+                    GeneralVariables.band = result.equals("") ? 14074000 : Long.parseLong(result);
                     GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
                 }
                 if (name.equalsIgnoreCase("ctrMode")) {
@@ -1833,6 +1841,15 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("saveSWLQSO")) {//保存解码信息
                     GeneralVariables.saveSWL_QSO = result.equals("1");
                 }
+                if (name.equalsIgnoreCase("audioBits")) {//输出音频是否32位浮点
+                    GeneralVariables.audioOutput32Bit = result.equals("1");
+                }
+                if (name.equalsIgnoreCase("audioRate")) {//输出音频是否32位浮点
+                    GeneralVariables.audioSampleRate =Integer.parseInt( result);
+                }
+                if (name.equalsIgnoreCase("deepMode")) {//是不是深度解码模式
+                    GeneralVariables.deepDecodeMode =result.equals("1");
+                }
             }
 
             cursor.close();
@@ -1843,106 +1860,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 onAfterQueryConfig.doOnAfterQueryConfig(null, null);
             }
 
-            /*
-            String result = "";
-            GeneralVariables.setMyMaidenheadGrid(getConfigByKey("grid"));
-
-            GeneralVariables.myCallsign = getConfigByKey("callsign");
-
-            GeneralVariables.toModifier = getConfigByKey("toModifier");
-
-            String callsign = GeneralVariables.myCallsign;
-            if (callsign.length() > 0) {
-                Ft8Message.hashList.addHash(FT8Package.getHash22(callsign), callsign);
-                Ft8Message.hashList.addHash(FT8Package.getHash12(callsign), callsign);
-                Ft8Message.hashList.addHash(FT8Package.getHash10(callsign), callsign);
-            }
-            result = getConfigByKey("freq");
-            float freq = 1000;
-            try {
-                freq = Float.parseFloat(result);
-            } catch (Exception e) {
-                Log.e(TAG, "doInBackground: " + e.getMessage());
-            }
-            //GeneralVariables.setBaseFrequency(result.equals("") ? 1000 : Float.parseFloat(result));
-            GeneralVariables.setBaseFrequency(freq);
-
-            result = getConfigByKey("synFreq");
-            GeneralVariables.synFrequency = !(result.equals("") || result.equals("0"));
-
-            result = getConfigByKey("transDelay");
-            if (result.matches("^\\d{1,4}$")) {//正则表达式，1-4位长度的数字
-                GeneralVariables.transmitDelay = Integer.parseInt(result);
-            } else {
-                GeneralVariables.transmitDelay = FT8Common.FT8_TRANSMIT_DELAY;
-            }
-
-            result = getConfigByKey("civ");
-            GeneralVariables.civAddress = result.equals("") ? 0xa4 : Integer.parseInt(result, 16);
-
-            result = getConfigByKey("baudRate");
-            GeneralVariables.baudRate = result.equals("") ? 19200 : Integer.parseInt(result);
-
-            //--todo---把波段的索引数改成频率。用bandFreq值
-            result = getConfigByKey("bandFreq");
-
-            GeneralVariables.band = result.equals("") ? 14074000 : Long.valueOf(result);
-            GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
-
-
-            result = getConfigByKey("ctrMode");
-            GeneralVariables.controlMode = result.equals("") ? ControlMode.VOX : Integer.parseInt(result);
-
-            result = getConfigByKey("model");//电台型号
-            GeneralVariables.modelNo = result.equals("") ? 0 : Integer.parseInt(result);
-
-            result = getConfigByKey("instruction");//指令集
-            GeneralVariables.instructionSet = result.equals("") ? 0 : Integer.parseInt(result);
-
-
-            result = getConfigByKey("launchSupervision");//发射监管
-            GeneralVariables.launchSupervision = result.equals("") ?
-                    GeneralVariables.DEFAULT_LAUNCH_SUPERVISION : Integer.parseInt(result);
-
-            result = getConfigByKey("noReplyLimit");//发射监管
-            GeneralVariables.noReplyLimit = result.equals("") ? 0 : Integer.parseInt(result);
-
-            result = getConfigByKey("autoFollowCQ");//自动关注CQ
-            GeneralVariables.autoFollowCQ = (result.equals("") || result.equals("1"));
-
-            result = getConfigByKey("autoCallFollow");//自动关注CQ
-            GeneralVariables.autoCallFollow = (result.equals("") || result.equals("1"));
-
-            result = getConfigByKey("pttDelay");//ptt延时设置
-            GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);
-
-
-            //获取icom网络连接参数
-            result = getConfigByKey("icomIp");//IcomIp地址
-            GeneralVariables.icomIp = result.equals("") ? "255.255.255.255" : result;
-            result = getConfigByKey("icomPort");//Icom端口
-            GeneralVariables.icomUdpPort = result.equals("") ? 50001 : Integer.parseInt(result);
-            result = getConfigByKey("icomUserName");//Icom用户名
-            GeneralVariables.icomUserName = result.equals("") ? "ic705" : result;
-            result = getConfigByKey("icomPassword");//Icom密码
-            GeneralVariables.icomPassword = result;
-
-            //输出音量大小
-            result = getConfigByKey("volumeValue");
-            GeneralVariables.volumePercent = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
-
-            //排除的呼号
-            result = getConfigByKey("excludedCallsigns");
-            GeneralVariables.addExcludedCallsigns(result);
-
-            GetAllQSLCallsign.get(db);//获取通联过的呼号
-
-            if (onAfterQueryConfig != null) {
-                onAfterQueryConfig.doOnAfterQueryConfig(null, null);
-            }
-
-
-             */
             return null;
         }
     }

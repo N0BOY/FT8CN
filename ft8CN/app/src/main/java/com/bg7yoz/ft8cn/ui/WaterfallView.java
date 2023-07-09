@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.ui;
 /**
  * 瀑布图自定义控件。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -19,12 +20,17 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
 public class WaterfallView extends View {
     private int blockHeight = 2;//色块高度
@@ -60,6 +66,8 @@ public class WaterfallView extends View {
     public WaterfallView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
+    ArrayList<Ft8Message> messages= new ArrayList<>();
+
 
     /**
      * 把dp值转换为像素点
@@ -97,7 +105,7 @@ public class WaterfallView extends View {
         fontPaint.setDither(true);
         fontPaint.setTextAlign(Paint.Align.LEFT);
 
-       // messagePaint = new Paint();
+        // messagePaint = new Paint();
         messagePaint.setTextSize(dpToPixel(11));
         messagePaint.setColor(0xff00ffff);
         messagePaint.setAntiAlias(true);
@@ -176,7 +184,10 @@ public class WaterfallView extends View {
         invalidate();
     }
 
-    public void setWaveData(int[] data, int sequential, List<Ft8Message> messages) {
+    public void setWaveData(int[] data, int sequential, List<Ft8Message> msgs) {
+        if (drawMessage&& msgs!=null){//把需要画的消息复制出来防止多线程访问冲突
+            messages=new ArrayList<>(msgs);
+        }
 
         if (data == null) {
             return;
@@ -232,19 +243,7 @@ public class WaterfallView extends View {
             fontPaint.setTextAlign(Paint.Align.LEFT);
             for (Ft8Message msg : messages) {
 
-//                if (GeneralVariables.checkQSLCallsign(msg.getCallsignFrom())) {//如果在数据库中，划线
-//                    messagePaint.setStrikeThruText(true);
-//                    messagePaint.setUnderlineText(true);
-//                    //messagePaint.setFlags(messagePaint.getFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-//                } else {//如果不在数据库中，去掉划线
-//                    messagePaint.setStrikeThruText(false);
-//                    messagePaint.setUnderlineText(false);
-//                    //messagePaint.setFlags(messagePaint.getFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
-//                }
-
-
                 if (msg.inMyCall()) {//与我有关
-                    //messagePaint.setColor(0xffFF0202);
                     messagePaint.setColor(0xffffb2b2);
                 } else if (msg.checkIsCQ()) {//CQ
                     messagePaint.setColor(0xffeeee00);
@@ -252,17 +251,19 @@ public class WaterfallView extends View {
                     messagePaint.setColor(0xff00ffff);
                 }
                 Path path = new Path();
+
                 path.moveTo(msg.freq_hz * freq_width, pathStart);
                 path.lineTo(msg.freq_hz * freq_width, pathEnd);
 
 
-                _canvas.drawTextOnPath(msg.getMessageText(), path
+                _canvas.drawTextOnPath(msg.getMessageText(true), path
                         , 0, 0, messagePaintBack);//消息背景
-                _canvas.drawTextOnPath(msg.getMessageText(), path
+                _canvas.drawTextOnPath(msg.getMessageText(true), path
                         , 0, 0, messagePaint);//消息
 
             }
         }
+
 
     }
 

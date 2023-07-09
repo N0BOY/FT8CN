@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.ft8signal.FT8Package;
+import com.bg7yoz.ft8cn.ft8transmit.GenerateFT8;
 import com.bg7yoz.ft8cn.ft8transmit.TransmitCallsign;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
@@ -34,7 +35,7 @@ public class Ft8Message {
     public long utcTime;//UTC时间
     public boolean isValid;//是否是有效信息
     public int snr = 0;//信噪比
-    public float time_sec = 0;//时间偏移
+    public float time_sec = 0;//时间偏移(秒)
     public float freq_hz = 0;//频率
     public int score = 0;//得分
     public int messageHash;//消息的哈希
@@ -73,6 +74,10 @@ public class Ft8Message {
 
     public LatLng fromLatLng = null;
     public LatLng toLatLng = null;
+
+    public boolean isWeakSignal=false;
+
+
 
 
     @NonNull
@@ -180,6 +185,14 @@ public class Ft8Message {
     @SuppressLint("DefaultLocale")
     public String getFreq_hz() {
         return String.format("%04.0f", freq_hz);
+    }
+
+    public String getMessageText(boolean showWeekSignal){
+        if (isWeakSignal && showWeekSignal){
+            return "*"+getMessageText();
+        }else {
+            return getMessageText();
+        }
     }
 
     /**

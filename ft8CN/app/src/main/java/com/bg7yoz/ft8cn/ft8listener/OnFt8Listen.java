@@ -23,5 +23,5 @@ public interface OnFt8Listen {
      * @param sequential 当前的时序
      * @param messages 消息列表
      */
-    void afterDecode(long utc,float time_sec,int sequential, ArrayList<Ft8Message> messages);
+    void afterDecode(long utc,float time_sec,int sequential, ArrayList<Ft8Message> messages,boolean isDeep);
 }

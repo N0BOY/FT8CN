@@ -246,4 +246,13 @@
         app:layout_constraintTop_toTopOf="@+id/ituFromImageView"
         app:srcCompat="@drawable/dxcc" />
 
+    <ImageView
+        android:id="@+id/isWeakSignalImageView"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        app:layout_constraintBottom_toBottomOf="@+id/callingListSequenceTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/callingListSequenceTextView"
+        app:srcCompat="@drawable/is_weak_signal_24" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

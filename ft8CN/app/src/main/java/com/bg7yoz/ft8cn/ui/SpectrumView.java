@@ -72,8 +72,6 @@ public class SpectrumView extends ConstraintLayout {
         mainViewModel.currentMessages=null;
 
 
-
-
         //原始频谱开关
         controlDeNoiseSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -105,7 +103,7 @@ public class SpectrumView extends ConstraintLayout {
         mainViewModel.mutableIsDecoding.observe(fragment.getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                waterfallView.setDrawMessage(!aBoolean);//false说明解码完毕
+                waterfallView.setDrawMessage(!aBoolean);//aBoolean==false说明解码完毕
             }
         });
 
@@ -121,7 +119,6 @@ public class SpectrumView extends ConstraintLayout {
                 columnarView.setTouch_x(Math.round(motionEvent.getX()));
 
 
-
                 if (!mainViewModel.ft8TransmitSignal.isSynFrequency()
                         && (waterfallView.getFreq_hz() > 0)
                         && (motionEvent.getAction() == ACTION_UP)
@@ -131,7 +128,6 @@ public class SpectrumView extends ConstraintLayout {
                             null);
                     mainViewModel.ft8TransmitSignal.setBaseFrequency(
                             (float) waterfallView.getFreq_hz());
-
 
                     rulerFrequencyView.setFreq(waterfallView.getFreq_hz());
 

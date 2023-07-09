@@ -13,12 +13,6 @@
 
     <string name="nav_menu_title_config">設定</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-
-
-    <!-- <string name="hello_blank_fragment">Hello blank fragment</string> -->
-
-
     <string name="run_decode">デコ—ドを開始</string>
 
     <string name="db">dB</string>
@@ -288,7 +282,7 @@
     <!-- グリッド距離 -->
 
 
-    <string name="distance">%.0fキロメートル</string>
+    <string name="distance">%.0f km</string>
 
     <!-- ログ　リスト -->
 
@@ -323,8 +317,10 @@
     <string name="qsl_end_time">終了時間:%s</string>
 
     <string name="qsl_rst_rcvd">自局RST:%s</string>
+    <string name="html_rst_rcvd">自局RST</string>
 
     <string name="qsl_rst_sent">相手局RST:%s</string>
+    <string name="html_rst_sent">相手局RST</string>
 
     <string name="qsl_band">バンド:%s</string>
 
@@ -391,8 +387,10 @@
     <string name="html_delete">削除</string>
 
     <string name="html_qsl_start_time">交信開始時間</string>
+    <string name="html_qsl_start_day">交信開始日</string>
 
     <string name="html_qsl_end_time">交信終了時間</string>
+    <string name="html_qsl_end_date">交信終了日</string>
 
     <string name="html_qsl_mode">モード</string>
 
@@ -713,6 +711,50 @@
     <string name="html_export_adi">ADIFにエクスポート</string>
     <string name="log_statistics_swl_qso">デコードされたQSO総件数</string>
     <string name="config_clear_swl_qso">デコードされたQSO</string>
+    <string name="audioOutput">音声出力</string>
+    <string name="audio16_bit">16-bit int</string>
+    <string name="audio32_bit">32-bit float</string>
+    <string name="html_audio_bits">音声出力中のビット数</string>
+    <string name="audio_rate_12k">12kHz</string>
+    <string name="audio_rate_24k">24kHz</string>
+    <string name="audio_rate_48k">48kHz</string>
+    <string name="audio_rate">サンプルレート</string>
+    <string name="html_audio_rate">音声出力のサンプルレート</string>
+    <string name="audio_bit_depth">ビット深度</string>
+    <string name="callsign_help">callsign_en.txt</string>
+    <string name="maidenhead_help">maidenhead_en.txt</string>
+    <string name="frequency_help">frequency_en.txt</string>
+    <string name="transDelay_help">transDelay_en.txt</string>
+    <string name="timeoffset_help">timeoffset_en.txt</string>
+    <string name="pttdelay_help">pttdelay_en.txt</string>
+    <string name="operationBand_help">operationBand_en.txt</string>
+    <string name="controlMode_help">controlMode_en.txt</string>
+    <string name="civ_help">civ_help_en.txt</string>
+    <string name="rig_model_help">rig_model_help_en.txt</string>
+    <string name="launch_supervision_help">launch_supervision_en.txt</string>
+    <string name="no_response_help">no_response_help_en.txt</string>
+    <string name="auto_follow_help">auto_follow_help_en.txt</string>
+    <string name="connectMode_help">connectMode_en.txt</string>
+    <string name="excludeCallsign_help">excludeCallsign_en.txt</string>
+    <string name="swlMode_help">swlMode_en.txt</string>
+    <string name="audio_output_help">audio_output_help_en.txt</string>
+    <string name="clear_cache_data_help">clear_cache_data_en.txt</string>
+    <string name="html_query_logs">ログを検索</string>
+    <string name="html_qso_all">全部</string>
+    <string name="html_qso_source">データソース</string>
+    <string name="html_qso_unconfirmed">未確認</string>
+    <string name="html_qso_confirmed">確認済</string>
+    <string name="html_qso_raw_log">ローカルログ</string>
+    <string name="html_qso_external_logs">外部ログ</string>
+    <string name="html_qso_external">外部</string>
+    <string name="html_qso_raw">ローカル</string>
+    <string name="html_protocol">プロトコル</string>
+    <string name="html_comment">コメント</string>
+    <string name="decode_mode_text">デコードモード</string>
+    <string name="fast_mode">高速</string>
+    <string name="deep_mode">ディープ</string>
+    <string name="export_null">このデバイスと同じLANに接続し、ほかのデバイスでウェブブラウザーを利用してエクスポートしてください。\nブラウザーのアドレスバーに次の内容を入力してください：\n有効なWiFiに接続してください。</string>
+    <string name="deep_mode_help">decode_help_en.txt</string>
 
 
 </resources>

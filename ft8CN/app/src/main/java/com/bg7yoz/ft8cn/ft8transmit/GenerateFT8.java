@@ -16,7 +16,7 @@ import com.bg7yoz.ft8cn.ui.ToastMessage;
 public class GenerateFT8 {
     private static final String TAG = "GenerateFT8";
     private static final int FTX_LDPC_K = 91;
-    private static final int FTX_LDPC_K_BYTES = (FTX_LDPC_K + 7) / 8;
+    public static final int FTX_LDPC_K_BYTES = (FTX_LDPC_K + 7) / 8;
     private static final int FT8_NN = 79;
     private static final float FT8_SYMBOL_PERIOD = 0.160f;
     private static final float FT8_SYMBOL_BT = 2.0f;
@@ -29,7 +29,7 @@ public class GenerateFT8 {
     private static final float symbol_bt = FT8_SYMBOL_BT;//FT8_SYMBOL_BT=2.0f
     private static final float slot_time = FT8_SLOT_TIME;//FT8_SLOT_TIME=15f
     //public static int sample_rate = 48000;//采样率
-    public static int sample_rate = 12000;//采样率
+    //public static int sample_rate = 12000;//采样率
 
 
     static {
@@ -120,8 +120,19 @@ public class GenerateFT8 {
         return !extraInfo.trim().matches("[A-Z][A-Z][0-9][0-9]");
     }
 
+    public static float[] generateFt8(Ft8Message msg, float frequency,int sample_rate){
+        return generateFt8(msg,frequency,sample_rate,true);
+    }
 
-    public static float[] generateFt8(Ft8Message msg, float frequency) {
+    /**
+     * 生成FT8信号
+     * @param msg 消息
+     * @param frequency 频率
+     * @param sample_rate 采样率
+     * @param hasModifier 是否有修饰符
+     * @return
+     */
+    public static float[] generateFt8(Ft8Message msg, float frequency,int sample_rate,boolean hasModifier) {
         if (msg.callsignFrom.length()<3){
             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.callsign_error));
             return null;
@@ -131,7 +142,11 @@ public class GenerateFT8 {
         //把"<>"去掉
         msg.callsignTo = msg.callsignTo.replace("<", "").replace(">", "");
         msg.callsignFrom = msg.callsignFrom.replace("<", "").replace(">", "");
-        msg.modifier=GeneralVariables.toModifier;//修饰符
+        if (hasModifier) {
+            msg.modifier = GeneralVariables.toModifier;//修饰符
+        }else {
+            msg.modifier="";
+        }
         //msg.callsignTo="CQ AzCz";
 
         //判定用非标准呼号i3=4的条件：
@@ -160,12 +175,48 @@ public class GenerateFT8 {
             packFreeTextTo77(msg.getMessageText(), packed);
         }
 
+        return generateFt8ByA91(packed,frequency,sample_rate);
 
+        /*
         // 其次，将二进制消息编码为FSK音调序列,79个字节
         byte[] tones = new byte[num_tones]; // 79音调（符号）数组
+        //此处是88个字节（91+7）/8，可以使用a91生成音频
         ft8_encode(packed, tones);
 
         // 第三，将FSK音调转换为音频信号b
+
+
+        int num_samples = (int) (0.5f + num_tones * symbol_period * sample_rate); // 数据信号中的采样数0.5+79*0.16*12000
+
+        //float[] signal = new float[Ft8num_samples];
+        float[] signal = new float[num_samples];
+
+        //Ft8num_sampleFT8声音的总采样数，不是字节数。15*12000
+        //for (int i = 0; i < Ft8num_samples; i++)//把数据全部静音。
+        for (int i = 0; i < num_samples; i++)//把数据全部静音。
+        {
+            signal[i] = 0;
+        }
+
+        // 用79个字节符号，生成FT8音频
+        synth_gfsk(tones, num_tones, frequency, symbol_bt, symbol_period, sample_rate, signal, 0);
+        for (int i = 0; i < num_samples; i++)//把数据全部静音。
+        {
+           if (signal[i]>1.0||signal[i]<-1.0){
+               Log.e(TAG, "generateFt8: "+signal[i] );
+           }
+        }
+        return signal;
+        */
+    }
+
+    public static float[] generateFt8ByA91(byte[] a91, float frequency,int sample_rate){
+        byte[] tones = new byte[num_tones]; // 79音调（符号）数组
+        //此处是12个字节（91+7）/8，可以使用a91生成音频
+        ft8_encode(a91, tones);
+
+        // 第三，将FSK音调转换为音频信号b
+
 
         int num_samples = (int) (0.5f + num_tones * symbol_period * sample_rate); // 数据信号中的采样数0.5+79*0.16*12000
 
@@ -184,16 +235,17 @@ public class GenerateFT8 {
             signal[i] = 0;
         }
 
+        // 用79个字节符号，生成FT8音频
         synth_gfsk(tones, num_tones, frequency, symbol_bt, symbol_period, sample_rate, signal, 0);
-        for (int i = 0; i < num_samples; i++)//把数据全部静音。
-        {
-           if (signal[i]>1.0||signal[i]<-1.0){
-               Log.e(TAG, "generateFt8: "+signal[i] );
-           }
-        }
+//        for (int i = 0; i < num_samples; i++)//把数据全部静音。
+//        {
+//            if (signal[i]>1.0||signal[i]<-1.0){
+//                Log.e(TAG, "generateFt8: "+signal[i] );
+//            }
+//        }
         return signal;
-
     }
+
 
     private static native int packFreeTextTo77(String msg, byte[] c77);
 

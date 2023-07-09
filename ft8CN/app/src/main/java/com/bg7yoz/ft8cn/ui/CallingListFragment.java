@@ -39,6 +39,8 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.databinding.FragmentCallingListBinding;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
+import java.util.ArrayList;
+
 public class CallingListFragment extends Fragment {
     private static final String TAG = "CallingListFragment";
 
@@ -105,6 +107,13 @@ public class CallingListFragment extends Fragment {
                         String.format(GeneralVariables.getStringFromResource(R.string.message_count_count)
                                 , mainViewModel.currentDecodeCount, mainViewModel.ft8Messages.size()));
 
+
+            }
+        });
+
+        mainViewModel.mutableFt8MessageList.observe(getViewLifecycleOwner(), new Observer<ArrayList<Ft8Message>>() {
+            @Override
+            public void onChanged(ArrayList<Ft8Message> messages) {
                 callingListAdapter.notifyDataSetChanged();
                 //当列表下部稍微多出一些，自动上移
                 if (callListRecyclerView.computeVerticalScrollRange()
@@ -114,7 +123,6 @@ public class CallingListFragment extends Fragment {
                 }
             }
         });
-
 
         //观察UTC时间
         mainViewModel.timerSec.observe(getViewLifecycleOwner(), new Observer<Long>() {

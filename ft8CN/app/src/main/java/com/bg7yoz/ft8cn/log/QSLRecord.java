@@ -17,6 +17,7 @@ import java.util.Objects;
  * isLotW_import是指是否是外部的数据导入，因为用户可能使用了JTDX等软件通联，这样可以把通联的结果导入到FT8CN
  * isLotW_QSL是指是否被平台确认。
  * isQSL是指是否被手工确认
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -49,6 +50,7 @@ public class QSLRecord {
 
     /**
      * 用于SWL QSO记录，记录SWL QSO的条件是收听到双方的信号报告
+     *
      * @param msg FT8消息
      */
     public QSLRecord(Ft8Message msg) {
@@ -56,12 +58,12 @@ public class QSLRecord {
         this.time_off = UtcTimer.getTimeHHMMSS(msg.utcTime);
         this.myCallsign = msg.callsignFrom;
         this.toCallsign = msg.callsignTo;
-        wavFrequency=Math.round(msg.freq_hz);
-        sendReport=-100;
-        receivedReport=-100;
-        bandLength=BaseRigOperation.getMeterFromFreq(GeneralVariables.band);//获取波长
-        bandFreq=GeneralVariables.band;
-        comment="SWL By FT8CN";
+        wavFrequency = Math.round(msg.freq_hz);
+        sendReport = -100;
+        receivedReport = -100;
+        bandLength = BaseRigOperation.getMeterFromFreq(GeneralVariables.band);//获取波长
+        bandFreq = GeneralVariables.band;
+        comment = "SWL By FT8CN";
     }
 
     /**
@@ -102,7 +104,8 @@ public class QSLRecord {
             distance = MaidenheadGrid.getDistStrEN(myMaidenGrid, toMaidenGrid);
         }
         this.comment =
-                String.format("Distance: %s, QSO by FT8CN", distance);
+                distance.equals("") ? "QSO by FT8CN"
+                        : String.format("Distance: %s, QSO by FT8CN", distance);
     }
 
     public void update(QSLRecord record) {
@@ -219,11 +222,13 @@ public class QSLRecord {
 
     /**
      * SWL QSO的提示
+     *
      * @return 提示
      */
-    public String swlQSOInfo(){
-        return String.format("QSO of SWL:%s<--%s",toCallsign,myCallsign);
+    public String swlQSOInfo() {
+        return String.format("QSO of SWL:%s<--%s", toCallsign, myCallsign);
     }
+
     @Override
     public String toString() {
         return "QSLRecord{" +
