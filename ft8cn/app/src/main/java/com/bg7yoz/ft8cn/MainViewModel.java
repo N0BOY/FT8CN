@@ -355,13 +355,26 @@ public class MainViewModel extends ViewModel {
 
         //创建发射对象，回调：发射前，发射后、QSL成功后。
         ft8TransmitSignal = new FT8TransmitSignal(databaseOpr, new OnDoTransmitted() {
+            private boolean needControlSco() {
+                if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
+                    return false;
+                }
+                if (GeneralVariables.controlMode != ControlMode.CAT) {
+                    return true;
+                }
+                if (baseRig != null && !baseRig.supportWaveOverCAT()) {
+                    return true;
+                }
+                return false;
+            }
+
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
-                        if (GeneralVariables.connectMode != ConnectMode.NETWORK) stopSco();
+                        if (needControlSco()) stopSco();
                         baseRig.setPTT(true);
                     }
                 }
@@ -379,7 +392,7 @@ public class MainViewModel extends ViewModel {
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
                         baseRig.setPTT(false);
-                        if (GeneralVariables.connectMode != ConnectMode.NETWORK) startSco();
+                        if (needControlSco()) startSco();
                     }
                 }
             }
@@ -601,6 +614,13 @@ public class MainViewModel extends ViewModel {
         baseRig.setControlMode(GeneralVariables.controlMode);
         CableConnector connector = new CableConnector(context, port, GeneralVariables.baudRate
                 , GeneralVariables.controlMode, baseRig);
+        connector.setOnCableDataReceived(new CableConnector.OnCableDataReceived() {
+            @Override
+            public void OnWaveReceived(int bufferLen, float[] buffer) {
+                Log.i(TAG, "call hamRecorder.doOnWaveDataReceived");
+                hamRecorder.doOnWaveDataReceived(bufferLen, buffer);
+            }
+        });
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
