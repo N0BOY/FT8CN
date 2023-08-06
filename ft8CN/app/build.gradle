@@ -65,6 +65,12 @@ android {
 //            version '3.18.1'
 //        }
 //    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
     namespace 'com.bg7yoz.ft8cn'
 }
 
