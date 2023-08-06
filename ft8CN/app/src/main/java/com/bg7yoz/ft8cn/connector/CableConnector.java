@@ -15,10 +15,13 @@ import com.bg7yoz.ft8cn.serialport.util.SerialInputOutputManager;
  */
 public class CableConnector extends BaseRigConnector {
     private static final String TAG="CableConnector";
+    public interface OnCableDataReceived {
+        void OnWaveReceived(int bufferLen,float[] buffer);
+    }
 
     private final CableSerialPort cableSerialPort;
     private final BaseRig cableConnectedRig;
-
+    private OnCableDataReceived onCableDataReceived;
 
     public CableConnector(Context context,CableSerialPort.SerialPort serialPort, int baudRate
             , int controlMode, BaseRig cableConnectedRig) {
@@ -69,6 +72,20 @@ public class CableConnector extends BaseRigConnector {
         // TODO float to byte
         // TODO replace `;` to ':'
         // sendData(wave);
+    }
+
+    @Override
+    public void receiveWaveData(float[] data){
+        Log.i(TAG, "received wave data");
+
+        if (onCableDataReceived!=null){
+            Log.i(TAG, "call onCableDataReceived.OnWaveReceived");
+            onCableDataReceived.OnWaveReceived(data.length,data);
+        }
+    }
+
+    public void setOnCableDataReceived(OnCableDataReceived onCableDataReceived) {
+        this.onCableDataReceived = onCableDataReceived;
     }
 
     @Override
