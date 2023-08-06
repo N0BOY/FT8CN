@@ -187,6 +187,14 @@ public class TrUSDXRig extends BaseRig {
         return getConnector() != null && getControlMode() == ControlMode.CAT;
     }
 
+    @Override
+    public void onDisconnecting() {
+        if (getConnector() != null) {
+            clearBufferData();
+            getConnector().sendData(KenwoodTK90RigConstant.setTrUSDXStreaming(false));
+        }
+    }
+
     public TrUSDXRig() {
         new Handler().postDelayed(new Runnable() {
             @Override
