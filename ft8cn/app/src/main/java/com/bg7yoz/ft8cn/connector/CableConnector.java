@@ -62,6 +62,13 @@ public class CableConnector extends BaseRigConnector {
     }
 
     @Override
+    public void sendWaveData(float[] data) {
+        // TODO float to byte
+        // TODO replace `;` to ':'
+        // sendData(wave);
+    }
+
+    @Override
     public void connect() {
         super.connect();
         cableSerialPort.connect();

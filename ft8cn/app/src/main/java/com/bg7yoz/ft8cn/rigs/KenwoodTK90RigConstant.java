@@ -37,6 +37,11 @@ public class KenwoodTK90RigConstant {
     private static final String TS590_READ_FREQ = "FA;";//KENWOOD 读频率
     private static final String TS590_READ_METERS = "RM;";//KENWOOD 读METER
 
+    // (tr)uSDX extensions
+    private static final String TRUSDX_STREAMING_OFF="UA0;";
+    private static final String TRUSDX_STREAMING_ON_SPEAKER_ON="UA1;";
+    private static final String TRUSDX_STREAMING_ON_SPEAKER_OFF="UA2;";
+    private static final String TRUSDX_STREAMING_AUDIO="US";
 
 
 
@@ -132,4 +137,11 @@ public class KenwoodTK90RigConstant {
         return TS590_READ_FREQ.getBytes();
     }
 
+    public static byte[] setTrUSDXStreaming(boolean on) {
+        if (on) {
+            return TRUSDX_STREAMING_ON_SPEAKER_OFF.getBytes();
+        } else {
+            return TRUSDX_STREAMING_OFF.getBytes();
+        }
+    }
 }
