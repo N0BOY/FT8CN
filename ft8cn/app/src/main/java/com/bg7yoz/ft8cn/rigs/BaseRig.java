@@ -134,4 +134,7 @@ public abstract class BaseRig {
     public boolean supportWaveOverCAT() {
         return false;
     }
+
+    public void onDisconnecting() {
+    }
 }

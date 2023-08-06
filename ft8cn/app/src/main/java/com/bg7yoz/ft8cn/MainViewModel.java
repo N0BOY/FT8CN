@@ -600,7 +600,7 @@ public class MainViewModel extends ViewModel {
         }
         baseRig.setControlMode(GeneralVariables.controlMode);
         CableConnector connector = new CableConnector(context, port, GeneralVariables.baudRate
-                , GeneralVariables.controlMode);
+                , GeneralVariables.controlMode, baseRig);
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();

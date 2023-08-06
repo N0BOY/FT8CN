@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.bg7yoz.ft8cn.database.ControlMode;
+import com.bg7yoz.ft8cn.rigs.BaseRig;
 import com.bg7yoz.ft8cn.serialport.util.SerialInputOutputManager;
 
 /**
@@ -16,11 +17,13 @@ public class CableConnector extends BaseRigConnector {
     private static final String TAG="CableConnector";
 
     private final CableSerialPort cableSerialPort;
+    private final BaseRig cableConnectedRig;
 
 
     public CableConnector(Context context,CableSerialPort.SerialPort serialPort, int baudRate
-            , int controlMode) {
+            , int controlMode, BaseRig cableConnectedRig) {
         super(controlMode);
+        this.cableConnectedRig = cableConnectedRig;
         cableSerialPort= new CableSerialPort(context,serialPort,baudRate,getOnConnectorStateChanged());
         cableSerialPort.ioListener=new SerialInputOutputManager.Listener() {
             @Override
@@ -76,6 +79,7 @@ public class CableConnector extends BaseRigConnector {
 
     @Override
     public void disconnect() {
+        cableConnectedRig.onDisconnecting();
         super.disconnect();
         cableSerialPort.disconnect();
     }
