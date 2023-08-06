@@ -78,6 +78,7 @@ import com.bg7yoz.ft8cn.rigs.Yaesu38Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu38_450Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu39Rig;
 import com.bg7yoz.ft8cn.rigs.YaesuDX10Rig;
+import com.bg7yoz.ft8cn.rigs.TrUSDXRig;
 import com.bg7yoz.ft8cn.spectrum.SpectrumListener;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -766,6 +767,9 @@ public class MainViewModel extends ViewModel {
                 break;
             case InstructionSet.KENWOOD_TS2000:
                 baseRig = new KenwoodTS2000Rig();//建伍TS2000
+                break;
+            case InstructionSet.TRUSDX:
+                baseRig = new TrUSDXRig();//(tr)uSDX
                 break;
         }
 

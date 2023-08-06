@@ -48,3 +48,4 @@ mcHF-QRP sdr,00,4800,1
 FlexRadio 6000 series,00,00,12
 FX-4CR,00,115200,7
 Qrp Labs QDX,00,9600,7
+(tr)uSDX,00,115200,15

@@ -16,4 +16,5 @@ public class InstructionSet {
     public  static final int FLEX_NETWORK=12;//FLEX网络模式连接;
     public  static final int XIEGU_6100=13;//协谷X6100;
     public  static final int KENWOOD_TS2000=14;//建武TS2000,发射指令是TX0;
+    public  static final int TRUSDX=15;//(tr)USDX;
 }
