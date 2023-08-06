@@ -11,6 +11,7 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -26,6 +27,7 @@ public class TrUSDXRig extends BaseRig {
     private int alc=0;
     private boolean alcMaxAlert = false;
     private boolean swrAlert = false;
+    private boolean rxStreaming = false;
 
     private TimerTask readTask() {
         return new TimerTask() {
@@ -74,6 +76,9 @@ public class TrUSDXRig extends BaseRig {
         if (getConnector() != null) {
             switch (getControlMode()) {
                 case ControlMode.CAT://以CIV指令
+                    if (on) {
+                        rxStreaming = false;
+                    }
                     getConnector().setPttOn(KenwoodTK90RigConstant.setTS590PTTState(on));
                     break;
                 case ControlMode.RTS:
@@ -108,47 +113,61 @@ public class TrUSDXRig extends BaseRig {
 
     @Override
     public void onReceiveData(byte[] data) {
+        byte[] remain = data;
         String s = new String(data);
+        Log.d(TAG, "data received: " + s);
+        while (s.contains(";")) { // ;
+            // TODO apply effective way
+            int idx = s.indexOf(";");
+            byte[] cutted = Arrays.copyOf(remain, idx);
+            remain = Arrays.copyOfRange(remain, idx + 1, remain.length);
+            s = new String(remain);
 
-        if (!s.contains("\r"))
-        {
-            buffer.append(s);
-            if (buffer.length()>1000) clearBufferData();
-            //return;//说明数据还没接收完。
-        }else {
-            if (s.indexOf("\r")>0){//说明接到结束的数据了，并且不是第一个字符是;
-              buffer.append(s.substring(0,s.indexOf("\r")));
-            }
-            //开始分析数据
-            Yaesu3Command yaesu3Command = Yaesu3Command.getCommand(buffer.toString());
-            clearBufferData();//清一下缓存
-            //要把剩下的数据放到缓存里
-            buffer.append(s.substring(s.indexOf("\r")+1));
+            if (rxStreaming) {
+                if (cutted.length > 0) {
+                    getConnector().receiveWaveData(cutted);
+                }
+                rxStreaming = false;
+            } else {
+                buffer.append(new String(cutted));
+                //开始分析数据
+                Yaesu3Command yaesu3Command = Yaesu3Command.getCommand(buffer.toString());
+                clearBufferData();//清一下缓存
 
-            if (yaesu3Command == null) {
-                return;
+                if (yaesu3Command == null) {
+                    return;
+                }
+                String cmd=yaesu3Command.getCommandID();
+                Log.i(TAG, "command: " + cmd);
+                if (cmd.equalsIgnoreCase("FA")) {//频率
+                    long tempFreq=Yaesu3Command.getFrequency(yaesu3Command);
+                    if (tempFreq!=0) {//如果tempFreq==0，说明频率不正常
+                        setFreq(Yaesu3Command.getFrequency(yaesu3Command));
+                    }
+                }else if (cmd.equalsIgnoreCase("RM")){//meter
+                    if (Yaesu3Command.is590MeterSWR(yaesu3Command)) {
+                        swr = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
+                    }
+                    if (Yaesu3Command.is590MeterALC(yaesu3Command)) {
+                        alc = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
+                    }
+                    showAlert();
+                }
             }
-            String cmd=yaesu3Command.getCommandID();
-            if (cmd.equalsIgnoreCase("FA")) {//频率
-                long tempFreq=Yaesu3Command.getFrequency(yaesu3Command);
-                if (tempFreq!=0) {//如果tempFreq==0，说明频率不正常
-                    setFreq(Yaesu3Command.getFrequency(yaesu3Command));
-                }
-            }else if (cmd.equalsIgnoreCase("RM")){//meter
-                if (Yaesu3Command.is590MeterSWR(yaesu3Command)) {
-                    swr = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
-                }
-                if (Yaesu3Command.is590MeterALC(yaesu3Command)) {
-                    alc = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
-                }
-                showAlert();
-            }else if (cmd.equalsIgnoreCase("US")){//wave
-                // TODO
-                byte[] buf = yaesu3Command.getData().getBytes();
-            }
-
         }
-
+        if (remain.length <= 0) {
+            return;
+        }
+        if (remain.length >= 2 && remain[0] == 0x55 && remain[1] == 0x53) {// US
+            clearBufferData();
+            rxStreaming = true;
+            byte[] wave = Arrays.copyOfRange(remain, 2, remain.length);
+            if (getConnector() != null && wave.length > 0) {
+                getConnector().receiveWaveData(wave);
+            }
+        } else {
+            buffer.append(s);
+        }
     }
     private void showAlert() {
         if (swr >= KenwoodTK90RigConstant.ts_590_swr_alert_max) {
