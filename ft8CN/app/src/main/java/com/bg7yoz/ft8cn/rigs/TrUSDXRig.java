@@ -28,6 +28,8 @@ public class TrUSDXRig extends BaseRig {
     private boolean alcMaxAlert = false;
     private boolean swrAlert = false;
     private boolean rxStreaming = false;
+    private int rxSampling = 7812;
+    private int txSampling = 11520;
 
     private TimerTask readTask() {
         return new TimerTask() {
@@ -124,9 +126,7 @@ public class TrUSDXRig extends BaseRig {
             s = new String(remain);
 
             if (rxStreaming) {
-                if (cutted.length > 0) {
-                    getConnector().receiveWaveData(cutted);
-                }
+                onReceivedWaveData(cutted);
                 rxStreaming = false;
             } else {
                 buffer.append(new String(cutted));
@@ -162,9 +162,7 @@ public class TrUSDXRig extends BaseRig {
             clearBufferData();
             rxStreaming = true;
             byte[] wave = Arrays.copyOfRange(remain, 2, remain.length);
-            if (getConnector() != null && wave.length > 0) {
-                getConnector().receiveWaveData(wave);
-            }
+            onReceivedWaveData(wave);
         } else {
             buffer.append(s);
         }
@@ -214,6 +212,36 @@ public class TrUSDXRig extends BaseRig {
         }
     }
 
+    public void onReceivedWaveData(byte[] data) {
+        if (data.length == 0) {
+            return;
+        }
+        if (getConnector() == null) {
+            return;
+        }
+        //float[] resampled = TrUSDXRig.resampler(data, rxSampling, 44000); // 44KHz
+        float[] resampled = TrUSDXRig.resampler(data, rxSampling, 12000); // 12KHz
+        getConnector().receiveWaveData(resampled);
+    }
+
+    static float[] resampler(byte[] data, int oldSampleRate, int newSampleRate) {
+        float rate = (float)newSampleRate / oldSampleRate;
+        int waveLength = data.length / 2;
+        int dataLength = (int)Math.ceil(waveLength * rate);
+
+        float[] resampled =new float[dataLength];
+        for (int i = 0; i < waveLength; i++) {
+            float f = readShortBigEndianData(data,i*2)/32768.0f;
+            int x = (int)Math.ceil(i * rate);
+            int y = (int)Math.ceil((i * rate) + rate);
+            int m = y - x;
+            for (int j = x; j < y && j < dataLength; j++) {
+                resampled[j] = (f * (j - x) / m) + (f * (m - (j - x) / m));
+            }
+        }
+        return resampled;
+    }
+
     public TrUSDXRig() {
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -225,5 +253,18 @@ public class TrUSDXRig extends BaseRig {
             }
         },START_QUERY_FREQ_DELAY-500);
         readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY,QUERY_FREQ_TIMEOUT);
+    }
+
+    /**
+     * 从流数据中读取小端模式的Short
+     *
+     * @param data  流数据
+     * @param start 起始点
+     * @return Int16
+     */
+    public static short readShortBigEndianData(byte[] data, int start) {
+        if (data.length - start < 2) return 0;
+        return (short) ((short) data[start] & 0xff
+                | ((short) data[start + 1] & 0xff) << 8);
     }
 }
