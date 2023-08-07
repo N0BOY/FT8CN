@@ -11,6 +11,8 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
+import com.jackz314.resample.Resample;
+
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Timer;
@@ -233,30 +235,16 @@ public class TrUSDXRig extends BaseRig {
         }
         rxStreamBuffer.write(data, 0, data.length);
         if (rxStreamBuffer.size() >= 512 || force) {
-            byte[] wave = rxStreamBuffer.toByteArray();
-            rxStreamBuffer.reset();
-            float[] resampled = TrUSDXRig.resampler(wave, rxSampling, 48000); // 48KHz
-            //float[] resampled = TrUSDXRig.resampler(data, rxSampling, 12000); // 12KHz
-            getConnector().receiveWaveData(resampled);
-        }
-    }
-
-    static float[] resampler(byte[] data, int oldSampleRate, int newSampleRate) {
-        float rate = (float)newSampleRate / oldSampleRate;
-        int waveLength = data.length / 2;
-        int dataLength = (int)Math.ceil(waveLength * rate);
-
-        float[] resampled =new float[dataLength];
-        for (int i = 0; i < waveLength; i++) {
-            float f = readShortBigEndianData(data,i*2)/32768.0f;
-            int x = (int)Math.ceil(i * rate);
-            int y = (int)Math.ceil((i * rate) + rate);
-            int m = y - x;
-            for (int j = x; j < y && j < dataLength; j++) {
-                resampled[j] = (f * (j - x) / m) + (f * (m - (j - x) / m));
+            Resample resample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 48000);
+            try {
+                byte[] resampled = resample.processCopy(rxStreamBuffer.toByteArray());
+                rxStreamBuffer.reset();
+                getConnector().receiveWaveData(resampled);
+            } finally {
+                resample.close();
             }
+
         }
-        return resampled;
     }
 
     public TrUSDXRig() {
@@ -270,18 +258,5 @@ public class TrUSDXRig extends BaseRig {
             }
         },START_QUERY_FREQ_DELAY-500);
         readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY,QUERY_FREQ_TIMEOUT);
-    }
-
-    /**
-     * 从流数据中读取小端模式的Short
-     *
-     * @param data  流数据
-     * @param start 起始点
-     * @return Int16
-     */
-    public static short readShortBigEndianData(byte[] data, int start) {
-        if (data.length - start < 2) return 0;
-        return (short) ((short) data[start] & 0xff
-                | ((short) data[start + 1] & 0xff) << 8);
     }
 }
