@@ -11,6 +11,7 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -21,6 +22,7 @@ import java.util.TimerTask;
 public class TrUSDXRig extends BaseRig {
     private static final String TAG = "TrUSDXRig";
     private final StringBuilder buffer = new StringBuilder();
+    private final ByteArrayOutputStream rxStreamBuffer = new ByteArrayOutputStream();
 
     private Timer readFreqTimer = new Timer();
     private int swr=0;
@@ -126,7 +128,7 @@ public class TrUSDXRig extends BaseRig {
             s = new String(remain);
 
             if (rxStreaming) {
-                onReceivedWaveData(cutted);
+                onReceivedWaveData(cutted, true);
                 rxStreaming = false;
             } else {
                 buffer.append(new String(cutted));
@@ -135,7 +137,7 @@ public class TrUSDXRig extends BaseRig {
                 clearBufferData();//清一下缓存
 
                 if (yaesu3Command == null) {
-                    return;
+                    continue;
                 }
                 String cmd=yaesu3Command.getCommandID();
                 Log.i(TAG, "command: " + cmd);
@@ -152,13 +154,19 @@ public class TrUSDXRig extends BaseRig {
                         alc = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
                     }
                     showAlert();
+                }else if (cmd.equalsIgnoreCase("US")){
+                    rxStreaming = true;
+                    byte[] wave = Arrays.copyOfRange(cutted, 2, cutted.length);
+                    onReceivedWaveData(wave);
                 }
             }
         }
         if (remain.length <= 0) {
             return;
         }
-        if (remain.length >= 2 && remain[0] == 0x55 && remain[1] == 0x53) {// US
+        if (rxStreaming) {
+            onReceivedWaveData(remain);
+        } else if (remain.length >= 2 && remain[0] == 0x55 && remain[1] == 0x53) {// US
             clearBufferData();
             rxStreaming = true;
             byte[] wave = Arrays.copyOfRange(remain, 2, remain.length);
@@ -201,7 +209,7 @@ public class TrUSDXRig extends BaseRig {
 
     @Override
     public boolean supportWaveOverCAT() {
-        return getConnector() != null && getControlMode() == ControlMode.CAT;
+        return true;
     }
 
     @Override
@@ -213,15 +221,24 @@ public class TrUSDXRig extends BaseRig {
     }
 
     public void onReceivedWaveData(byte[] data) {
+        onReceivedWaveData(data, false);
+    }
+
+    public void onReceivedWaveData(byte[] data, boolean force) {
         if (data.length == 0) {
             return;
         }
         if (getConnector() == null) {
             return;
         }
-        //float[] resampled = TrUSDXRig.resampler(data, rxSampling, 44000); // 44KHz
-        float[] resampled = TrUSDXRig.resampler(data, rxSampling, 12000); // 12KHz
-        getConnector().receiveWaveData(resampled);
+        rxStreamBuffer.write(data, 0, data.length);
+        if (rxStreamBuffer.size() >= 512 || force) {
+            byte[] wave = rxStreamBuffer.toByteArray();
+            rxStreamBuffer.reset();
+            float[] resampled = TrUSDXRig.resampler(wave, rxSampling, 48000); // 48KHz
+            //float[] resampled = TrUSDXRig.resampler(data, rxSampling, 12000); // 12KHz
+            getConnector().receiveWaveData(resampled);
+        }
     }
 
     static float[] resampler(byte[] data, int oldSampleRate, int newSampleRate) {

@@ -733,13 +733,6 @@ public class MainViewModel extends ViewModel {
      * 根据指令集创建不同型号的电台
      */
     private void connectRig() {
-        if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
-                || (GeneralVariables.instructionSet == InstructionSet.ICOM
-                && GeneralVariables.connectMode == ConnectMode.NETWORK)) {
-            hamRecorder.setDataFromLan();
-        } else {
-            hamRecorder.setDataFromMic();
-        }
         baseRig = null;
         //此处判断是用什么类型的电台，ICOM,YAESU 2,YAESU 3
         switch (GeneralVariables.instructionSet) {
@@ -791,6 +784,18 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.TRUSDX:
                 baseRig = new TrUSDXRig();//(tr)uSDX
                 break;
+        }
+
+        if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
+                || (GeneralVariables.instructionSet == InstructionSet.ICOM
+                && GeneralVariables.connectMode == ConnectMode.NETWORK)) {
+            hamRecorder.setDataFromLan();
+        } else {
+            if (GeneralVariables.controlMode != ControlMode.CAT || baseRig == null || !baseRig.supportWaveOverCAT()) {
+                hamRecorder.setDataFromMic();
+            } else {
+                hamRecorder.setDataFromLan();
+            }
         }
 
         mutableIsFlexRadio.postValue(GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK);
