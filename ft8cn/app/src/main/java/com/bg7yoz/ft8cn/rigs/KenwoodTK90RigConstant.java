@@ -144,4 +144,12 @@ public class KenwoodTK90RigConstant {
             return TRUSDX_STREAMING_OFF.getBytes();
         }
     }
+
+    public static byte[] setTrUSDXPTTState(boolean on) {
+        if (on) {
+            return ";TX0;".getBytes();
+        } else {
+            return ";RX;".getBytes();
+        }
+    }
 }

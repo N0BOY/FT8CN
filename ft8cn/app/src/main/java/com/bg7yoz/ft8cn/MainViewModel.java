@@ -410,6 +410,31 @@ public class MainViewModel extends ViewModel {
                     }
                 }
             }
+
+            @Override
+            public boolean supportTransmitOverCAT() {
+                if (GeneralVariables.controlMode != ControlMode.CAT) {
+                    return false;
+                }
+                if (baseRig == null) {
+                    return false;
+                }
+                if (!baseRig.isConnected() || !baseRig.supportWaveOverCAT()) {
+                    return false;
+                }
+                return true;
+            }
+
+            @Override
+            public void onTransmitOverCAT(Ft8Message msg) {
+                if (!supportTransmitOverCAT()) {
+                    return;
+                }
+                sendWaveDataRunnable.baseRig = baseRig;
+                sendWaveDataRunnable.message = msg;
+                sendWaveDataThreadPool.execute(sendWaveDataRunnable);
+            }
+
         }, new OnTransmitSuccess() {//当通联成功时
             @Override
             public void doAfterTransmit(QSLRecord qslRecord) {

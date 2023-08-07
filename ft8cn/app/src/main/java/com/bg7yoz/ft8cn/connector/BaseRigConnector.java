@@ -74,6 +74,14 @@ public class BaseRigConnector {
         onConnectReceiveData=receiveData;
     }
 
+    public void sendWaveData(byte[] data){
+        float[] waveFloat=new float[data.length/2];
+        for (int i = 0; i <waveFloat.length ; i++) {
+            waveFloat[i]=readShortBigEndianData(data,i*2)/32768.0f;
+        }
+        sendWaveData(waveFloat);
+    }
+
     public void sendWaveData(float[] data){
         //留给网络方式发送音频流
     }

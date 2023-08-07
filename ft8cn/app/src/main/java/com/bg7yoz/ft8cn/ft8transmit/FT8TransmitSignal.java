@@ -20,6 +20,7 @@ import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.connector.ConnectMode;
+import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
@@ -413,6 +414,32 @@ public class FT8TransmitSignal {
             return;
         }
 
+        if (GeneralVariables.controlMode == ControlMode.CAT) {
+            Log.d(TAG, "playFT8Signal: try to transmit over CAT");
+
+            if (onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
+                if (onDoTransmitted.supportTransmitOverCAT()) {
+                    onDoTransmitted.onTransmitOverCAT(msg);
+
+                    long now = System.currentTimeMillis();
+                    while (isTransmitting) {//等待音频数据包发送完毕再退出，以触发afterTransmitting
+                        try {
+                            Thread.sleep(1);
+                            long current = System.currentTimeMillis() - now;
+                            if (current > 13000) {//实际发射的时长
+                                isTransmitting = false;
+                                break;
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Log.d(TAG, "playFT8Signal: 退出网络音频发送。");
+                    afterPlayAudio();
+                    return;
+                }
+            }
+        }
 
         //进入声卡模式
         float[] buffer;
