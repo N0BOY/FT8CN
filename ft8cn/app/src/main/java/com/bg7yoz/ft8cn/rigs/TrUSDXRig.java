@@ -14,6 +14,7 @@ import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.jackz314.resample.Resample;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -234,10 +235,10 @@ public class TrUSDXRig extends BaseRig {
             return;
         }
         rxStreamBuffer.write(data, 0, data.length);
-        if (rxStreamBuffer.size() >= 512 || force) {
-            Resample resample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 48000);
+        if (rxStreamBuffer.size() >= 256 || force) {
+            Resample resample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 12000);
             try {
-                byte[] resampled = resample.processCopy(rxStreamBuffer.toByteArray());
+                byte[] resampled = resample.processCopy(toWaveSamples8To16(rxStreamBuffer.toByteArray()));
                 rxStreamBuffer.reset();
                 getConnector().receiveWaveData(resampled);
             } finally {
@@ -245,6 +246,15 @@ public class TrUSDXRig extends BaseRig {
             }
 
         }
+    }
+
+    private static byte[] toWaveSamples8To16(byte[] in) {
+        ByteBuffer buf = ByteBuffer.allocate(in.length * 2);
+        for (int i = 0; i < in.length; i++) {
+            short v = (short)(((short)in[i] - 128) << 8);
+            buf.putShort(v);
+        }
+        return buf.array();
     }
 
     public TrUSDXRig() {
