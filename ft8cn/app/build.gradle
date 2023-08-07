@@ -94,4 +94,5 @@ dependencies {
     implementation files('src/libs/MPAndroidChartv_3.1.0.jar')
     implementation files('src/libs/nanohttpd-2.2.0.jar')
     implementation files('src/libs/osmdroid-android-6.1.14.aar')//地图控件
+    implementation files('src/libs/resample-release.aar')
 }
