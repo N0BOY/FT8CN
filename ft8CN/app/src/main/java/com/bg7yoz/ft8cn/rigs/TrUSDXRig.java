@@ -6,15 +6,18 @@ import static com.bg7yoz.ft8cn.GeneralVariables.START_QUERY_FREQ_DELAY;
 import android.os.Handler;
 import android.util.Log;
 
+import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.ControlMode;
+import com.bg7yoz.ft8cn.ft8transmit.GenerateFT8;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
 import com.jackz314.resample.Resample;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,8 +27,12 @@ import java.util.TimerTask;
  */
 public class TrUSDXRig extends BaseRig {
     private static final String TAG = "TrUSDXRig";
+    private static final int rxSampling = 7812;
+    private static final int txSampling = 11520;
     private final StringBuilder buffer = new StringBuilder();
     private final ByteArrayOutputStream rxStreamBuffer = new ByteArrayOutputStream();
+    //private final Resample rxResample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 12000);
+    //private final Resample txResample = new Resample(Resample.ConverterType.SRC_SINC_FASTEST, 1, 48000, txSampling);
 
     private Timer readFreqTimer = new Timer();
     private int swr=0;
@@ -33,8 +40,6 @@ public class TrUSDXRig extends BaseRig {
     private boolean alcMaxAlert = false;
     private boolean swrAlert = false;
     private boolean rxStreaming = false;
-    private int rxSampling = 7812;
-    private int txSampling = 11520;
 
     private TimerTask readTask() {
         return new TimerTask() {
@@ -48,7 +53,7 @@ public class TrUSDXRig extends BaseRig {
                         return;
                     }
                     if (isPttOn()){
-                        readMeters();//读METER
+                        clearBufferData();
                     }else {
                         readFreqFromRig();//读频率
                     }
@@ -58,16 +63,6 @@ public class TrUSDXRig extends BaseRig {
                 }
             }
         };
-    }
-
-    /**
-     * 读取Meter RM;
-     */
-    private void readMeters(){
-        if (getConnector() != null) {
-            clearBufferData();//清空一下缓存
-            getConnector().sendData(KenwoodTK90RigConstant.setRead590Meters());
-        }
     }
 
     /**
@@ -82,11 +77,11 @@ public class TrUSDXRig extends BaseRig {
         super.setPTT(on);
         if (getConnector() != null) {
             switch (getControlMode()) {
-                case ControlMode.CAT://以CIV指令
+                case ControlMode.CAT:
                     if (on) {
                         rxStreaming = false;
                     }
-                    getConnector().setPttOn(KenwoodTK90RigConstant.setTS590PTTState(on));
+                    getConnector().setPttOn(KenwoodTK90RigConstant.setTrUSDXPTTState(on));
                     break;
                 case ControlMode.RTS:
                 case ControlMode.DTR:
@@ -149,14 +144,6 @@ public class TrUSDXRig extends BaseRig {
                     if (tempFreq!=0) {//如果tempFreq==0，说明频率不正常
                         setFreq(Yaesu3Command.getFrequency(yaesu3Command));
                     }
-                }else if (cmd.equalsIgnoreCase("RM")){//meter
-                    if (Yaesu3Command.is590MeterSWR(yaesu3Command)) {
-                        swr = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
-                    }
-                    if (Yaesu3Command.is590MeterALC(yaesu3Command)) {
-                        alc = Yaesu3Command.get590ALCOrSWR(yaesu3Command);
-                    }
-                    showAlert();
                 }else if (cmd.equalsIgnoreCase("US")){
                     rxStreaming = true;
                     byte[] wave = Arrays.copyOfRange(cutted, 2, cutted.length);
@@ -201,6 +188,8 @@ public class TrUSDXRig extends BaseRig {
     public void readFreqFromRig() {
         if (getConnector() != null) {
             clearBufferData();//清空一下缓存
+            // force reset
+            getConnector().sendData(KenwoodTK90RigConstant.setTrUSDXPTTState(false));
             getConnector().sendData(KenwoodTK90RigConstant.setTS590ReadOperationFreq());
         }
     }
@@ -234,18 +223,63 @@ public class TrUSDXRig extends BaseRig {
         if (getConnector() == null) {
             return;
         }
+        Resample rxResample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 12000);
         rxStreamBuffer.write(data, 0, data.length);
         if (rxStreamBuffer.size() >= 256 || force) {
-            Resample resample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 12000);
-            try {
-                byte[] resampled = resample.processCopy(toWaveSamples8To16(rxStreamBuffer.toByteArray()));
-                rxStreamBuffer.reset();
-                getConnector().receiveWaveData(resampled);
-            } finally {
-                resample.close();
-            }
-
+            byte[] resampled = rxResample.processCopy(toWaveSamples8To16(rxStreamBuffer.toByteArray()));
+            rxStreamBuffer.reset();
+            getConnector().receiveWaveData(resampled);
         }
+        rxResample.close();
+    }
+
+    @Override
+    public void sendWaveData(Ft8Message message) {
+        if (getConnector() == null) {
+            return;
+        }
+        float[] wave = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
+             //   ,txSampling);
+                , 24000);
+             //   ,48000);
+        //Log.i(TAG, String.format("wave length: %d", wave.length));
+        if (wave == null){
+            setPTT(false);
+            return;
+        }
+        byte[] pcm16 = toWaveFloatToPCM16(wave);
+        Resample txResample = new Resample(Resample.ConverterType.SRC_SINC_FASTEST, 1, 24000, txSampling);
+        byte[] resampled = txResample.processCopy(pcm16);
+        txResample.close();
+        byte[] pcm8 = toWaveSamples16To8(resampled);
+        //byte[] pcm8 = resampled;
+        //byte[] pcm8 = toWaveFloatToPCM8(wave);
+        Log.i(TAG, String.format("pcm8 length: %d", pcm8.length));
+        for (int i = 0; i < pcm8.length; i++) {
+            if (pcm8[i] == 0x3B) pcm8[i] = 0x3A; // ; to :
+        }
+        while (pcm8.length > 0) {
+            if (pcm8.length <= 256) {
+                getConnector().sendData(pcm8);
+                break;
+            } else {
+                getConnector().sendData(Arrays.copyOfRange(pcm8, 0, 256));
+                pcm8 = Arrays.copyOfRange(pcm8, 256, pcm8.length);
+            }
+        }
+        /*
+        for (int i = 0; i < pcm8.length; i += 64) {
+            if (!isPttOn()) {
+                return;
+            }
+            getConnector().sendData(Arrays.copyOfRange(pcm8, i, Math.min(i + 64, pcm8.length)));
+            //try {
+            //    Thread.sleep(1);
+            //} catch (InterruptedException e) {
+            //    e.printStackTrace();
+            //}
+        }
+        */
     }
 
     private static byte[] toWaveSamples8To16(byte[] in) {
@@ -255,6 +289,37 @@ public class TrUSDXRig extends BaseRig {
             buf.putShort(v);
         }
         return buf.array();
+    }
+
+    private static byte[] toWaveFloatToPCM16(float[] in) {
+        ByteBuffer buf = ByteBuffer.allocate(in.length * 2);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+        for (int i = 0; i < in.length; i++) {
+            float x = in[i];
+            short v = (short)(x * 32767.0f);
+            buf.putShort(v);
+        }
+        return buf.array();
+    }
+
+    private static byte[] toWaveFloatToPCM8(float[] in) {
+        byte[] out = new byte[in.length];
+        for (int i = 0; i < in.length; i++) {
+            float x = in[i];
+            short v = (short)(x * 32767.0f);
+            out[i] = (byte)((byte)(v >> 8) + 128);
+        }
+        return out;
+    }
+
+    private static byte[] toWaveSamples16To8(byte[] in) {
+        byte[] out = new byte[in.length / 2];
+        for (int i = 0; i < out.length; i++) {
+            short v = readShortBigEndianData(in, i * 2);
+            //short v = (short)(((short)in[i*2] & 0xFF) << 8 | (short)in[i*2+1] & 0xFF);
+            out[i] = (byte)(((byte)(v >> 8)) + 128);
+        }
+        return out;
     }
 
     public TrUSDXRig() {
@@ -269,4 +334,18 @@ public class TrUSDXRig extends BaseRig {
         },START_QUERY_FREQ_DELAY-500);
         readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY,QUERY_FREQ_TIMEOUT);
     }
+
+    /**
+     * 从流数据中读取小端模式的Short
+     *
+     * @param data  流数据
+     * @param start 起始点
+     * @return Int16
+     */
+    public static short readShortBigEndianData(byte[] data, int start) {
+        if (data.length - start < 2) return 0;
+        return (short) ((short) data[start] & 0xff
+                | ((short) data[start + 1] & 0xff) << 8);
+    }
+
 }

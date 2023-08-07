@@ -11,4 +11,6 @@ public interface OnDoTransmitted {
     void onBeforeTransmit(Ft8Message message,int functionOder);
     void onAfterTransmit(Ft8Message message, int functionOder);
     void onTransmitByWifi(Ft8Message message);
+    boolean supportTransmitOverCAT();
+    void onTransmitOverCAT(Ft8Message message);
 }

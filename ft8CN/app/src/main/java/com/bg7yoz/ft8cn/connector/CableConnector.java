@@ -68,10 +68,15 @@ public class CableConnector extends BaseRigConnector {
     }
 
     @Override
+    public void sendWaveData(byte[] data) {
+        sendData(data);
+    }
+
+    @Override
     public void sendWaveData(float[] data) {
         // TODO float to byte
-        // TODO replace `;` to ':'
-        // sendData(wave);
+        byte[] wave = new byte[data.length * 2];
+        sendWaveData(data);
     }
 
     @Override
