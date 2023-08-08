@@ -31,8 +31,6 @@ public class TrUSDXRig extends BaseRig {
     private static final int txSampling = 11520;
     private final StringBuilder buffer = new StringBuilder();
     private final ByteArrayOutputStream rxStreamBuffer = new ByteArrayOutputStream();
-    //private final Resample rxResample = new Resample(Resample.ConverterType.SRC_LINEAR, 1, rxSampling, 12000);
-    //private final Resample txResample = new Resample(Resample.ConverterType.SRC_SINC_FASTEST, 1, 48000, txSampling);
 
     private Timer readFreqTimer = new Timer();
     private int swr=0;
@@ -117,7 +115,6 @@ public class TrUSDXRig extends BaseRig {
     public void onReceiveData(byte[] data) {
         byte[] remain = data;
         String s = new String(data);
-        Log.d(TAG, "data received: " + s);
         while (s.contains(";")) { // ;
             // TODO apply effective way
             int idx = s.indexOf(";");
@@ -138,7 +135,6 @@ public class TrUSDXRig extends BaseRig {
                     continue;
                 }
                 String cmd=yaesu3Command.getCommandID();
-                Log.i(TAG, "command: " + cmd);
                 if (cmd.equalsIgnoreCase("FA")) {//频率
                     long tempFreq=Yaesu3Command.getFrequency(yaesu3Command);
                     if (tempFreq!=0) {//如果tempFreq==0，说明频率不正常
@@ -241,8 +237,6 @@ public class TrUSDXRig extends BaseRig {
         float[] wave = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
              //   ,txSampling);
                 , 24000);
-             //   ,48000);
-        //Log.i(TAG, String.format("wave length: %d", wave.length));
         if (wave == null){
             setPTT(false);
             return;
@@ -252,9 +246,6 @@ public class TrUSDXRig extends BaseRig {
         byte[] resampled = txResample.processCopy(pcm16);
         txResample.close();
         byte[] pcm8 = toWaveSamples16To8(resampled);
-        //byte[] pcm8 = resampled;
-        //byte[] pcm8 = toWaveFloatToPCM8(wave);
-        Log.i(TAG, String.format("pcm8 length: %d", pcm8.length));
         for (int i = 0; i < pcm8.length; i++) {
             if (pcm8[i] == 0x3B) pcm8[i] = 0x3A; // ; to :
         }
@@ -267,19 +258,6 @@ public class TrUSDXRig extends BaseRig {
                 pcm8 = Arrays.copyOfRange(pcm8, 256, pcm8.length);
             }
         }
-        /*
-        for (int i = 0; i < pcm8.length; i += 64) {
-            if (!isPttOn()) {
-                return;
-            }
-            getConnector().sendData(Arrays.copyOfRange(pcm8, i, Math.min(i + 64, pcm8.length)));
-            //try {
-            //    Thread.sleep(1);
-            //} catch (InterruptedException e) {
-            //    e.printStackTrace();
-            //}
-        }
-        */
     }
 
     private static byte[] toWaveSamples8To16(byte[] in) {
