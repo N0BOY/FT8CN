@@ -434,7 +434,7 @@ public class FT8TransmitSignal {
                             e.printStackTrace();
                         }
                     }
-                    Log.d(TAG, "playFT8Signal: 退出网络音频发送。");
+                    Log.d(TAG, "playFT8Signal: transmitting over CAT is finished.");
                     afterPlayAudio();
                     return;
                 }
