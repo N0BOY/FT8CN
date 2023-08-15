@@ -18,6 +18,7 @@ import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.connector.CableSerialPort;
 import com.bg7yoz.ft8cn.connector.ConnectMode;
+import com.bg7yoz.ft8cn.database.AfterInsertQSLData;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.RigNameList;
 import com.bg7yoz.ft8cn.log.LogFileImport;
@@ -41,6 +42,8 @@ public class LogHttpServer extends NanoHTTPD {
     private final MainViewModel mainViewModel;
     public static int DEFAULT_PORT = 7050;
     private static final String TAG = "LOG HTTP";
+
+    private ImportTaskList importTaskList = new ImportTaskList();//导如日志的任务列表
 
 
     public LogHttpServer(MainViewModel viewModel, int port) {
@@ -100,6 +103,10 @@ public class LogHttpServer extends NanoHTTPD {
             msg = HTML_STRING(showQSLTable());
         } else if (uri.equalsIgnoreCase("IMPORTLOG")) {
             msg = HTML_STRING(showImportLog());
+        } else if (uri.equalsIgnoreCase("GETIMPORTTASK")) {//这个是用户实时获取导入状态的URI
+            msg = HTML_STRING(makeGetImportTaskHTML(session));
+        } else if (uri.equalsIgnoreCase("CANCELTASK")) {//这个是用户取消导入的URI
+            msg = HTML_STRING(doCancelImport(session));
         } else if (uri.equalsIgnoreCase("IMPORTLOGDATA")) {
             msg = HTML_STRING(doImportLogFile(session));
         } else if (uri.equalsIgnoreCase("SHOWALLQSL")) {
@@ -159,35 +166,27 @@ public class LogHttpServer extends NanoHTTPD {
             //Map<String, String> header = session.getHeaders();
             try {
                 session.parseBody(files);
+
+                Log.e(TAG, "doImportLogFile: information:" + files.toString());
                 String param = files.get("file1");//这个是post或put文件的key
-                LogFileImport logFileImport = new LogFileImport(param);
 
-                ArrayList<HashMap<String, String>> recordList = logFileImport.getLogRecords();
-                int importCount = 0;
-                int recordCount = 0;
-                for (HashMap<String, String> record : recordList) {
-                    QSLRecord qslRecord = new QSLRecord(record);
-                    recordCount++;
-                    if (mainViewModel.databaseOpr.doInsertQSLData(qslRecord)) {
-                        importCount++;
+                ImportTaskList.ImportTask task = importTaskList.addTask(param.hashCode());//生成一个新的任务
+
+                LogFileImport logFileImport = new LogFileImport(task, param);
+
+
+                //把提交的数据放到一个独立的线程运行，防止WEB页面停留太久
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        doImportADI(task, logFileImport);
                     }
-                }
+                }).start();
 
-                StringBuilder temp = new StringBuilder();
-                temp.append(String.format(GeneralVariables.getStringFromResource(R.string.html_import_count) + "<br>"
-                        , recordCount, importCount, logFileImport.getErrorCount()));
-                if (logFileImport.getErrorCount() > 0) {
-                    temp.append("<table>");
-                    temp.append(String.format("<tr><th></th><th>%d malformed logs</th></tr>\n", logFileImport.getErrorCount()));
-                    for (int key : logFileImport.getErrorLines().keySet()) {
-                        temp.append(String.format("<tr><td><pre>%d</pre></td><td><pre >%s</pre></td></tr>\n"
-                                , key, logFileImport.getErrorLines().get(key)));
-                    }
+                //重定向,跳转到实时导入信息界面
+                return String.format("<head>\n<meta http-equiv=\"Refresh\" content=\"0; URL=getImportTask?session=%d\" /></head><body></body>"
+                        , param.hashCode());
 
-                    temp.append("</table>");
-                }
-                mainViewModel.databaseOpr.getQslDxccToMap();//更新一下已经通联的分区
-                return temp.toString();
             } catch (IOException | ResponseException e) {
                 e.printStackTrace();
                 return String.format(GeneralVariables.getStringFromResource(R.string.html_import_failed)
@@ -196,6 +195,93 @@ public class LogHttpServer extends NanoHTTPD {
         }
         return GeneralVariables.getStringFromResource(R.string.html_illegal_command);
     }
+
+
+    private String makeGetImportTaskHTML(IHTTPSession session) {
+        String script = "";
+        script = "\n<script language=\"JavaScript\">\n" +
+                "function refreshTask(){\n" +
+                "window.location.reload();\n" +
+                "}\n" +
+                "setTimeout('refreshTask()',1000);\n" +
+                " </script>\n";
+        Map<String, String> pars = session.getParms();
+        if (pars.get("session") != null) {
+            String s = Objects.requireNonNull(pars.get("session"));
+            int id = Integer.parseInt(s);
+            if (!importTaskList.checkTaskIsRunning(id)) {//如果任务停止，就没有必要刷新了
+                script = "";
+            }
+            return script + importTaskList.getTaskHTML(id);
+        }
+
+        return script;
+    }
+
+    @SuppressLint("DefaultLocale")
+    private String doCancelImport(IHTTPSession session) {
+        Map<String, String> pars = session.getParms();
+        Log.e(TAG, "doCancelImport: " + pars.toString());
+        if (pars.get("session") != null) {
+            String s = Objects.requireNonNull(pars.get("session"));
+            int id = Integer.parseInt(s);
+            importTaskList.cancelTask(id);
+            return String.format("<head>\n<meta http-equiv=\"Refresh\" content=\"0; URL=getImportTask?session=%d\" /></head><body></body>"
+                    , id);
+        }
+        return "";
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void doImportADI(ImportTaskList.ImportTask task, LogFileImport logFileImport) {
+        task.setStatus(ImportTaskList.ImportState.IMPORTING);
+        ArrayList<HashMap<String, String>> recordList = logFileImport.getLogRecords();//以正则表达式：[<][Ee][Oo][Rr][>]分行
+        task.importedCount = 0;
+        task.count = recordList.size();//总行数
+        for (HashMap<String, String> record : recordList) {
+            if (task.status == ImportTaskList.ImportState.CANCELED) break;//检查是不是取消导入
+
+            QSLRecord qslRecord = new QSLRecord(record);
+            task.processCount++;
+            if (mainViewModel.databaseOpr.doInsertQSLData(qslRecord, new AfterInsertQSLData() {
+                @Override
+                public void doAfterInsert(boolean isInvalid, boolean isNewQSL) {
+                    if (isInvalid) {
+                        task.invalidCount++;
+                        return;
+                    }
+                    if (isNewQSL) {
+                        task.newCount++;
+                    } else {
+                        task.updateCount++;
+                    }
+                }
+            })) {
+                task.importedCount++;
+            }
+        }
+
+
+        //此处是显示错误的数据
+        StringBuilder temp = new StringBuilder();
+        if (logFileImport.getErrorCount() > 0) {
+            temp.append("<table>");
+            temp.append(String.format("<tr><th></th><th>%d malformed logs</th></tr>\n", logFileImport.getErrorCount()));
+            for (int key : logFileImport.getErrorLines().keySet()) {
+                temp.append(String.format("<tr><td><pre>%d</pre></td><td><pre >%s</pre></td></tr>\n"
+                        , key, logFileImport.getErrorLines().get(key)));
+            }
+
+            temp.append("</table>");
+        }
+
+        task.errorMsg = temp.toString();
+        if (task.status!= ImportTaskList.ImportState.CANCELED) {
+            task.setStatus(ImportTaskList.ImportState.FINISHED);
+        }
+        mainViewModel.databaseOpr.getQslDxccToMap();//更新一下已经通联的分区
+    }
+
 
     /**
      * 获取配置信息
@@ -1014,10 +1100,11 @@ public class LogHttpServer extends NanoHTTPD {
 
     /**
      * 把swo的QSO日志导出到文件
+     *
      * @param exportFile 文件名
-     * @param callsign 呼号
+     * @param callsign   呼号
      * @param start_date 起始日期
-     * @param end_date 结束日期
+     * @param end_date   结束日期
      * @return 数据
      */
     @SuppressLint("Range")
@@ -1078,6 +1165,7 @@ public class LogHttpServer extends NanoHTTPD {
 
     /**
      * 查询SWL日志
+     *
      * @param session 会话
      * @return html
      */
@@ -1263,10 +1351,11 @@ public class LogHttpServer extends NanoHTTPD {
 
     /**
      * 把QSO日志导出到文件
+     *
      * @param exportFile 文件名
-     * @param callsign 呼号
+     * @param callsign   呼号
      * @param start_date 起始日期
-     * @param end_date 结束日期
+     * @param end_date   结束日期
      * @return 数据
      */
     @SuppressLint("Range")
@@ -1317,6 +1406,7 @@ public class LogHttpServer extends NanoHTTPD {
 
     /**
      * 查询QSO日志
+     *
      * @param session 会话
      * @return html
      */

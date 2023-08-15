@@ -169,7 +169,7 @@
     <string name="log_manual_confirmation">Manual confirmation (%s)</string>
 
     <!--   QSL日志列表-->
-    <string name="qsl_grid">Gird:%s</string>
+    <string name="qsl_grid">Grid:%s</string>
     <string name="qsl_start_time">Start time : %s</string>
     <string name="qsl_end_time">End time : %s</string>
     <string name="qsl_rst_rcvd">Rst received : %s</string>
@@ -475,6 +475,17 @@
     <string name="fast_mode">Fast decode</string>
     <string name="deep_mode">Deep decode</string>
     <string name="export_null">Export from WebUI via web browser on another device under the same LAN \n Please connect to a valid Wi-Fi</string>
+    <string name="null_task_html">Task not exist!</string>
+    <string name="log_importing_html">Importing...</string>
+    <string name="log_import_finished_html">Finished !</string>
+    <string name="import_read_error_count_html">Error lines: %d</string>
+    <string name="import_new_count_html">Add QSLs: %d</string>
+    <string name="import_update_count_html">Update QSLs: %d</string>
+    <string name="import_invalid_count_html">Invalid QSLs: %d</string>
+    <string name="import_progress_html">"Progress: "</string>
+    <string name="import_readed_html">Validated QSL: %d</string>
+    <string name="import_canceled_html">Canceled!</string>
+    <string name="import_cancel_button">Stop</string>
 
 
 </resources>

@@ -2,6 +2,8 @@ package com.bg7yoz.ft8cn.log;
 
 import android.util.Log;
 
+import com.bg7yoz.ft8cn.html.ImportTaskList;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +24,7 @@ public class LogFileImport {
     private static final String TAG = "LogFileImport";
     private final String fileContext;
     private final HashMap<Integer,String> errorLines=new HashMap<>();
+    private ImportTaskList.ImportTask importTask;
 
     /**
      * 构建函数，需要文件名，如果在读取文件时出错，会回抛异常
@@ -29,7 +32,8 @@ public class LogFileImport {
      * @param logFileName 日志文件名
      * @throws IOException 回抛异常
      */
-    public LogFileImport(String logFileName) throws IOException {
+    public LogFileImport(ImportTaskList.ImportTask task, String logFileName) throws IOException {
+        importTask=task;
         FileInputStream logFileStream = new FileInputStream(logFileName);
         byte[] bytes = new byte[logFileStream.available()];
         logFileStream.read(bytes);
@@ -99,6 +103,7 @@ public class LogFileImport {
                 records.add(record);//保存记录
             }catch (Exception e){
                 errorLines.put(count,s.replace("<","&lt;"));//把错误的内容保存下来。
+                importTask.readErrorCount=errorLines.size();
             }
         }
         return records;

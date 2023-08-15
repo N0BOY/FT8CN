@@ -43,18 +43,6 @@ public class RadioUdpClient {
         sendDataRunnable.address=address;
         sendDataRunnable.port=port;
         sendDataThreadPool.execute(sendDataRunnable);
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
-//                try {
-//                    sendSocket.send(packet);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                    Log.e(TAG, "run: " + e.getMessage());
-//                }
-//            }
-//        }).start();
     }
 
     private static class SendDataRunnable implements Runnable{
@@ -88,7 +76,7 @@ public class RadioUdpClient {
         if (activated) {//通过activated判断是否结束接收线程，并清空sendSocket指针
             sendSocket = new DatagramSocket(null);//绑定的端口号随机
             sendSocket.bind(new InetSocketAddress(port));
-            Log.e(TAG, "openUdpPort: "+sendSocket.getLocalPort());
+            // Log.e(TAG, "openUdpPort: "+sendSocket.getLocalPort());
             receiveData();
         }else {
             if (sendSocket!=null){

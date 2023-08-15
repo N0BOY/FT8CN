@@ -48,6 +48,9 @@ public class QSLRecord {
 
     public boolean saved = false;//是否被保存到数据库中
 
+    public boolean isInvalid=false;//是否解析出错
+    public String errorMSG="";//如果解析出错，错误的消息
+
     /**
      * 用于SWL QSO记录，记录SWL QSO的条件是收听到双方的信号报告
      *
@@ -137,6 +140,8 @@ public class QSLRecord {
                 float freq = Float.parseFloat(Objects.requireNonNull(map.get("FREQ")));
                 bandFreq = Math.round(freq * 1000000);
             } catch (NumberFormatException e) {
+                isInvalid=true;
+                errorMSG="freq:"+e.getMessage();
                 e.printStackTrace();
                 Log.e(TAG, "QSLRecord: freq" + e.getMessage());
             }
@@ -193,6 +198,8 @@ public class QSLRecord {
             try {//要把float转成Long
                 receivedReport = Integer.parseInt(Objects.requireNonNull(map.get("RST_RCVD").trim()));
             } catch (NumberFormatException e) {
+                isInvalid=true;
+                errorMSG="RST_RCVD:"+e.getMessage();
                 e.printStackTrace();
                 Log.e(TAG, "QSLRecord: RST_RCVD:" + e.getMessage());
             }
@@ -204,6 +211,8 @@ public class QSLRecord {
             try {//要把float转成Long
                 sendReport = Integer.parseInt(Objects.requireNonNull(map.get("RST_SENT").trim()));
             } catch (NumberFormatException e) {
+                isInvalid=true;
+                errorMSG="RST_SENT:"+e.getMessage();
                 e.printStackTrace();
                 Log.e(TAG, "QSLRecord: RST_SENT:" + e.getMessage());
             }

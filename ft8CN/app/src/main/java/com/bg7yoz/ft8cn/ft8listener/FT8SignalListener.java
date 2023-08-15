@@ -111,6 +111,13 @@ public class FT8SignalListener {
 
     public void decodeFt8(long utc, float[] voiceData) {
 
+        //此处是测试用代码-------------------------
+//        String fileName = getCacheFileName("test_01.wav");
+//        Log.e(TAG, "onClick: fileName:" + fileName);
+//        WaveFileReader reader = new WaveFileReader(fileName);
+//        int data[][] = reader.getData();
+        //----------------------------------------------------------
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -119,17 +126,20 @@ public class FT8SignalListener {
                     onFt8Listen.beforeListen(utc);
                 }
 
-
+//                float[] tempData = ints2floats(data);
 
 
                 ///读入音频数据，并做预处理
                 //其实这种方式要注意一个问题，在一个周期之内，必须解码完毕，否则新的解码又要开始了
                 long ft8Decoder = InitDecoder(utc, FT8Common.SAMPLE_RATE
                         , voiceData.length, true);
+//                        , tempData.length, true);
                 DecoderMonitorPressFloat(voiceData, ft8Decoder);//读入音频数据
+//                DecoderMonitorPressFloat(tempData, ft8Decoder);//读入音频数据
 
 
                 ArrayList<Ft8Message> allMsg = new ArrayList<>();
+//                ArrayList<Ft8Message> msgs = runDecode(utc, voiceData,false);
                 ArrayList<Ft8Message> msgs = runDecode(ft8Decoder, utc, false);
                 addMsgToList(allMsg, msgs);
                 timeSec = System.currentTimeMillis() - time;
@@ -140,6 +150,7 @@ public class FT8SignalListener {
 
 
                 if (GeneralVariables.deepDecodeMode) {//进入深度解码模式
+                    //float[] newSignal=tempData;
                     msgs = runDecode(ft8Decoder, utc, true);
                     addMsgToList(allMsg, msgs);
                     timeSec = System.currentTimeMillis() - time;
@@ -274,14 +285,34 @@ public class FT8SignalListener {
         super.finalize();
     }
 
-
+    public OnWaveDataListener getOnWaveDataListener() {
+        return onWaveDataListener;
+    }
 
     public void setOnWaveDataListener(OnWaveDataListener onWaveDataListener) {
         this.onWaveDataListener = onWaveDataListener;
     }
 
 
+    public String getCacheFileName(String fileName) {
+        return GeneralVariables.getMainContext().getCacheDir() + "/" + fileName;
+    }
 
+    public float[] ints2floats(int data[][]) {
+        float temp[] = new float[data[0].length];
+        for (int i = 0; i < data[0].length; i++) {
+            temp[i] = data[0][i] / 32768.0f;
+        }
+        return temp;
+    }
+
+    public int[] floats2ints(float data[]) {
+        int temp[] = new int[data.length];
+        for (int i = 0; i < data.length; i++) {
+            temp[i] = (int) (data[i] * 32767.0f);
+        }
+        return temp;
+    }
 
     /**
      * 解码的第一步，初始化解码器，获取解码器的地址。

@@ -71,6 +71,7 @@ import com.bg7yoz.ft8cn.rigs.KenwoodKT90Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS2000Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS590Rig;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
+import com.bg7yoz.ft8cn.rigs.Wolf_sdr_450Rig;
 import com.bg7yoz.ft8cn.rigs.XieGu6100Rig;
 import com.bg7yoz.ft8cn.rigs.XieGuRig;
 import com.bg7yoz.ft8cn.rigs.Yaesu2Rig;
@@ -766,6 +767,12 @@ public class MainViewModel extends ViewModel {
                 break;
             case InstructionSet.KENWOOD_TS2000:
                 baseRig = new KenwoodTS2000Rig();//建伍TS2000
+                break;
+            case InstructionSet.WOLF_SDR_DIGU:
+                baseRig = new Wolf_sdr_450Rig(false);
+                break;
+            case InstructionSet.WOLF_SDR_USB:
+                baseRig = new Wolf_sdr_450Rig(true);
                 break;
         }
 
