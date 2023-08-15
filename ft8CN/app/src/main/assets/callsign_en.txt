@@ -1,8 +1,0 @@
-Enter your callsign
-
-An amateur radio callsign is required to use this APP. Please comply with local laws and regulations to obtain your amateur radio license and callsign. It’s ILLEGAL to transmit without a valid license.
-
-CQ modifier
-
-CQ may be followed by a modifier with three decimal digits or one to four letters.
-Example : CQ POTA *callsign* *gridsquare*

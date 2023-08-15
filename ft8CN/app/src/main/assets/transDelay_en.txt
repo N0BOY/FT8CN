@@ -1,7 +1,0 @@
-Tx delay time (MS) is set to allow time for decoding operations at the end of the last listening cycle.
-Setting a delay allows the user to get feedback from the previous cycle before launch and react during this cycle.
-The setting of delay time depends on the operation ability of the device, and the delay time can not be less than the length of decoding operation time.
-If the delay time is too short, the device may not be able to respond to signals from the previous period.
-If the delay time is too long, other RIGs may not be able to parse your signal properly.
-In practice, since the RIG will have a response time (FT8CN is tentatively set at 100 milliseconds) after sending PTT instruction to the RIG, the actual transmission time of the sound signal is the transmission delay plus 100 ms. For example, if the transmission delay is set to 500 ms, the actual signal transmission time is 500 plus 100, which equals 600 ms. 
-The actual signal cycle length of FT8 is 12.64 seconds. It is recommended that the maximum delay time should not exceed 1.08 seconds.

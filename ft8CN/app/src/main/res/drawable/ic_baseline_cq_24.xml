@@ -1,5 +1,0 @@
-<vector android:autoMirrored="true" android:height="24dp"
-    android:tint="@color/tracker_cq_marker_un_qso_color" android:viewportHeight="24"
-    android:viewportWidth="24" android:width="24dp" xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillColor="@color/tracker_cq_marker_un_qso_color" android:pathData="M14.4,6L14,4H5v17h2v-7h5.6l0.4,2h7V6z"/>
-</vector>

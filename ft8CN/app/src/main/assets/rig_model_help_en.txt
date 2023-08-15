@@ -1,4 +1,0 @@
-About Rig Model
-
-Depending on the selected RIG model, the targeted use of FT8CN can control the instruction set of the RIG and the instruction set of different brands of RIGs is not the same. Please select the RIG you are using from the list.
-For ICOM series RIGs, this list contains the known default CI-V address and the maximum support for each RIG model. You can select the RIG in this list and the CI-V address and baud rate will be set automatically. If the RIG model you are using is not in this list, you need to set the appropriate CI-V address and baud rate yourself.

@@ -1,6 +1,0 @@
-Connect mode refers to the way FT8CN controls the RIG.
-There are two connect modes between FT8CN and RIG: wired connection (USB to serial port) and wireless connection (Bluetooth serial port). FT8CN controls the operation of the RIG through serial port commands (PTT on/off, frequency settings, mode settings, etc.). Both USB and bluetooth use serial port commands to control the RIG.
-
-Note:
-  1. Only when bluetooth is enabled can the phone enter bluetooth connection mode.
-  2. Bluetooth serial port is different from bluetooth audio. Bluetooth audio can only be used for audio transmission and reception, it can not control the RIG. Only RIG with bluetooth serial ports can be controlled by FT8CN.

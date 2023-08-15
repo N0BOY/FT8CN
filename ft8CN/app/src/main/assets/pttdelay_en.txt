@@ -1,1 +1,0 @@
-PTT delay refers to the response time after the RIG receives the instructions of PTT. FT8CN sends a PTT pressed command, the response of the RIG tends to lag slightly. The time is set to ensure that the FT8CN sends the sound after the RIG is in the transmitted state, preventing the sound from being unable to send completely due to PTT lag.

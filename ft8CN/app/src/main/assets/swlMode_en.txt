@@ -1,7 +1,0 @@
-SWL stands for Shortwave Listener, whom may not hold an amateur radio licence to transmit but listen and report amateur radio QSOs. FT8CN supports "Save decoded messages" and "Save SWL QSO" for SWL.
-
-Save decoded messages: FT8CN will save all decoded messages.
-Save SWL QSO: FT8CN can save QSO log as SWL when both stations provide signal report and 73/RR73/RRR (Gridsqure is optional).
-
-You can look up and export saved decoded messages or SWL QSO log via Web UI (under the same LAN).
-You can delete them using "Clear Cache Data" in settings.

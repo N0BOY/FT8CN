@@ -1,4 +1,0 @@
-Filtering - hide by prefixes
-You can enter a list of prefix that separated by comma "," or space " ". FT8CN will loop up callsigns by your predefined prefixes and hide them from the Calling list.
-
-This filter has the highest priority, which will override any entry from "Tracked Callsign", "CQ", and "about me".

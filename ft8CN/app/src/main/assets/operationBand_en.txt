@@ -1,4 +1,0 @@
-Band refers to the carrier frequency band used by the RIG while transmitting. Carrier bands are recorded in the log of each connection.
-
-In CAT mode, the APP sets the carrier band of the RIG automatically.
-In VOX mode, it is only used to save logs.

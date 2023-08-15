@@ -1,7 +1,0 @@
-The frequency of the transmitted FT8 signal refers to the frequency of the sound transmitted in the current band, and the frequency range is generally between 10 and 3000 Hz.
-Locked TX=RX（locked transmission）: It refers to the frequency of your target call. The default frequency value is not valid at this point.
-Tx/Rx Split（split transmission）: it refers to the default frequency that has been set. In Tx/Rx Split mode, you can also modify the default frequency in the spectrum interface by touching the waterfall chart.
-
-About the TX Frequency.
-
-In order to prevent your TX frequency from overlapping with the frequencies of others, it is recommended to observe the frequency of the currently received signal in the spectrum, and then select a frequency that does not overlap with each received signal.
