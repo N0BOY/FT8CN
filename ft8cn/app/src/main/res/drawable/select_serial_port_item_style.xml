@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 手指触摸时的 -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <!-- 填充的颜色 -->
+            <solid android:color="@color/button_press_solid_color" />
+            <!-- 设置按钮的四个角为弧形 -->
+            <!-- android:radius 弧形的半径 -->
+            <corners android:radius="10dp" />
+            <!-- padding：Button里面的文字与Button边界的间隔 -->
+            <padding
+                android:left="1dp"
+                android:top="1dp"
+                android:right="1dp"
+                android:bottom="1dp"
+                />
+        </shape>
+    </item>
+    <!-- 按钮禁用时的 -->
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <!-- 填充的颜色 -->
+            <stroke
+                android:width="1dp"
+                android:color="@color/button_disable_strocke_color" />
+
+            <gradient
+                android:angle="90"
+                android:startColor="@color/select_serial_port_item_gradient_start"
+                android:endColor="@color/select_serial_port_item_gradient_start"
+                android:type="linear" />
+            <!-- 设置按钮的四个角为弧形 -->
+            <!-- android:radius 弧形的半径 -->
+            <corners android:radius="10dp" />
+            <!-- padding：Button里面的文字与Button边界的间隔 -->
+            <padding
+                android:left="1dp"
+                android:top="1dp"
+                android:right="1dp"
+                android:bottom="1dp"
+                />
+        </shape>
+    </item>
+
+    <!-- 默认的（触摸之前）button -->
+    <item>
+        <shape android:shape="rectangle">
+            <!-- 填充的颜色 -->
+            <stroke
+                android:width="0.5dp"
+                android:color="@color/button_stroke_color" />
+
+            <gradient
+                android:angle="90"
+                android:startColor="@color/select_serial_port_item_gradient_start"
+                android:endColor="@color/select_serial_port_item_gradient_start"
+                android:type="linear" />
+            <!-- 设置按钮的四个角为弧形 -->
+            <!-- android:radius 弧形的半径 -->
+            <corners android:radius="10dp" />
+            <!-- padding：Button里面的文字与Button边界的间隔 -->
+            <padding
+                android:left="0dp"
+                android:top="0dp"
+                android:right="0dp"
+                android:bottom="0dp"
+                />
+        </shape>
+    </item>
+
+</selector>

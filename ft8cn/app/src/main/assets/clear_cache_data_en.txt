@@ -1,0 +1,12 @@
+Clear Cache Data: 
+FT8CN keeps a list of followed callsign and decoded messages in the cache file. You can permanently delete those using empty cache option. 
+
+Note that clearing cache won't delete any QSO log.
+
+List of followed callsign:
+This list contains all your followed callsigns. When a followed callsign shows up, it will be added to the calling message for quick-call or auto-call.   
+
+Note that clearing the list of tracked callsign will remove all saved favorite callsigns.
+
+Clean "cached QSO decoding":
+FT8CN can save all decoded messages. You review them from Web UI. (Not on main UI yet)

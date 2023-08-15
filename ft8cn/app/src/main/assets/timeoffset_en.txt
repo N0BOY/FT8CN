@@ -1,0 +1,3 @@
+Local clock offset:
+In FT8, all stations start TX/RX at each 0/15/45/60 seconds, which require accurate time synchronization.
+FT8CN will automatically sync time via internet. When internet is not available, you can adjust the local clock by changing this local clock offset.

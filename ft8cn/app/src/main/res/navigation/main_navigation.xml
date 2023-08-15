@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navigation"
+    app:startDestination="@id/menu_nav_calling_list">
+    <fragment
+        android:id="@+id/menu_nav_calling_list"
+        android:name="com.bg7yoz.ft8cn.ui.CallingListFragment"
+        android:label="@string/nav_menu_title_decode_list"
+        tools:layout="@layout/fragment_calling_list" >
+        <action
+            android:id="@+id/action_menu_nav_calling_list_to_menu_nav_mycalling"
+            app:destination="@id/menu_nav_mycalling" />
+    </fragment>
+    <fragment
+        android:id="@+id/menu_nav_mycalling"
+        android:name="com.bg7yoz.ft8cn.ui.MyCallingFragment"
+        android:label="@string/nav_menu_title_my_calling"
+        tools:layout="@layout/fragment_my_calling" />
+    <fragment
+        android:id="@+id/menu_nav_config"
+        android:name="com.bg7yoz.ft8cn.ui.ConfigFragment"
+        android:label="@string/nav_menu_title_config"
+        tools:layout="@layout/fragment_config" />
+    <fragment
+        android:id="@+id/menu_nav_spectrum"
+        android:name="com.bg7yoz.ft8cn.ui.SpectrumFragment"
+        android:label="@string/spectrum"
+        tools:layout="@layout/fragment_spectrum" />
+    <fragment
+        android:id="@+id/menu_nav_history"
+        android:name="com.bg7yoz.ft8cn.ui.LogFragment"
+        android:label="@string/nav_menu_title_history" />
+    <fragment
+        android:id="@+id/countFragment"
+        android:name="com.bg7yoz.ft8cn.count.CountFragment"
+        android:label="fragment_count"
+        tools:layout="@layout/fragment_count" />
+    <fragment
+        android:id="@+id/QRZ_Fragment"
+        android:name="com.bg7yoz.ft8cn.ui.QRZ_Fragment"
+        android:label="QRZ_Fragment" />
+    <fragment
+        android:id="@+id/flexRadioInfoFragment"
+        android:name="com.bg7yoz.ft8cn.ui.FlexRadioInfoFragment"
+        android:label="fragment_flex_radio_info"
+        tools:layout="@layout/fragment_flex_radio_info" />
+</navigation>

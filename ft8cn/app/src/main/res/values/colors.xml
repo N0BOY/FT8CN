@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="transmitLayout_background">#B233007E</color>
+
+
+    <color name="tracker_sample_qsl_color">#7fff0000</color>
+    <color name="tracker_sample_qsl_text_color">#FFFFFF</color>
+    <color name="tracker_sample_qso_color">#7fffff00</color>
+    <color name="tracker_sample_qso_text_color">#FF0000</color>
+    <color name="tracker_sample_qsx_color">#7f0000ff</color>
+    <color name="tracker_sample_qsx_text_color">#FFFFFF</color>
+
+
+
+
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#4DD0E1</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="bar_text_view_color">#ffffffff</color>
+    <color name="message_text_color">#3A3A3A</color>
+    <color name="message_in_my_call_text_color">#FF3A3A</color>
+    <color name="fromcall_is_qso_text_color">#0E4EEF</color>
+    <color name="tracker_select_line_color">#B58200</color>
+    <color name="tracker_line_color">#FFFFFFFF</color>
+    <color name="tracker_in_my_line_color">#ffFF1E27</color>
+    <color name="tracker_history_line_color">#2196F3</color>
+
+
+    <color name="volume_progress_value">#FFFFFFFF</color>
+    <color name="power_progress_value">#ff264A68</color>
+    <color name="power_progress_radar_value">#B552AEF8</color>
+
+
+    <color name="is_not_qsl_text_color">#FF3A3A</color>
+    <color name="is_qsl_text_color">#106800</color>
+    <color name="progresss_bar_back_color">#000000</color>
+
+    <color name="text_view_color">#636363</color>
+    <color name="text_view_error_color">#FB0000</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="image_button_pressed">#ff53c1bd</color>
+
+    <color name="button_start_color">#6826FA</color>
+    <color name="button_end_color">#8F5FFA</color>
+
+    <color name="button_tracker_button_color">#6826FA</color>
+
+    <color name="button_stroke_color">#CB0649BB</color>
+    <color name="flex_meter_ruler_end_color">#CB0649BB</color>
+    <color name="flex_meter_ruler_start_color">#FF000000</color>
+
+    <color name="button_disable_strocke_color">#000649BB</color>
+    <color name="button_press_solid_color">#777788</color>
+    <color name="image_button_ground_color">#BEF1F1F1</color>
+    <color name="black_half">#77000000</color>
+    <color name="textview_disable_color">#5A5A5A</color>
+    <color name="textview_cq_color">#ABFBB64F</color>
+    <color name="textview_message_color">#000000</color>
+    <color name="textview_none_color">#00FFFFFF</color>
+    <color name="calling_list_isMyCall_color">#FF0202</color>
+
+    <color name="calling_list_item_color">#B552AEF8</color>
+    <color name="calling_follow_list_item_color">#851D3B53</color>
+    <color name="transmitting_color">#E91E63</color>
+    <color name="follow_call_text_color">#AC2626</color>
+    <color name="waterfall_text_color">#E91E63</color>
+    <color name="ruler_text_color">#F44336</color>
+    <color name="spectrum_switch_color">#FF00FFFF</color>
+    <color name="calling_list0_start_color">#34C9E5FC</color>
+    <color name="calling_list0_end_color">#34C9E5FC</color>
+    <color name="spectrum_text_back_color">#8A000000</color>
+    <color name="spectrum_text_color">#ff00ffff</color>
+
+    <color name="calling_list2_start_color">#AEFFFFFF</color>
+    <color name="calling_list2_end_color">#BCA8A7A7</color>
+
+    <color name="tracker_tips_start_color">#74FFFFFF</color>
+    <color name="tracker_tips_win_end_color">#7ED0D6F8</color>
+
+    <color name="tracker_config_bar_start_color">#C1FFFFFF</color>
+    <color name="tracker_config_bar_end_color">#BAD0D6F8</color>
+    <color name="tracker_gray_line_color">#2FFFFFFF</color>
+
+    <color name="tracker_sample_cq_bar_start_color">#C1A2A2A2</color>
+    <color name="tracker_sample_cq_bar_end_color">#BAD3D3D3</color>
+    <color name="tracker_sample_cq_bar_text_color">#7EFBFBFB</color>
+
+    <color name="tracker_info_win_start_color">#AEFFFFFF</color>
+    <color name="tracker_info_win_end_color">#D7D0D6F8</color>
+    <color name="tracker_new_cq_win_end_color">#D7FB9B9B</color>
+
+    <color name="calling_list1_start_color">#8D4CA8FB</color>
+    <color name="calling_list1_end_color">#8D89C7FF</color>
+
+    <color name="count_detail_item_1_start_color">#8D78BFFF</color>
+    <color name="count_detail_item_1_end_color">#8DA2D0FA</color>
+
+
+    <color name="calling_list3_start_color">#8D4CA8FB</color>
+    <color name="calling_list3_end_color">#A68F979E</color>
+
+
+    <color name="tracker_cq_marker_un_qso_color">#FF0000</color>
+    <color name="tracker_cq_marker_other_is_qso_color">#0000FF</color>
+    <color name="tracker_cq_marker_is_qso_color">#000000</color>
+
+    <!--    <color name="calling_list1_start_color_night">#8D6B94B6</color>-->
+<!--    <color name="calling_list1_end_color_night">#8D41749F</color>-->
+
+    <color name="calling_list_start_color">#34D7EDFF</color>
+    <color name="calling_list_end_color">#33D7EDFF</color>
+
+    <color name="editor_start_color">#4DB5DCFB</color>
+    <color name="editor_end_color">#4DD7EDFF</color>
+
+    <color name="spinner_start_color">#F0B5DCFB</color>
+    <color name="spinner_end_color">#F2D7EDFF</color>
+
+
+    <color name="bluetooth_device_enable_color">#F2FFFFFF</color>
+    <color name="bluetooth_device_disable_color">#F2858585</color>
+
+
+    <color name="spinner_start_color_night">#E93B5468</color>
+    <color name="spinner_end_color_night">#E8384F61</color>
+
+    <color name="tracker_calling_list_background_color">#CEEFEDED</color>
+
+
+
+    <color name="help_dialog_background_color">#CD3C018F</color>
+    <color name="help_dialog_text_color">#E1BEE7</color>
+
+
+<!--    编辑框外部窗体-->
+    <color name="edit_layout_background_stroke">#977A7878</color>
+    <color name="edit_layout_background_gradient_start">#E9E9E9</color>
+    <color name="edit_layout_background_gradient_end">#FFFFFFFF</color>
+
+<!--    选择串口背景色-->
+    <color name="select_serial_port_layout_background_gradient_start">#DC414141</color>
+    <color name="select_serial_port_layout_background_gradient_end">#DC414141</color>
+
+    <!--    选择串口值背景色-->
+    <color name="select_serial_port_item_gradient_start">#DC414141</color>
+    <color name="select_serial_port_item_background_gradient_end">#DC414141</color>
+<!--   欢迎界面的背景色 -->
+    <color name="welcome_layout_ground_color">#EDEDED</color>
+    <color name="welcome_layout_text_color">#535353</color>
+    <color name="welcome_logo_text_color">#FF6200EE</color>
+    <color name="osm_grid_out_line_color">#7FFFFFFF</color>
+
+
+    <color name="char_bar_1">#2EB4FD</color>
+    <color name="char_bar_2">#31738E</color>
+    <color name="char_bar_3">#167372</color>
+    <color name="char_bar_4">#03A8A7</color>
+    <color name="char_bar_5">#668BF8</color>
+    <color name="char_bar_6">#2775E8</color>
+    <color name="char_bar_7">#1E42F6</color>
+    <color name="char_bar_8">#0D24F1</color>
+    <color name="char_bar_9">#0216BF</color>
+    <color name="char_bar_10">#B479F8</color>
+    <color name="char_bar_11">#8846D3</color>
+    <color name="char_bar_12">#6F33B5</color>
+    <color name="char_bar_13">#470495</color>
+    <color name="char_bar_14">#C53FE3</color>
+    <color name="char_bar_15">#770A8F</color>
+    <color name="char_bar_16">#61024D</color>
+
+
+</resources>

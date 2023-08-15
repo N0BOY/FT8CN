@@ -1,0 +1,5 @@
+Audio Output Setting
+
+Bit depth: Choose 16-bit int or 32-bit float. Bit depth dictates the number of possible amplitude values of audio sample. A higher bit depth will produce a higher resolution audio.
+
+Sample rate: Sample rate refers to the number of samples that are present within one second of digital audio. Higher sample rate provides more accurate audio waveform, but consume more system resources.
