@@ -164,6 +164,9 @@ public class FlexConnector extends BaseRigConnector {
 
 
                 flexRadio.commandSetDaxAudio(1, 0, true);//打开DAX
+                //todo 防止流的端口没有释放，把端口变换一下？
+                //FlexRadio.streamPort++;
+
                 flexRadio.commandUdpPort();//设置UDP端口
 
 
@@ -176,7 +179,7 @@ public class FlexConnector extends BaseRigConnector {
 
 
                 flexRadio.commandMeterList();//列一下仪表
-                //flexRadio.commandSubMeterAll();//显示全部仪表消息
+                //flexRadio.commandSubMeterAll();//此处订阅指令放到了接收响应部分
 
                 setMaxRfPower(maxRfPower);//设置发射功率
                 setMaxTunePower(maxTunePower);//设置调谐功率
@@ -258,9 +261,8 @@ public class FlexConnector extends BaseRigConnector {
 
     @Override
     public void sendWaveData(float[] data) {
-        Log.e(TAG, "sendWaveData: flexConnector:"+data.length );
+        //Log.e(TAG, "sendWaveData: flexConnector:"+data.length );
         flexRadio.sendWaveData(data);
-        //super.sendWaveData(data);
     }
 
     @Override

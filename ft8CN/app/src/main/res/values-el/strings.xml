@@ -472,7 +472,18 @@
     <string name="deep_mode">Λειτουργία πολλαπλής αποκωδικοποίησης</string>
     <string name="export_null">Παρακαλώ χρησιμοποιήστε τον web browser των άλλων συσκευών για εξαγωγή στο παρασκήνιο στο ίδιο LAN που είναι αυτή η συσκευή.\nPlease connect to a valid Wi-Fi</string>
     <string name="deep_mode_help">decode_help_en.txt</string>
+    <string name="null_task_html">Το έργο δεν υπάρχει!</string>
+    <string name="log_importing_html">Εισαγωγή...</string>
+    <string name="log_import_finished_html">Τελειώσει!</string>
+    <string name="import_read_error_count_html">Error lines: %d</string>
+    <string name="import_new_count_html">Append QSLs: %d</string>
+    <string name="import_update_count_html">Update QSLs: %d</string>
+    <string name="import_invalid_count_html">Invalid QSLs: %d</string>
+    <string name="import_progress_html">"Progress: "</string>
+    <string name="import_readed_html">Validated QSL: %d</string>
+    <string name="import_canceled_html">Canceled!</string>
+    <string name="import_cancel_button">Stop</string>
 
-<!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->
+    <!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->
 
 </resources>

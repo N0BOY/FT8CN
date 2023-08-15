@@ -755,6 +755,17 @@
     <string name="deep_mode">ディープ</string>
     <string name="export_null">このデバイスと同じLANに接続し、ほかのデバイスでウェブブラウザーを利用してエクスポートしてください。\nブラウザーのアドレスバーに次の内容を入力してください：\n有効なWiFiに接続してください。</string>
     <string name="deep_mode_help">decode_help_en.txt</string>
+    <string name="null_task_html">タスクが存在しません!</string>
+    <string name="log_importing_html">インポート中…</string>
+    <string name="log_import_finished_html">インポート済み！</string>
+    <string name="import_read_error_count_html">エラー行: %d</string>
+    <string name="import_new_count_html">新QSL数: %d</string>
+    <string name="import_update_count_html">変更されたQSL数: %d</string>
+    <string name="import_invalid_count_html">無効QSL数: %d</string>
+    <string name="import_progress_html">進捗：</string>
+    <string name="import_readed_html">確認済みQSL: %d</string>
+    <string name="import_canceled_html">インポートが取り消されました！</string>
+    <string name="import_cancel_button">インポートを取り消す</string>
 
 
 </resources>

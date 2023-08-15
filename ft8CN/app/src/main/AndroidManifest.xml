@@ -28,6 +28,7 @@
         android:theme="@style/Theme.Ft8CN">
         <activity
             android:name=".grid_tracker.GridTrackerMainActivity"
+            android:screenOrientation="sensorLandscape"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"

@@ -211,6 +211,7 @@
     <string name="html_qsl_start_time">通联开始时间</string>
     <string name="html_qsl_start_day">通联开始日期</string>
     <string name="html_qsl_end_time">通联结束时间</string>
+    <string name="html_qsl_end_date">通联结束日期</string>
     <string name="html_qsl_mode">模式</string>
     <string name="html_qsl_grid">网格</string>
     <string name="html_qsl_band">频段</string>
@@ -470,6 +471,17 @@
     <string name="deep_mode">多次解码</string>
     <string name="export_null">请在与本机相同的局域网下，用其它设备的网页浏览器从后台导出。\n在浏览器的地址栏中输入如下内容：\n无法获取合适的IP地址，请连接到一个有效的Wifi。</string>
     <string name="deep_mode_help">decode_help.txt</string>
+    <string name="null_task_html">任务不存在！</string>
+    <string name="log_importing_html">正在导入...</string>
+    <string name="log_import_finished_html">导入结束！</string>
+    <string name="import_read_error_count_html">错误行数：%d</string>
+    <string name="import_new_count_html">新增QSL：%d</string>
+    <string name="import_update_count_html">更新QSL：%d</string>
+    <string name="import_invalid_count_html">无效的QSL：%d</string>
+    <string name="import_progress_html">进度：</string>
+    <string name="import_readed_html">有效的QSL：%d</string>
+    <string name="import_canceled_html">导入被取消！</string>
+    <string name="import_cancel_button">停止导入</string>
 
 
 </resources>

@@ -10,6 +10,7 @@ import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Canvas;
@@ -21,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +30,7 @@ import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
@@ -127,11 +130,11 @@ public class GridTrackerMainActivity extends AppCompatActivity {
         //设置深色模式
         getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
-        //setContentView(R.layout.activity_grid_tracker_main);
         //全屏
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
                 , WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//设定为横屏
+
+
         mainViewModel = MainViewModel.getInstance(this);
         binding = ActivityGridTrackerMainBinding.inflate(getLayoutInflater());
 
@@ -187,30 +190,6 @@ public class GridTrackerMainActivity extends AppCompatActivity {
             @SuppressLint({"DefaultLocale", "NotifyDataSetChanged"})
             @Override
             public void onChanged(Integer integer) {
-//                callingListAdapter.notifyDataSetChanged();
-                //当列表下部稍微多出一些，自动上移
-//                if (callMessagesRecyclerView.computeVerticalScrollRange()
-//                        - callMessagesRecyclerView.computeVerticalScrollExtent()
-//                        - callMessagesRecyclerView.computeVerticalScrollOffset() < 500) {
-//                    callMessagesRecyclerView.scrollToPosition(callingListAdapter.getItemCount() - 1);
-//                }
-//                if (mainViewModel.currentMessages != null) {
-//
-//                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
-//                                    R.string.tracker_decoded_new)
-//                            , mainViewModel.currentDecodeCount)
-//                            + " " + String.format(
-//                            getString(R.string.decoding_takes_milliseconds)
-//                            , mainViewModel.ft8SignalListener.decodeTimeSec.getValue()));
-//                    //画电台之间的连线
-//                    //对CQ的电台打点
-//                    gridOsmMapView.clearLines();
-//                    gridOsmMapView.clearMarkers();
-//                    for (Ft8Message msg : mainViewModel.currentMessages) {
-//                        drawMessage(msg);//在地图上画每一个消息
-//                    }
-//                    gridOsmMapView.showInfoWindows();
-//                }
             }
         });
         mainViewModel.mutableIsDecoding.observe(this, new Observer<Boolean>() {
@@ -329,7 +308,6 @@ public class GridTrackerMainActivity extends AppCompatActivity {
 
         //获取曾经通联过的网格
         mainViewModel.databaseOpr.getQsoGridQuery(new DatabaseOpr.OnGetQsoGrids() {
-            //ConcurrentHashMap
             @Override
             public void onAfterQuery(HashMap<String, Boolean> grids) {
                 for (Map.Entry<String, Boolean> entry : grids.entrySet()) {
@@ -376,6 +354,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
 
         setContentView(binding.getRoot());
     }
+
 
     /**
      * 在地图上画消息，包括收发消息和CQ消息

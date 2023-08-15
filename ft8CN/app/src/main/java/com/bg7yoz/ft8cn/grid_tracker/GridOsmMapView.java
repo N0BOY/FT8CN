@@ -280,8 +280,10 @@ public class GridOsmMapView {
      * @return 图层
      */
     public GridPolygon getGridPolygon(String grid) {
-        for (GridPolygon polygon : gridPolygons) {
-            if (polygon.grid.equals(grid)) return polygon;
+        synchronized (gridPolygons) {
+            for (GridPolygon polygon : gridPolygons) {
+                if (polygon.grid.equals(grid)) return polygon;
+            }
         }
         return null;
     }
@@ -380,13 +382,18 @@ public class GridOsmMapView {
      */
     public synchronized GridPolygon addGridPolygon(String grid, GridMode gridMode) {
         if (gridMapView == null) return null;
-        //here, we create a polygon using polygon class, note that you need 4 points in order to make a rectangle
-        GridPolygon polygon = new GridPolygon(context, gridMapView, grid, gridMode);
+        if (gridMapView.getRepository()==null) return null;
+        try {//当日志量过多时，会出现闪退的问题，在此处做一个异常捕获，防止闪退
 
-        gridPolygons.add(polygon);
-        gridMapView.getOverlays().add(polygon);
+            GridPolygon polygon = new GridPolygon(context, gridMapView, grid, gridMode);
+            gridPolygons.add(polygon);
+            gridMapView.getOverlays().add(polygon);
+            return polygon;
 
-        return polygon;
+        } catch (Exception e) {
+            //throw new RuntimeException(e);
+        }
+        return null;
     }
 
     /**
@@ -689,40 +696,40 @@ public class GridOsmMapView {
             this.grid = grid;
             this.gridMode = gridMode;
             this.context = context;
-            //infoWindow=new BasicInfoWindow(R.layout.tracker_grid_info_win,mapView);
-            //this.details = details;
 
             setTitle(grid);
-            //setSubDescription(details);
             setStrokeWidth(3f);
             setStrokeColor(this.context.getColor(R.color.osm_grid_out_line_color));
-            //setSnippet("445534343");
 
             updateGridMode();
 
             ArrayList<GeoPoint> pts = LatLngs2GeoPoints(MaidenheadGrid.gridToPolygon(grid));
             setPoints(pts);
 
-
             setVisible(true);
 
         }
 
-        public void updateGridMode() {
-            switch (gridMode) {
-                case QSL:
-                    setFillColor(this.context.getColor(R.color.tracker_sample_qsl_color));
-                    break;
-                case QSO:
-                    setFillColor(this.context.getColor(R.color.tracker_sample_qso_color));
-                    break;
-                case QSX:
-                    setFillColor(this.context.getColor(R.color.tracker_sample_qsx_color));
-                    break;
+        public synchronized void updateGridMode() {
+            synchronized (this) {//防止闪退
+                switch (gridMode) {
+                    case QSL:
+                        this.mFillPaint.setColor(this.context.getColor(R.color.tracker_sample_qsl_color));
+                        //setFillColor(this.context.getColor(R.color.tracker_sample_qsl_color));
+                        break;
+                    case QSO:
+                        this.mFillPaint.setColor(this.context.getColor(R.color.tracker_sample_qso_color));
+                        //setFillColor(this.context.getColor(R.color.tracker_sample_qso_color));
+                        break;
+                    case QSX:
+                        this.mFillPaint.setColor(this.context.getColor(R.color.tracker_sample_qsx_color));
+                        //setFillColor(this.context.getColor(R.color.tracker_sample_qsx_color));
+                        break;
+                }
             }
         }
 
-        public void upgradeGridMode(GridMode mode) {
+        public synchronized void upgradeGridMode(GridMode mode) {
             if (mode.ordinal() > gridMode.ordinal()) {
                 gridMode = mode;
                 updateGridMode();

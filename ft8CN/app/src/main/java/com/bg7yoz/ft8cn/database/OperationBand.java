@@ -147,7 +147,7 @@ public class OperationBand {
         }
         @SuppressLint("DefaultLocale")
         public String getBandInfo(){
-                return String.format("%s %.3f Mhz (%s)"
+                return String.format("%s %.3f MHz (%s)"
                         ,marked?"*":" "
                         ,(float)(band/1000000f)
                         ,waveLength);

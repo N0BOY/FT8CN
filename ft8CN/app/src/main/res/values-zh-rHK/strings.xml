@@ -151,7 +151,7 @@
     <string name="calling">呼叫 %s(%s)</string>
 
     <!--   網格距離計算-->
-    <string name="distance">%.0f仟米</string>
+    <string name="distance">%.0f km</string>
 
     <!--   日誌列表-->
     <string name="confirmed">已確認</string>
@@ -471,6 +471,17 @@
     <string name="deep_mode">多次解碼</string>
     <string name="export_null">請在與本機相同的局域網下，用其它設備的網頁瀏覽器從後台導出。\n在瀏覽器的地址欄中輸入如下內容：\n無法獲取合適的IP地址，請連接到一個有效的Wifi。</string>
     <string name="deep_mode_help">decode_help.txt</string>
+    <string name="null_task_html">任務不存在！</string>
+    <string name="log_importing_html">正在匯入...</string>
+    <string name="log_import_finished_html">匯入結束！</string>
+    <string name="import_read_error_count_html">錯誤行數：%d</string>
+    <string name="import_new_count_html">新增QSL：%d</string>
+    <string name="import_update_count_html">更新QSL：%d</string>
+    <string name="import_invalid_count_html">無效的QSL：%d</string>
+    <string name="import_progress_html">進程：</string>
+    <string name="import_readed_html">有效的QSL：%d</string>
+    <string name="import_canceled_html">匯入被取消！</string>
+    <string name="import_cancel_button">終止匯入</string>
 
 
 </resources>

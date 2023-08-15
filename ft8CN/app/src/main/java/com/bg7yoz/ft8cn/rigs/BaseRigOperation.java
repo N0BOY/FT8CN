@@ -10,7 +10,7 @@ import android.annotation.SuppressLint;
 public class BaseRigOperation {
     @SuppressLint("DefaultLocale")
     public static String getFrequencyStr(long freq) {
-        return String.format("%d.%03dMhz", freq / 1000000, (freq % 1000000) / 1000);
+        return String.format("%d.%03dMHz", freq / 1000000, (freq % 1000000) / 1000);
     }
     /**
      * 检查是不是在WSPR2的频段内

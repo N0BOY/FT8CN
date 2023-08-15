@@ -34,7 +34,7 @@ public class FlexRadio {
 
 
     private static final String TAG = "FlexRadio";
-    private static int streamPort = 7051;
+    public static int streamPort = 7051;
     private int flexStreamPort = 4993;
     public boolean isPttOn = false;
     public long streamTxId = 0x084000000;
@@ -443,15 +443,14 @@ public class FlexRadio {
      * @param data 音频
      */
     public void sendWaveData(float[] data) {
-        float[] temp = new float[data.length * 4];
-        for (int i = 0; i < data.length; i++) {//转成立体声,12000采样率转24000采样率
-            temp[i * 4] = data[i];
-            temp[i * 4 + 1] = data[i];
-            temp[i * 4 + 2] = data[i];
-            temp[i * 4 + 3] = data[i];
+        float[] temp = new float[data.length * 2];
+        for (int i = 0; i < data.length; i++) {//转成立体声,24000采样率
+            temp[i * 2] = data[i];
+            temp[i * 2 + 1] = data[i];
         }
         //port=4991;
         //streamTxId=0x084000001;
+        //每5毫秒一个包？立体声，共256个float
         Log.e(TAG, String.format("sendWaveData: streamid:0x%x,ip:%s,port:%d",streamTxId,ip, port) );
         new Thread(new Runnable() {
             @Override
@@ -463,9 +462,14 @@ public class FlexRadio {
                 int packetCount=0;
                 while (count<temp.length){
                     long now = System.currentTimeMillis() - 1;//获取当前时间
-                    float[] voice=new float[64];
-                    for (int j = 0; j <3 ; j++) {
-                        for (int i = 0; i < 64; i++) {
+
+
+
+                    float[] voice=new float[256];//因为是立体声，240*2
+
+
+                    //for (int j = 0; j <3 ; j++) {
+                        for (int i = 0; i < voice.length; i++) {
                             voice[i] = temp[count];
                             count++;
                             if (count > temp.length) break;
@@ -479,14 +483,14 @@ public class FlexRadio {
                             throw new RuntimeException(e);
                         }
                         if (count>temp.length) break;
-                    }
+                    //}
                     while (isPttOn) {
-                        if (System.currentTimeMillis() - now >= 41) {//40毫秒一个周期,每个周期3个包，每个包64个float。
+                        if (System.currentTimeMillis() - now >= 5) {//5毫秒一个周期,每个周期256个float。
                             break;
                         }
                     }
                     if (!isPttOn){
-                        Log.e(TAG, String.format("count：%d,temp.length:%d",count,temp.length ));
+                       // Log.e(TAG, String.format("count：%d,temp.length:%d",count,temp.length ));
                     }
 
                 }
@@ -531,6 +535,7 @@ public class FlexRadio {
         }
         return s.toString();
     }
+    @SuppressLint("DefaultLocale")
     public static String floatToStr(float[] data) {
         StringBuilder s = new StringBuilder();
         for (int i = 0; i < data.length; i++) {
@@ -815,7 +820,7 @@ public class FlexRadio {
     @SuppressLint("DefaultLocale")
     public synchronized void commandStreamCreateDaxTx(int channel) {
         //sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx dax_channel=%d", channel));
-        //sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx compression=none"));
+//        sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx compression=none"));
         sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=remote_audio_tx"));
     }
 

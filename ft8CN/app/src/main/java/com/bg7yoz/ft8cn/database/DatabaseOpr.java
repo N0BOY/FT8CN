@@ -51,7 +51,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     public static DatabaseOpr getInstance(@Nullable Context context, @Nullable String databaseName) {
         if (instance == null) {
-            instance = new DatabaseOpr(context, databaseName, null, 13);
+            instance = new DatabaseOpr(context, databaseName, null, 14);
         }
         return instance;
     }
@@ -93,6 +93,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         //创建SWL相关的表
         createSWLTables(sqLiteDatabase);
 
+        //创建索引
+        createIndex(sqLiteDatabase);
 
     }
 
@@ -115,6 +117,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         //创建SWL相关的表
         createSWLTables(sqLiteDatabase);
+
+        //创建索引
+        createIndex(sqLiteDatabase);
 
         //删除DXCC呼号列表中的等号
         //deleteDxccPrefixEqual(sqLiteDatabase);
@@ -173,6 +178,21 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         return false;
     }
 
+    /**
+     * 检查索引是不是存在
+     * @param db
+     * @param indexName
+     * @return
+     */
+    private boolean checkIndexExists(SQLiteDatabase db, String indexName) {
+        Cursor cursor = db.rawQuery("select * from sqlite_master where type = 'index' and name = ?"
+                , new String[]{indexName});
+        if (cursor.moveToNext()) {
+            cursor.close();
+            return true;
+        }
+        return false;
+    }
     private void deleteDxccPrefixEqual(SQLiteDatabase db) {
         db.execSQL("DELETE from dxcc_prefix where prefix LIKE \"=%\"");
     }
@@ -381,6 +401,20 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "\tstation_callsign TEXT,\n" +
                     "\tmy_gridsquare TEXT,\n" +
                     "\tcomment TEXT)");
+        }
+    }
+
+
+    /**
+     * 创建索引，以提高导入速度
+     * @param sqLiteDatabase 数据库
+     */
+    private void createIndex(SQLiteDatabase sqLiteDatabase) {
+        if (!checkIndexExists(sqLiteDatabase, "QslCallsigns_callsign_IDX")) {
+            sqLiteDatabase.execSQL("CREATE INDEX QslCallsigns_callsign_IDX ON QslCallsigns (callsign,startTime,finishTime,mode)");
+        }
+        if (!checkIndexExists(sqLiteDatabase, "QSLTable_call_IDX")) {
+            sqLiteDatabase.execSQL("CREATE INDEX QSLTable_call_IDX ON QSLTable (\"call\",qso_date,time_on,mode)");
         }
     }
 
@@ -818,8 +852,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     }
 
     @SuppressLint("Range")
-    public boolean doInsertQSLData(QSLRecord record) {
+    public boolean doInsertQSLData(QSLRecord record,AfterInsertQSLData afterInsertQSLData) {
         if (record.getToCallsign() == null) {
+            if (afterInsertQSLData!=null){
+                afterInsertQSLData.doAfterInsert(true,true);//说明是无效的QSL
+            }
             return false;
         }
 
@@ -892,6 +929,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , record.getMyCallsign()
                     , record.getMyMaidenGrid()
                     , record.getComment()});
+            if (afterInsertQSLData!=null){
+                afterInsertQSLData.doAfterInsert(false,true);//说明是新的QSL
+            }
+
         } else {
             if (record.isQSL) {
                 db.execSQL("UPDATE  QSLTable  SET isQSL=? " +
@@ -948,6 +989,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                                 , record.getQso_date()
                                 , record.getTime_on()
                                 , record.getMode()});
+            }
+
+            if (afterInsertQSLData!=null){
+                afterInsertQSLData.doAfterInsert(false,false);//说明已经存在，需要更新的QSL
             }
         }
         return true;
@@ -1198,7 +1243,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-            databaseOpr.doInsertQSLData(qslRecord);//添加日志和通联成功的呼号
+            databaseOpr.doInsertQSLData(qslRecord,null);//添加日志和通联成功的呼号
             return null;
         }
     }
@@ -1273,7 +1318,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 long s = cursor.getLong(cursor.getColumnIndex("BAND")); //获取频段
                 int total = cursor.getInt(cursor.getColumnIndex("c")); //获取数量
-                callsigns.add(String.format("%.3fMhz \t %d", s / 1000000f, total));
+                callsigns.add(String.format("%.3fMHz \t %d", s / 1000000f, total));
                 sum = sum + total;
             }
             callsigns.add(String.format("-----------Total %d -----------", sum));
@@ -1387,7 +1432,6 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     static class GetQsoGrids extends AsyncTask<Void, Void, Void> {
         SQLiteDatabase db;
-
         HashMap<String, Boolean> grids = new HashMap<>();
         OnGetQsoGrids onGetQsoGrids;
 
@@ -1534,7 +1578,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 limitStr="limit 100 offset "+offset;
             }
             String querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
-                    ",q.band||\"(\"||q.freq||\" Mhz)\" as band \n" +
+                    ",q.band||\"(\"||q.freq||\" MHz)\" as band \n" +
                     ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
                     "from QSLTable q inner join QSLTable q2 ON q.id =q2.id \n" +
                     "where (q.[call] like ?)\n" +
