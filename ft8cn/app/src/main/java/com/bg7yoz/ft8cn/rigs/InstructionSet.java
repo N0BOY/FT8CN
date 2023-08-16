@@ -18,5 +18,5 @@ public class InstructionSet {
     public  static final int KENWOOD_TS2000=14;//建武TS2000,发射指令是TX0;
     public  static final int WOLF_SDR_DIGU=15;//UA3REO Wolf SDR,DIG-U模式，兼容YAESU 450D;
     public  static final int WOLF_SDR_USB=16;//UA3REO Wolf SDR,USB模式，兼容YAESU 450D;
-
+    public  static final int TRUSDX=17;//(tr)USDX;
 }

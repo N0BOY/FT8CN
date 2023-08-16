@@ -74,8 +74,28 @@ public class BaseRigConnector {
         onConnectReceiveData=receiveData;
     }
 
+    public void sendWaveData(byte[] data){
+        float[] waveFloat=new float[data.length/2];
+        for (int i = 0; i <waveFloat.length ; i++) {
+            waveFloat[i]=readShortBigEndianData(data,i*2)/32768.0f;
+        }
+        sendWaveData(waveFloat);
+    }
+
     public void sendWaveData(float[] data){
         //留给网络方式发送音频流
+    }
+
+    public void receiveWaveData(byte[] data){
+
+        float[] waveFloat=new float[data.length/2];
+        for (int i = 0; i <waveFloat.length ; i++) {
+            waveFloat[i]=readShortBigEndianData(data,i*2)/32768.0f;
+        }
+        receiveWaveData(waveFloat);
+    }
+
+    public void receiveWaveData(float[] data){
     }
 
     public OnConnectReceiveData getOnConnectReceiveData() {
@@ -99,5 +119,18 @@ public class BaseRigConnector {
     }
     public boolean isConnected(){
         return connected;
+    }
+
+    /**
+     * 从流数据中读取小端模式的Short
+     *
+     * @param data  流数据
+     * @param start 起始点
+     * @return Int16
+     */
+    public static short readShortBigEndianData(byte[] data, int start) {
+        if (data.length - start < 2) return 0;
+        return (short) ((short) data[start] & 0xff
+                | ((short) data[start + 1] & 0xff) << 8);
     }
 }
