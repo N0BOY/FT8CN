@@ -71,6 +71,7 @@ import com.bg7yoz.ft8cn.rigs.KenwoodKT90Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS2000Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS590Rig;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
+import com.bg7yoz.ft8cn.rigs.TrUSDXRig;
 import com.bg7yoz.ft8cn.rigs.Wolf_sdr_450Rig;
 import com.bg7yoz.ft8cn.rigs.XieGu6100Rig;
 import com.bg7yoz.ft8cn.rigs.XieGuRig;
@@ -79,7 +80,6 @@ import com.bg7yoz.ft8cn.rigs.Yaesu38Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu38_450Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu39Rig;
 import com.bg7yoz.ft8cn.rigs.YaesuDX10Rig;
-import com.bg7yoz.ft8cn.rigs.TrUSDXRig;
 import com.bg7yoz.ft8cn.spectrum.SpectrumListener;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -355,26 +355,13 @@ public class MainViewModel extends ViewModel {
 
         //创建发射对象，回调：发射前，发射后、QSL成功后。
         ft8TransmitSignal = new FT8TransmitSignal(databaseOpr, new OnDoTransmitted() {
-            private boolean needControlSco() {
-                if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
-                    return false;
-                }
-                if (GeneralVariables.controlMode != ControlMode.CAT) {
-                    return true;
-                }
-                if (baseRig != null && !baseRig.supportWaveOverCAT()) {
-                    return true;
-                }
-                return false;
-            }
-
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
-                        if (needControlSco()) stopSco();
+                        if (GeneralVariables.connectMode != ConnectMode.NETWORK) stopSco();
                         baseRig.setPTT(true);
                     }
                 }
@@ -392,7 +379,7 @@ public class MainViewModel extends ViewModel {
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
                         baseRig.setPTT(false);
-                        if (needControlSco()) startSco();
+                        if (GeneralVariables.connectMode != ConnectMode.NETWORK) startSco();
                     }
                 }
             }
@@ -410,31 +397,6 @@ public class MainViewModel extends ViewModel {
                     }
                 }
             }
-
-            @Override
-            public boolean supportTransmitOverCAT() {
-                if (GeneralVariables.controlMode != ControlMode.CAT) {
-                    return false;
-                }
-                if (baseRig == null) {
-                    return false;
-                }
-                if (!baseRig.isConnected() || !baseRig.supportWaveOverCAT()) {
-                    return false;
-                }
-                return true;
-            }
-
-            @Override
-            public void onTransmitOverCAT(Ft8Message msg) {
-                if (!supportTransmitOverCAT()) {
-                    return;
-                }
-                sendWaveDataRunnable.baseRig = baseRig;
-                sendWaveDataRunnable.message = msg;
-                sendWaveDataThreadPool.execute(sendWaveDataRunnable);
-            }
-
         }, new OnTransmitSuccess() {//当通联成功时
             @Override
             public void doAfterTransmit(QSLRecord qslRecord) {
@@ -638,14 +600,7 @@ public class MainViewModel extends ViewModel {
         }
         baseRig.setControlMode(GeneralVariables.controlMode);
         CableConnector connector = new CableConnector(context, port, GeneralVariables.baudRate
-                , GeneralVariables.controlMode, baseRig);
-        connector.setOnCableDataReceived(new CableConnector.OnCableDataReceived() {
-            @Override
-            public void OnWaveReceived(int bufferLen, float[] buffer) {
-                Log.i(TAG, "call hamRecorder.doOnWaveDataReceived");
-                hamRecorder.doOnWaveDataReceived(bufferLen, buffer);
-            }
-        });
+                , GeneralVariables.controlMode);
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
@@ -759,6 +714,13 @@ public class MainViewModel extends ViewModel {
      * 根据指令集创建不同型号的电台
      */
     private void connectRig() {
+        if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
+                || (GeneralVariables.instructionSet == InstructionSet.ICOM
+                && GeneralVariables.connectMode == ConnectMode.NETWORK)) {
+            hamRecorder.setDataFromLan();
+        } else {
+            hamRecorder.setDataFromMic();
+        }
         baseRig = null;
         //此处判断是用什么类型的电台，ICOM,YAESU 2,YAESU 3
         switch (GeneralVariables.instructionSet) {
@@ -812,21 +774,11 @@ public class MainViewModel extends ViewModel {
                 break;
             case InstructionSet.WOLF_SDR_USB:
                 baseRig = new Wolf_sdr_450Rig(true);
+                break;
+
             case InstructionSet.TRUSDX:
                 baseRig = new TrUSDXRig();//(tr)uSDX
                 break;
-        }
-
-        if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
-                || (GeneralVariables.instructionSet == InstructionSet.ICOM
-                && GeneralVariables.connectMode == ConnectMode.NETWORK)) {
-            hamRecorder.setDataFromLan();
-        } else {
-            if (GeneralVariables.controlMode != ControlMode.CAT || baseRig == null || !baseRig.supportWaveOverCAT()) {
-                hamRecorder.setDataFromMic();
-            } else {
-                hamRecorder.setDataFromLan();
-            }
         }
 
         mutableIsFlexRadio.postValue(GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK);
