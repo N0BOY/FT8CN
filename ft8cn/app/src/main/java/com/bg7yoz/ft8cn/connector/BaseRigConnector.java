@@ -15,7 +15,7 @@ public class BaseRigConnector {
     private OnConnectReceiveData onConnectReceiveData;//当接收到数据后的动作
     private int controlMode;//控制模式
     private OnRigStateChanged onRigStateChanged;
-    private OnConnectorStateChanged onConnectorStateChanged=new OnConnectorStateChanged() {
+    private final OnConnectorStateChanged onConnectorStateChanged=new OnConnectorStateChanged() {
         @Override
         public void onDisconnected() {
             if (onRigStateChanged!=null){
@@ -74,6 +74,12 @@ public class BaseRigConnector {
         onConnectReceiveData=receiveData;
     }
 
+
+    /**
+     * 2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
+     * 发送音频数据流，把16位int格式转为32位float格式
+     * @param data byte格式，实际上是16位的int
+     */
     public void sendWaveData(byte[] data){
         float[] waveFloat=new float[data.length/2];
         for (int i = 0; i <waveFloat.length ; i++) {
@@ -86,15 +92,21 @@ public class BaseRigConnector {
         //留给网络方式发送音频流
     }
 
+    //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
     public void receiveWaveData(byte[] data){
-
         float[] waveFloat=new float[data.length/2];
         for (int i = 0; i <waveFloat.length ; i++) {
             waveFloat[i]=readShortBigEndianData(data,i*2)/32768.0f;
         }
         receiveWaveData(waveFloat);
     }
-
+    public void receiveWaveData(short[] data){
+        float[] waveFloat=new float[data.length];
+        for (int i = 0; i <waveFloat.length ; i++) {
+            waveFloat[i]=data[i]/32768.0f;
+        }
+        receiveWaveData(waveFloat);
+    }
     public void receiveWaveData(float[] data){
     }
 

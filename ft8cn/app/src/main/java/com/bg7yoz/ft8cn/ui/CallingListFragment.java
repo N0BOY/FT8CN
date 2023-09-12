@@ -190,6 +190,22 @@ public class CallingListFragment extends Fragment {
             }
         });
 
+        //切换精简模式和标准模式
+        binding.callingListToolsBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                GeneralVariables.simpleCallItemMode=!GeneralVariables.simpleCallItemMode;
+                callListRecyclerView.setAdapter(callingListAdapter);
+                callingListAdapter.notifyDataSetChanged();
+                callListRecyclerView.scrollToPosition(callingListAdapter.getItemCount() - 1);
+                if (GeneralVariables.simpleCallItemMode){
+                    ToastMessage.show(GeneralVariables.getStringFromResource(R.string.message_list_simple_mode));
+                }else {
+                    ToastMessage.show(GeneralVariables.getStringFromResource(R.string.message_list_standard_mode));
+                }
+            }
+        });
+
         return binding.getRoot();
     }
 
@@ -310,6 +326,17 @@ public class CallingListFragment extends Fragment {
     }
 
     /**
+     * 跳转到日志查询界面
+     * @param callsign 呼号
+     */
+    private void navigateToLogFragment(String callsign){
+        mainViewModel.queryKey=callsign;//把呼号作为关键字提交
+        NavController navController = Navigation.findNavController(requireActivity()
+                , R.id.fragmentContainerView);
+        navController.navigate(R.id.action_menu_nav_calling_list_to_menu_nav_history);//跳转到日志
+    }
+
+    /**
      * 跳转到发射界面
      */
     private void navigateToMyCallFragment() {
@@ -383,6 +410,12 @@ public class CallingListFragment extends Fragment {
                 break;
             case 6://from 的QRZ
                 showQrzFragment(ft8Message.getCallsignFrom());
+                break;
+            case 7://查to的日志
+                navigateToLogFragment(ft8Message.getCallsignTo());
+                break;
+            case 8://查from的日志
+                navigateToLogFragment(ft8Message.getCallsignFrom());
                 break;
 
         }

@@ -115,7 +115,7 @@ public class FlexConnector extends BaseRigConnector {
                 if (response.flexCommand== FlexCommand.METER_LIST){
                     //FlexMeters flexMeters=new FlexMeters(response.exContent);
                     flexMeterInfos.setMeterInfos(response.exContent);
-                    flexRadio.commandSubMeterAll();//显示全部仪表消息
+                    flexRadio.commandSubMeterAll();//订阅全部仪表消息
                     //flexMeters.getAllMeters();
                     //Log.e(TAG, "onResponse: ----->>>"+flexMeters.getAllMeters() );
                 }
@@ -163,7 +163,7 @@ public class FlexConnector extends BaseRigConnector {
 
 
 
-                flexRadio.commandSetDaxAudio(1, 0, true);//打开DAX
+
                 //todo 防止流的端口没有释放，把端口变换一下？
                 //FlexRadio.streamPort++;
 
@@ -172,6 +172,9 @@ public class FlexConnector extends BaseRigConnector {
 
                 flexRadio.commandStreamCreateDaxRx(1);//创建流数据到DAX通道1
                 flexRadio.commandStreamCreateDaxTx(1);//创建流数据到DAX通道1
+
+                flexRadio.commandSetDaxAudio(1, 0, true);//打开DAX
+
                 //TODO 是否设置？？？ dax tx T 或者 dax tx 1
                 flexRadio.commandSliceTune(0,String.format("%.3f",GeneralVariables.band/1000000f));
                 flexRadio.commandSliceSetMode(0, FlexRadio.FlexMode.DIGU);//设置操作模式
@@ -237,6 +240,7 @@ public class FlexConnector extends BaseRigConnector {
     }
     public void subAllMeters(){
         if (flexMeterInfos.size()==0) {
+            //todo commandMeterList()是否可以不使用？
             flexRadio.commandMeterList();//列一下仪表
             flexRadio.commandSubMeterAll();//显示全部仪表消息
         }

@@ -11,6 +11,8 @@ public interface OnDoTransmitted {
     void onBeforeTransmit(Ft8Message message,int functionOder);
     void onAfterTransmit(Ft8Message message, int functionOder);
     void onTransmitByWifi(Ft8Message message);
+
+    //2023-08-16 由DS1UFX提交修改（基于0.9版），增加(tr)uSDX audio over cat的支持。
     boolean supportTransmitOverCAT();
     void onTransmitOverCAT(Ft8Message message);
 }

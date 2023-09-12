@@ -279,7 +279,7 @@ public class GridOsmMapView {
      * @param grid 网格
      * @return 图层
      */
-    public GridPolygon getGridPolygon(String grid) {
+    public synchronized GridPolygon getGridPolygon(String grid) {
         synchronized (gridPolygons) {
             for (GridPolygon polygon : gridPolygons) {
                 if (polygon.grid.equals(grid)) return polygon;
@@ -832,7 +832,7 @@ public class GridOsmMapView {
     /**
      * 关闭全部提示窗口
      */
-    public void hideInfoWindows() {
+    public synchronized void hideInfoWindows() {
         for (GridPolygon polygon : gridPolygons
         ) {
             polygon.closeInfoWindow();

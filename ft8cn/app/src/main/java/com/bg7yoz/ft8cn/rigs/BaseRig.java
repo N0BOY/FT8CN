@@ -131,10 +131,15 @@ public abstract class BaseRig {
         return isPttOn;
     }
 
+
+    /**
+     * 2023-08-16 由DS1UFX提交修改（基于0.9版），增加(tr)uSDX audio over cat的支持。
+     */
     public boolean supportWaveOverCAT() {
         return false;
     }
 
     public void onDisconnecting() {
     }
+
 }

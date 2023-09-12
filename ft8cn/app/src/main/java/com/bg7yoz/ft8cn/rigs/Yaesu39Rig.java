@@ -24,6 +24,8 @@ public class Yaesu39Rig extends BaseRig {
     private boolean alcMaxAlert = false;
     private boolean swrAlert = false;
 
+    private boolean isDataUsb=false;//是不是DATA-USB模式
+
     private Timer readFreqTimer = new Timer();
 
     private TimerTask readTask() {
@@ -112,7 +114,11 @@ public class Yaesu39Rig extends BaseRig {
     @Override
     public void setUsbModeToRig() {
         if (getConnector() != null) {
-            getConnector().sendData(Yaesu3RigConstant.setOperationUSBMode());
+            if (isDataUsb) {//使用DATA-USB模式
+                getConnector().sendData(Yaesu3RigConstant.setOperationUSB_Data_Mode());
+            }else {
+                getConnector().sendData(Yaesu3RigConstant.setOperationUSBMode());
+            }
         }
     }
 
@@ -178,7 +184,8 @@ public class Yaesu39Rig extends BaseRig {
         return "YAESU FT-891";
     }
 
-    public Yaesu39Rig() {
+    public Yaesu39Rig(boolean isDataUsb) {
+        this.isDataUsb=isDataUsb;
         readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY, QUERY_FREQ_TIMEOUT);
     }
 }

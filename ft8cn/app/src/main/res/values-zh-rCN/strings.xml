@@ -346,6 +346,7 @@
     <string name="icom_login_button">登录</string>
     <string name="show_password">显示密码</string>
     <string name="connect_icom_ip">连接到ICom电台 %s …</string>
+    <string name="connect_xiegu_ip">连接到XIEGU电台 %s …</string>
     <string name="network_exception">%s：网络传输异常：%s</string>
     <string name="login_succeed">登录成功！</string>
     <string name="loging_failed">登录失败，无效的用户名或密码。</string>
@@ -482,6 +483,13 @@
     <string name="import_readed_html">有效的QSL：%d</string>
     <string name="import_canceled_html">导入被取消！</string>
     <string name="import_cancel_button">停止导入</string>
+    <string name="qsl_query_log_menu">查日志 (%s)</string>
+    <string name="message_list_simple_mode">精简列表模式</string>
+    <string name="message_list_standard_mode">标准列表模式</string>
+    <string name="config_msg_mode">消息模式</string>
+    <string name="config_msg_std_mode">标准</string>
+    <string name="config_msg_simple_mode">精简</string>
+    <string name="message_mode_help">messageMode.txt</string>
 
 
 </resources>

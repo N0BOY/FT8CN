@@ -368,7 +368,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <RadioGroup
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/audioBitsRadioGroup"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -406,9 +406,9 @@
                                 app:layout_constraintBottom_toBottomOf="@+id/audio16BitsRadioButton"
                                 app:layout_constraintStart_toEndOf="@+id/audio16BitsRadioButton"
                                 app:layout_constraintTop_toTopOf="@+id/audio16BitsRadioButton" />
-                        </RadioGroup>
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
-                        <RadioGroup
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/audioRateRadioGroup"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -464,7 +464,7 @@
                                 app:layout_constraintBottom_toBottomOf="parent"
                                 app:layout_constraintStart_toEndOf="@+id/audioOutputText"
                                 app:layout_constraintTop_toTopOf="parent" />
-                        </RadioGroup>
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
                         <ImageButton
                             android:id="@+id/audioOutputImageButton"
@@ -723,6 +723,87 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+
+
+
+
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/messageModeLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/operatonBandLayout">
+
+                        <TextView
+                            android:id="@+id/messageModeText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/config_msg_mode"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+
+                        <ImageButton
+                            android:id="@+id/messageModeeHelpImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                            android:id="@+id/messageModeRadioGroup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:orientation="horizontal"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/messageModeeHelpImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/messageModeText"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <RadioButton
+                                android:id="@+id/msgStandardRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/config_msg_std_mode"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp" />
+
+                            <RadioButton
+                                android:id="@+id/msgSimpleRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/config_msg_simple_mode"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp" />
+
+
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/controlModeLayout"
                         android:layout_width="0dp"
@@ -731,7 +812,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/operatonBandLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/messageModeLayout">
 
                         <TextView
                             android:id="@+id/controlModeDelayText"
@@ -759,7 +840,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
 
-                        <RadioGroup
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/controlModeRadioGroup"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -805,7 +886,7 @@
                                 android:text="@string/DTR"
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
-                        </RadioGroup>
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -846,7 +927,7 @@
                             app:srcCompat="@drawable/ic_baseline_info_32"
                             tools:ignore="TouchTargetSizeCheck" />
 
-                        <RadioGroup
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/connectModeRadioGroup"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -884,7 +965,7 @@
                                 android:textColor="@color/text_view_color"
                                 android:textSize="12sp" />
 
-                        </RadioGroup>
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -1066,7 +1147,7 @@
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
 
-                        <RadioGroup
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
                             android:id="@+id/decodeModeRadioGroup"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -1097,7 +1178,7 @@
 
 
 
-                    </RadioGroup>
+                    </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
 
 

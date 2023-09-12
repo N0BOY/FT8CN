@@ -136,7 +136,7 @@ public class RadioUdpClient {
                         byte[] temp = Arrays.copyOf(packet.getData(), packet.getLength());
                         client.onUdpEvents.OnReceiveData(client.sendSocket, packet, temp);
                     }
-                    //Log.d(TAG, "receiveData:host ip: " + packet.getAddress().getHostName());
+                    //Log.d(TAG, "receiveData:host port: " + packet.getPort());
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.e(TAG, "receiveData: error:" + e.getMessage());

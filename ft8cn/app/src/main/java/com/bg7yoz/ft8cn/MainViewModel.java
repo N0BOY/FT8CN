@@ -15,8 +15,10 @@ package com.bg7yoz.ft8cn;
  * 的开始时间要晚于周期开始300毫秒（模拟器的结果），实际录音的长度一般在14.77秒左右
  * <p>
  *
+ * 2023-08-16 由DS1UFX提交修改（基于0.9版），增加(tr)uSDX audio over cat的支持。
+ *
  * @author BG7YOZ
- * @date 2022.5.6
+ * @date 2022.8.22
  */
 
 import static com.bg7yoz.ft8cn.GeneralVariables.getStringFromResource;
@@ -55,7 +57,7 @@ import com.bg7yoz.ft8cn.ft8transmit.FT8TransmitSignal;
 import com.bg7yoz.ft8cn.ft8transmit.OnDoTransmitted;
 import com.bg7yoz.ft8cn.ft8transmit.OnTransmitSuccess;
 import com.bg7yoz.ft8cn.html.LogHttpServer;
-import com.bg7yoz.ft8cn.icom.IComWifiRig;
+import com.bg7yoz.ft8cn.icom.WifiRig;
 import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.log.SWLQsoList;
@@ -69,6 +71,7 @@ import com.bg7yoz.ft8cn.rigs.IcomRig;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.rigs.KenwoodKT90Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS2000Rig;
+import com.bg7yoz.ft8cn.rigs.KenwoodTS570Rig;
 import com.bg7yoz.ft8cn.rigs.KenwoodTS590Rig;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
 import com.bg7yoz.ft8cn.rigs.TrUSDXRig;
@@ -107,7 +110,6 @@ public class MainViewModel extends ViewModel {
     public final ArrayList<Ft8Message> ft8Messages = new ArrayList<>();//消息列表
     public UtcTimer utcTimer;//同步触发动作的计时器。
 
-    //public boolean showTrackerInfo=true;
 
     //public CallsignDatabase callsignDatabase = null;//呼号信息的数据库
     public DatabaseOpr databaseOpr;//配置信息，和相关数据的数据库
@@ -297,6 +299,8 @@ public class MainViewModel extends ViewModel {
                 //检查发射程序。从消息列表中解析发射的程序
                 //超出周期2秒钟，就不应该解析了
                 if (!ft8TransmitSignal.isTransmitting()
+                        && !isDeep//屏蔽掉深度解码激活自动程序
+                        //深度解码的列表应该加到没有深度解码的新消息列表中
                         && (ft8SignalListener.timeSec
                         + GeneralVariables.pttDelay
                         + GeneralVariables.transmitDelay <= 2000)) {//考虑网络模式，发射时长是13秒
@@ -355,17 +359,14 @@ public class MainViewModel extends ViewModel {
 
         //创建发射对象，回调：发射前，发射后、QSL成功后。
         ft8TransmitSignal = new FT8TransmitSignal(databaseOpr, new OnDoTransmitted() {
-            private boolean needControlSco() {
+            private boolean needControlSco() {//根据控制模式，确定是不是需要开启SCO
                 if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
                     return false;
                 }
                 if (GeneralVariables.controlMode != ControlMode.CAT) {
                     return true;
                 }
-                if (baseRig != null && !baseRig.supportWaveOverCAT()) {
-                    return true;
-                }
-                return false;
+                return baseRig != null && !baseRig.supportWaveOverCAT();
             }
 
             @Override
@@ -374,6 +375,7 @@ public class MainViewModel extends ViewModel {
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
+                        //if (GeneralVariables.connectMode != ConnectMode.NETWORK) stopSco();
                         if (needControlSco()) stopSco();
                         baseRig.setPTT(true);
                     }
@@ -392,6 +394,7 @@ public class MainViewModel extends ViewModel {
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
                         baseRig.setPTT(false);
+                        //if (GeneralVariables.connectMode != ConnectMode.NETWORK) startSco();
                         if (needControlSco()) startSco();
                     }
                 }
@@ -411,6 +414,7 @@ public class MainViewModel extends ViewModel {
                 }
             }
 
+            //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
             @Override
             public boolean supportTransmitOverCAT() {
                 if (GeneralVariables.controlMode != ControlMode.CAT) {
@@ -426,7 +430,7 @@ public class MainViewModel extends ViewModel {
             }
 
             @Override
-            public void onTransmitOverCAT(Ft8Message msg) {
+            public void onTransmitOverCAT(Ft8Message msg) {//通过CAT发送音频消息
                 if (!supportTransmitOverCAT()) {
                     return;
                 }
@@ -638,7 +642,10 @@ public class MainViewModel extends ViewModel {
         }
         baseRig.setControlMode(GeneralVariables.controlMode);
         CableConnector connector = new CableConnector(context, port, GeneralVariables.baudRate
-                , GeneralVariables.controlMode, baseRig);
+                //, GeneralVariables.controlMode);
+                , GeneralVariables.controlMode,baseRig);
+
+        //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
         connector.setOnCableDataReceived(new CableConnector.OnCableDataReceived() {
             @Override
             public void OnWaveReceived(int bufferLen, float[] buffer) {
@@ -646,6 +653,7 @@ public class MainViewModel extends ViewModel {
                 hamRecorder.doOnWaveDataReceived(bufferLen, buffer);
             }
         });
+
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
@@ -680,7 +688,11 @@ public class MainViewModel extends ViewModel {
         }, 5000);
     }
 
-    public void connectIComWifiRig(Context context, IComWifiRig iComWifiRig) {
+    /**
+     * 以网络方式连接到ICOM、协谷X6100系列电台
+     * @param wifiRig ICom,XieGu Wifi模式的电台
+     */
+    public void connectWifiRig(WifiRig wifiRig) {
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
             if (baseRig != null) {
                 if (baseRig.getConnector() != null) {
@@ -690,8 +702,9 @@ public class MainViewModel extends ViewModel {
         }
 
         GeneralVariables.controlMode = ControlMode.CAT;//网络控制模式
+        //目前Icom与协谷x6100共用同一种连接器
         IComWifiConnector iComWifiConnector = new IComWifiConnector(GeneralVariables.controlMode
-                , iComWifiRig);
+                ,wifiRig);
         iComWifiConnector.setOnWifiDataReceived(new IComWifiConnector.OnWifiDataReceived() {
             @Override
             public void OnWaveReceived(int bufferLen, float[] buffer) {
@@ -703,13 +716,14 @@ public class MainViewModel extends ViewModel {
 
             }
         });
+
         iComWifiConnector.connect();
-        connectRig();
+        connectRig();//给baseRig赋值
 
         baseRig.setControlMode(GeneralVariables.controlMode);
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(iComWifiConnector);
-//
+
         new Handler().postDelayed(new Runnable() {//蓝牙连接是需要时间的，等2秒再设置频率
             @Override
             public void run() {
@@ -759,6 +773,7 @@ public class MainViewModel extends ViewModel {
      * 根据指令集创建不同型号的电台
      */
     private void connectRig() {
+
         baseRig = null;
         //此处判断是用什么类型的电台，ICOM,YAESU 2,YAESU 3
         switch (GeneralVariables.instructionSet) {
@@ -769,7 +784,10 @@ public class MainViewModel extends ViewModel {
                 baseRig = new Yaesu2Rig();
                 break;
             case InstructionSet.YAESU_3_9:
-                baseRig = new Yaesu39Rig();//yaesu3代指令，9位频率
+                baseRig = new Yaesu39Rig(false);//yaesu3代指令，9位频率,usb模式
+                break;
+            case InstructionSet.YAESU_3_9_U_DIG:
+                baseRig = new Yaesu39Rig(true);//yaesu3代指令，9位频率,data-usb模式
                 break;
             case InstructionSet.YAESU_3_8:
                 baseRig = new Yaesu38Rig();//yaesu3代指令，8位频率
@@ -816,14 +834,20 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.TRUSDX:
                 baseRig = new TrUSDXRig();//(tr)uSDX
                 break;
+            case InstructionSet.KENWOOD_TS570:
+                baseRig = new KenwoodTS570Rig();//KENWOOD TS-570D
+                break;
         }
 
         if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
-                || (GeneralVariables.instructionSet == InstructionSet.ICOM
+                || ((GeneralVariables.instructionSet == InstructionSet.ICOM
+                ||GeneralVariables.instructionSet==InstructionSet.XIEGU_6100)
                 && GeneralVariables.connectMode == ConnectMode.NETWORK)) {
             hamRecorder.setDataFromLan();
         } else {
-            if (GeneralVariables.controlMode != ControlMode.CAT || baseRig == null || !baseRig.supportWaveOverCAT()) {
+            //hamRecorder.setDataFromMic();
+            if (GeneralVariables.controlMode != ControlMode.CAT || baseRig == null
+                    || !baseRig.supportWaveOverCAT()) {
                 hamRecorder.setDataFromMic();
             } else {
                 hamRecorder.setDataFromLan();

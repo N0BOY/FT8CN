@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.wave.FT8Resample;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -267,7 +268,7 @@ public class FlexRadio {
             onReceiveStreamData.onReceiveAudio(data);
         }
         if (audioTrack != null) {//如果音频播放已经打开，就写音频流数据
-            float[] sound = getFloatFromBytes(data);
+            float[] sound = getFloatFromBytes(data);//长度是256个float
             audioTrack.write(sound, 0, sound.length, AudioTrack.WRITE_NON_BLOCKING);
         }
     }
@@ -370,6 +371,7 @@ public class FlexRadio {
             public void OnReceiveData(DatagramSocket socket, DatagramPacket packet, byte[] data) {
                 if (flexStreamPort != packet.getPort()) flexStreamPort = packet.getPort();
 
+
                 VITA vita = new VITA(data);
                 addStreamIdToSet(vita.streamId);
 
@@ -439,17 +441,22 @@ public class FlexRadio {
     }
 
     /**
-     * flexRadio要把12000采样率改为24000采样率，还要把单声道改为立体声
+     * flexRadio发射的采样率为24000采样率，还要把单声道改为立体声
      * @param data 音频
      */
     public void sendWaveData(float[] data) {
+
         float[] temp = new float[data.length * 2];
-        for (int i = 0; i < data.length; i++) {//转成立体声,24000采样率
+        //转成立体声,24000采样率
+        for (int i = 0; i < data.length; i++) {
             temp[i * 2] = data[i];
             temp[i * 2 + 1] = data[i];
         }
+
+
         //port=4991;
         //streamTxId=0x084000001;
+        // class id=0x00 00 1c 2d 53 4c 01 23????
         //每5毫秒一个包？立体声，共256个float
         Log.e(TAG, String.format("sendWaveData: streamid:0x%x,ip:%s,port:%d",streamTxId,ip, port) );
         new Thread(new Runnable() {
@@ -475,10 +482,14 @@ public class FlexRadio {
                             if (count > temp.length) break;
                         }
 
-                        byte[] send = vita.audioDataToVita(packetCount, streamTxId, voice);
+                        //byte[] send = vita.audioDataToVita(packetCount, streamTxId,0x534c2d, voice);
+                    //daxTxAudioStreamId=0x0084000001&0x00000000ffffffff;
+                    //Log.e(TAG, String.format("run: daxTxAudioStreamId:0x%X",daxTxAudioStreamId) );
+                        byte[] send = vita.audioDataToVita(packetCount, daxTxAudioStreamId,0x534c0123, voice);
                         packetCount++;
                         try {
-                            streamClient.sendData(send, ip, port);
+                            //Log.e(TAG, String.format("run: send ip:%s, port:%d",ip,4993) );
+                            streamClient.sendData(send, ip, 4993);
                         } catch (UnknownHostException e) {
                             throw new RuntimeException(e);
                         }
@@ -800,6 +811,8 @@ public class FlexRadio {
     @SuppressLint("DefaultLocale")
     public synchronized void commandSetDaxAudio(int channel, int sliceOder, boolean txEnable) {
         sendCommand(FlexCommand.DAX_AUDIO, String.format("dax audio set %d slice=%d tx=%s", channel, sliceOder, txEnable ? "1" : "0"));
+        //sendCommand(FlexCommand.DAX_AUDIO, String.format("dax audio set %d tx=%s", channel, txEnable ? "1" : "0"));
+        //sendCommand(FlexCommand.DAX_AUDIO, "dax tx 1");
     }
 
     @SuppressLint("DefaultLocale")
@@ -819,9 +832,9 @@ public class FlexRadio {
 
     @SuppressLint("DefaultLocale")
     public synchronized void commandStreamCreateDaxTx(int channel) {
-        //sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx dax_channel=%d", channel));
+        sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx dax_channel=%d compression=none", channel));
 //        sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=dax_tx compression=none"));
-        sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=remote_audio_tx"));
+        //sendCommand(FlexCommand.STREAM_CREATE_DAX_TX, String.format("stream create type=remote_audio_tx"));
     }
 
     public synchronized void commandRemoveDaxStream() {

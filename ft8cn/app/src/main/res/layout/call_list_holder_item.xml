@@ -63,7 +63,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="1dp"
-        android:textSize="11sp"
+        android:textSize="9sp"
+        tools:ignore="SmallSp"
         app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
@@ -74,7 +75,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="1dp"
-        android:textSize="10sp"
+        android:textSize="9sp"
         app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/linearLayout"
@@ -86,7 +87,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="110dp" />
+        app:layout_constraintGuide_begin="105dp" />
 
     <TextView
         android:id="@+id/callingListSequenceTextView"
@@ -97,6 +98,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/callListMessageTextView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/callListMessageTextView"
+        tools:ignore="TextContrastCheck"
         tools:text="0" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -250,9 +252,10 @@
         android:id="@+id/isWeakSignalImageView"
         android:layout_width="10dp"
         android:layout_height="10dp"
-        app:layout_constraintBottom_toBottomOf="@+id/callingListSequenceTextView"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/callingListSequenceTextView"
-        app:srcCompat="@drawable/is_weak_signal_24" />
+        app:srcCompat="@drawable/is_weak_signal_24"
+        tools:ignore="ContentDescription,ImageContrastCheck" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

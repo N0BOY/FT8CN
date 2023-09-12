@@ -88,7 +88,7 @@ public class FlexNetworkRig extends BaseRig {
 
         if (getConnector() != null) {
             float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
-                    , 24000);//flex音频的采样率是24000，todo 此处可改为动态设置24000，48000
+                    , 24000);//flex音频的采样率是24000
             if (data == null) {
                 setPTT(false);
                 return;

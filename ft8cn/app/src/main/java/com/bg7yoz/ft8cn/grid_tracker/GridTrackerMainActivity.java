@@ -80,6 +80,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
     private boolean configBarIsClose = false;
     private QSLRecordStr qlsRecorder = null;//用于历史显示消息
     private MutableLiveData<ArrayList<QSLRecordStr>> qslRecordList = new MutableLiveData<>();
+    public static final int DRAW_LINE = 1;
 
 
     @SuppressLint("NotifyDataSetChanged")
@@ -337,6 +338,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
             @Override
             public void onChanged(ArrayList<QSLRecordStr> qslRecordStrs) {
                 for (QSLRecordStr record : qslRecordStrs) {
+                    //todo 数据量过大可能会卡死，OOM
                     drawMessage(record);//在地图上画每一个消息
                 }
                 gridOsmMapView.mapUpdate();
@@ -375,6 +377,9 @@ public class GridTrackerMainActivity extends AppCompatActivity {
     }
 
     private GridOsmMapView.GridPolyLine drawMessage(QSLRecordStr recordStr) {
+        if (recordStr.getMy_gridsquare().equals("") || recordStr.getGridsquare().equals("")) {
+            return null;
+        }
         gridOsmMapView.gridMapView.post(new Runnable() {
             @Override
             public void run() {

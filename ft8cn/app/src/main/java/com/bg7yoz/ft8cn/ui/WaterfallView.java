@@ -187,6 +187,8 @@ public class WaterfallView extends View {
     public void setWaveData(int[] data, int sequential, List<Ft8Message> msgs) {
         if (drawMessage&& msgs!=null){//把需要画的消息复制出来防止多线程访问冲突
             messages=new ArrayList<>(msgs);
+        }else {
+            messages.clear();//当设定不标记消息时，要清空原来的消息
         }
 
         if (data == null) {

@@ -30,7 +30,6 @@
                 android:id="@+id/timerTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="2dp"
                 android:textColor="@color/bar_text_view_color"
                 android:textSize="12sp"
 
@@ -150,7 +149,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_begin="110dp" />
+                app:layout_constraintGuide_begin="105dp" />
 
             <TextView
                 android:id="@+id/textView4"

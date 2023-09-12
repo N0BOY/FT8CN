@@ -140,8 +140,6 @@ public class FT8TransmitSignal {
             }
         });
 
-
-        //utcTimer.setTime_sec(GeneralVariables.transmitDelay);//默认晚500毫秒发射，确保上一时序解码结束
         utcTimer.start();
 
     }
@@ -185,65 +183,7 @@ public class FT8TransmitSignal {
         }
         Log.d(TAG, "doTransmit: 开始发射...");
         doTransmitThreadPool.execute(doTransmitRunnable);
-//        new Thread(new Runnable() {
-//            @SuppressLint("DefaultLocale")
-//            @Override
-//            public void run() {
-//                //此处可能要修改，维护一个列表。把每个呼号，网格，时间，波段，记录下来
-//                if (functionOrder == 1 || functionOrder == 2) {//当消息处于1或2时，说明开始了通联
-//                    messageStartTime = UtcTimer.getSystemTime();
-//                }
-//                if (messageStartTime == 0) {//如果起始时间没有，就取现在的
-//                    messageStartTime = UtcTimer.getSystemTime();
-//                }
-//
-//                //用于显示将要发射的消息内容
-//                Ft8Message msg;
-//                if (transmitFreeText){
-//                    msg=new Ft8Message("CQ",GeneralVariables.myCallsign,freeText);
-//                    msg.i3=0;
-//                    msg.n3=0;
-//                }else {
-//                    msg = getFunctionCommand(functionOrder);
-//                }
-//
-//                if (onDoTransmitted != null) {
-//                    //此处用于处理PTT等事件
-//                    onDoTransmitted.onBeforeTransmit(msg, functionOrder);
-//                }
-//                //short[] buffer = new short[FT8Common.SAMPLE_RATE * FT8Common.FT8_SLOT_TIME];
-//                //79个符号，每个符号0.16秒，采样率12000，
-//                short[] buffer = new short[(int) (0.5f +
-//                        GenerateFT8.num_tones * GenerateFT8.symbol_period
-//                                * GenerateFT8.sample_rate)]; // 数据信号中的采样数0.5+79*0.16*12000];
-//
-//
-//                isTransmitting = true;
-//                mutableIsTransmitting.postValue(true);
-//
-//
-//                mutableTransmittingMessage.postValue(String.format(" (%.0fHz) %s"
-//                        , GeneralVariables.getBaseFrequency()
-//                        , msg.getMessageText()));
-//                if (!GenerateFT8.generateFt8(msg
-//                        , GeneralVariables.getBaseFrequency(), buffer)) {
-//                    return;
-//                }
-//                ;
-//                //电台动作可能有要有个延迟时间，所以时间并不一定完全准确
-//                try {//给电台一个100毫秒的响应时间
-//                    Thread.sleep(GeneralVariables.pttDelay);//给PTT指令后，电台一个响应时间，默认100毫秒
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//
-//                if (onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
-//                    onDoTransmitted.onAfterGenerate(buffer);
-//                }
-//                //播放音频
-//                playFT8Signal(buffer);
-//            }
-//        }).start();
+
         mutableFunctions.postValue(functionList);
     }
 
@@ -368,6 +308,7 @@ public class FT8TransmitSignal {
 
     /**
      * 为了最大限度兼容，把32位浮点转换成16位整型，有些声卡不支持32位的浮点。
+     *
      * @param buffer 32位浮点音频
      * @return 16位整型
      */
@@ -384,7 +325,6 @@ public class FT8TransmitSignal {
         return temp;
     }
 
-    //private void playFT8Signal(float[] buffer) {
     private void playFT8Signal(Ft8Message msg) {
 
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {//网络方式就不播放音频了
@@ -414,10 +354,12 @@ public class FT8TransmitSignal {
             return;
         }
 
+        //进入到CAT串口传输音频方式
+        //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
         if (GeneralVariables.controlMode == ControlMode.CAT) {
             Log.d(TAG, "playFT8Signal: try to transmit over CAT");
 
-            if (onDoTransmitted != null) {//处理音频数据，可以给ICOM的网络模式发送
+            if (onDoTransmitted != null) {//处理音频数据，可以给truSDX的CAT模式发送
                 if (onDoTransmitted.supportTransmitOverCAT()) {
                     onDoTransmitted.onTransmitOverCAT(msg);
 
@@ -440,6 +382,7 @@ public class FT8TransmitSignal {
                 }
             }
         }
+
 
         //进入声卡模式
         float[] buffer;
@@ -625,12 +568,13 @@ public class FT8TransmitSignal {
     }
 
     /**
-     * 检查消息中from中有目标呼号的数量。当有目标呼号呼叫我的消息，返回0，
+     * 检查消息中from中有目标呼号的数量。当有目标呼号呼叫我的消息，返回0，如果目标呼号呼叫别人，返回值应当大于1
+     *
      * @param messages 消息列表
      * @return 0：有目标呼叫我的，1：没有任何目标呼号发出的消息，>1：有目标呼号呼叫别人的消息
      */
-    private int checkTargetCallMe(ArrayList<Ft8Message> messages){
-        int fromCount=1;
+    private int checkTargetCallMe(ArrayList<Ft8Message> messages) {
+        int fromCount = 1;
         for (int i = messages.size() - 1; i >= 0; i--) {
             Ft8Message ft8Message = messages.get(i);
             if (ft8Message.getSequence() == sequential) continue;//同一个时序下的消息不做解析
@@ -641,12 +585,13 @@ public class FT8TransmitSignal {
                     && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 return 0;
             }
-            if (checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)){
+            if (checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 fromCount++;//计数器，from是目标呼号的情况
             }
         }
         return fromCount;
     }
+
     /**
      * 检测本消息列表中对方回复消息的序号，如果没有,返回-1
      *
@@ -701,6 +646,20 @@ public class FT8TransmitSignal {
     }
 
     /**
+     * 检查是不是属于排除的消息：
+     * 1.与发射的时序相同
+     * 2.不在相同的波段
+     * 3.呼号是排除的字头
+     *
+     * @param msg 消息
+     * @return 是/否
+     */
+    private boolean isExcludeMessage(Ft8Message msg) {
+        return msg.getSequence() == sequential || msg.band != GeneralVariables.band
+                || GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom);
+    }
+
+    /**
      * 检查有没有人CQ我，或我关注的呼号在CQ
      *
      * @param messages 消息列表
@@ -709,21 +668,32 @@ public class FT8TransmitSignal {
     //@RequiresApi(api = Build.VERSION_CODES.N)
     private boolean checkCQMeOrFollowCQMessage(ArrayList<Ft8Message> messages) {
         //此message是刚刚解码出的消息
-        //检查CQ我，且是我呼叫的目标
+        //第一个循环与第二个循环都是检查是否有CQ我的消息。第一个循环是优先查询是不是我的目标呼号。
+        // 目的是当多个目标呼叫我，我的回复不专一的问题。
+        //检查CQ我，不是73，且是我呼叫的目标
         for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
             Ft8Message msg = messages.get(i);
-            if (msg.getSequence() == sequential) {//如果与发射时序相同，不理会
-                continue;
-            }
-            if (msg.band != GeneralVariables.band) {//如果消息不在相同的波段内，不呼叫
-                continue;
-            }
-            if (GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom)) {//如果是在过滤范围内的呼叫，不理会
-                continue;
-            }
+            if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
+            if (toCallsign == null) break;
 
+            if (msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+                    && msg.getCallsignFrom().equals(toCallsign.callsign)//todo 注意测试复合呼号的情况
+                    && !GeneralVariables.checkFun5(msg.extraInfo)) {//cq我、不是73、发送方是我关注的目标
+                //设置发射之前，确定消息的序号，避免从头开始
+                setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
+                                , msg.getSequence(), msg.snr)
+                        , GeneralVariables.checkFunOrder(msg) + 1
+                        , msg.extraInfo);
+                return true;
+            }
+        }
+
+        //检查CQ我，不是73，
+        for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
+            Ft8Message msg = messages.get(i);
+            if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
             if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
-                    && !GeneralVariables.checkFun5(msg.extraInfo))) {//不能是73
+                    && !GeneralVariables.checkFun5(msg.extraInfo))) {//cq我、不是73、
                 //设置发射之前，确定消息的序号，避免从头开始
                 setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
                                 , msg.getSequence(), msg.snr)
@@ -751,12 +721,7 @@ public class FT8TransmitSignal {
         //此处是检查关注的呼号在CQ。（TO:CQ,且不能本次通联能成功的呼号）
         for (int i = GeneralVariables.transmitMessages.size() - 1; i >= 0; i--) {
             Ft8Message msg = GeneralVariables.transmitMessages.get(i);
-            if (msg.getSequence() == sequential) {//如果与发射时序相同，不理会
-                continue;
-            }
-            if (msg.band != GeneralVariables.band) {//如果消息不在相同的波段内，不呼叫
-                continue;
-            }
+            if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
 
             //处于CQ,FROM是我的关注呼号,并且不在通联成功的呼号列表中
             if ((msg.checkIsCQ()//在CQ
@@ -842,7 +807,7 @@ public class FT8TransmitSignal {
         if (msgList.get(0).getSequence() == sequential) {
             return;
         }
-        ArrayList<Ft8Message> messages =new ArrayList<>(msgList);//防止线程冲突
+        ArrayList<Ft8Message> messages = new ArrayList<>(msgList);//防止线程冲突
 
 
         int newOrder = checkFunctionOrdFromMessages(messages);//检查消息中对方回复的消息序号，-1为没有收到
@@ -857,18 +822,22 @@ public class FT8TransmitSignal {
         // 判断通联成功：对方回73（5）||我是73（5），且对方没回（-1）
         // 或者我是RR73(4),且已经达到无回应阈值，且有无回应限制
         // 或我是RR73(4),且对方开始呼叫别人了,解决RR73卡死的问题
-        if (newOrder == 5
+        if (newOrder == 5//消息中目标回复我RR73了
                 || (functionOrder == 5 && newOrder == -1)// 判断通联成功：对方回73（5）||我是73（5），且对方没回（-1）
                 || (functionOrder == 4 &&
                 (GeneralVariables.noReplyCount > GeneralVariables.noReplyLimit * 2)
                 && (GeneralVariables.noReplyLimit > 0)) // 或者我是RR73(4),且已经达到无回应阈值，且有无回应限制
-                || (functionOrder ==4 && checkTargetCallMe(messages)>1)
-        ) { // 或我是RR73(4),且对方开始呼叫别人了
-            //doComplete();//做保存的动作
+
+                || (functionOrder == 4 && checkTargetCallMe(messages) > 1)// 或我是RR73(4),且对方开始呼叫别人了（>1是目标呼号呼叫别人了）
+
+                || (functionOrder == 4 && (GeneralVariables.noReplyCount > 20)
+                && (GeneralVariables.noReplyLimit == 0))//当呼叫无回应为“忽略”，且我是RR73(4)，那么无回应次数大于10次，就复位，防止RR73卡死
+
+        ) {
             //进入到CQ状态
             resetToCQ();
 
-            //加入检查消息中有没有呼号我的，或关注的呼号在CQ
+            //加入检查消息中有没有呼叫我的，或关注的呼号在CQ
             checkCQMeOrFollowCQMessage(messages);
             setCurrentFunctionOrder(functionOrder);//设置当前消息
             mutableFunctionOrder.postValue(functionOrder);
@@ -1078,7 +1047,7 @@ public class FT8TransmitSignal {
         @SuppressLint("DefaultLocale")
         @Override
         public void run() {
-            //此处可能要修改，维护一个列表。把每个呼号，网格，时间，波段，记录下来
+            //todo 此处可能要修改，维护一个列表。把每个呼号，网格，时间，波段，记录下来
             if (transmitSignal.functionOrder == 1 || transmitSignal.functionOrder == 2) {//当消息处于1或2时，说明开始了通联
                 transmitSignal.messageStartTime = UtcTimer.getSystemTime();
             }

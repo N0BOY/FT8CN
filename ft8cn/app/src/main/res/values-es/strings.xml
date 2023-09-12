@@ -347,6 +347,7 @@
     <string name="icom_login_button">Login</string>
     <string name="show_password">Password is visibility</string>
     <string name="connect_icom_ip">Connect ICom Radio %s ...</string>
+    <string name="connect_xiegu_ip">Connect XIEGU Radio %s ...</string>
     <string name="network_exception">%s : Network transmission exception : %s</string>
     <string name="login_succeed">Login succeeded !</string>
     <string name="loging_failed">Login failed, invalid user name or password.</string>
@@ -483,6 +484,13 @@
     <string name="import_readed_html">Validated QSL: %d</string>
     <string name="import_canceled_html">Canceled!</string>
     <string name="import_cancel_button">Stop</string>
+    <string name="qsl_query_log_menu">Log (%s)</string>
+    <string name="message_list_simple_mode">Simple List Mode</string>
+    <string name="message_list_standard_mode">Standard List Mode</string>
+    <string name="config_msg_mode">Message mode</string>
+    <string name="config_msg_std_mode">Standard</string>
+    <string name="config_msg_simple_mode">Simple</string>
+    <string name="message_mode_help">messageMode_en.txt</string>
     <!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->
 
 </resources>

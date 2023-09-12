@@ -38,7 +38,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     private final ArrayList<Ft8Message> ft8MessageArrayList;
     private final Context context;
 
-    //private boolean isCallingList = true;
     private final ShowMode showMode;
     private View.OnClickListener onItemClickListener;
 
@@ -83,6 +82,11 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
                                         , ft8Message.getCallsignTo())).setActionView(view);
                     }
 
+                    //增加查询日志
+                    contextMenu.add(0, 7, 0
+                            , String.format(GeneralVariables.getStringFromResource(R.string.qsl_query_log_menu)
+                                    , ft8Message.getCallsignTo())).setActionView(view);
+
                 }
             }
 
@@ -104,6 +108,11 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
                             , String.format(GeneralVariables.getStringFromResource(R.string.qsl_qrz_confirmation_s)
                                     , ft8Message.getCallsignFrom())).setActionView(view);
                 }
+
+                //增加查询日志
+                contextMenu.add(0, 8, 0
+                        , String.format(GeneralVariables.getStringFromResource(R.string.qsl_query_log_menu)
+                                , ft8Message.getCallsignFrom())).setActionView(view);
             }
 
         }
@@ -115,7 +124,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             , ArrayList<Ft8Message> messages, ShowMode showMode) {
         this.mainViewModel = mainViewModel;
         this.context = context;
-        //this.isCallingList = isCallingList;
         this.showMode=showMode;
         ft8MessageArrayList = messages;
     }
@@ -124,7 +132,12 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     @Override
     public CallingListItemHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        View view = layoutInflater.inflate(R.layout.call_list_holder_item, parent, false);
+        View view ;
+        if (GeneralVariables.simpleCallItemMode) {
+            view = layoutInflater.inflate(R.layout.call_list_holder_simple_item, parent, false);
+        }else {
+            view = layoutInflater.inflate(R.layout.call_list_holder_item, parent, false);
+        }
         return new CallingListItemHolder(view,onItemClickListener,menuListener);
     }
 
@@ -275,8 +288,7 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
 //            setQueryHolderCallsign(holder);//查询呼号归属地
 //        }
 
-        if (holder.ft8Message.freq_hz <= 0.01f) {//这是发射
-            //holder.callingListSequenceTextView.setVisibility(View.GONE);
+        if (holder.ft8Message.freq_hz <= 0.01f) {//这是发射界面
             holder.callingListIdBTextView.setVisibility(View.GONE);
             holder.callListDtTextView.setVisibility(View.GONE);
             holder.callingListFreqTextView.setText("TX");
@@ -292,8 +304,16 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             holder.dxccFromImageView.setVisibility(View.GONE);
             holder.ituFromImageView.setVisibility(View.GONE);
             holder.cqFromImageView.setVisibility(View.GONE);
-        } else {
-            //holder.callingListSequenceTextView.setVisibility(View.VISIBLE);
+        } else if (GeneralVariables.simpleCallItemMode){//简单列表模式
+            holder.bandItemTextView.setVisibility(View.GONE);
+            holder.callingListDistTextView.setVisibility(View.GONE);
+            holder.callingListCommandIInfoTextView.setVisibility(View.GONE);
+            holder.callingUtcTextView.setVisibility(View.GONE);
+            holder.callingListCallsignToTextView.setVisibility(View.GONE);
+            holder.dxccToImageView.setVisibility(View.GONE);
+            holder.ituToImageView.setVisibility(View.GONE);
+            holder.cqToImageView.setVisibility(View.GONE);
+        }else {//标准列表模式
             holder.callingListIdBTextView.setVisibility(View.VISIBLE);
             holder.callListDtTextView.setVisibility(View.VISIBLE);
             holder.bandItemTextView.setVisibility(View.VISIBLE);

@@ -289,6 +289,9 @@ public class ConfigFragment extends Fragment {
         //设置音频输出采样率
         setAudioOutputRateMode();
 
+        //设置显示消息模式
+        setMessageMode();
+
         //设置控制模式 VOX CAT
         setControlMode();
 
@@ -846,6 +849,38 @@ public class ConfigFragment extends Fragment {
 
 
     /**
+     * 设置消息列表显示模式
+     */
+    private void setMessageMode() {
+        binding.messageModeRadioGroup.clearCheck();
+        if (GeneralVariables.simpleCallItemMode){
+            binding.msgSimpleRadioButton.setChecked(true);
+        }else {
+            binding.msgStandardRadioButton.setChecked(true);
+        }
+
+
+
+        View.OnClickListener listener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int buttonId = binding.messageModeRadioGroup.getCheckedRadioButtonId();
+                GeneralVariables.simpleCallItemMode=
+                        binding.messageModeRadioGroup.getCheckedRadioButtonId()
+                                ==binding.msgSimpleRadioButton.getId();
+
+                writeConfig("msgMode", GeneralVariables.simpleCallItemMode?"1":"0");
+            }
+        };
+
+        binding.msgStandardRadioButton.setOnClickListener(listener);
+        binding.msgSimpleRadioButton.setOnClickListener(listener);
+    }
+
+
+
+
+    /**
      * 设置控制模式VOX CAT
      */
     private void setControlMode() {
@@ -950,7 +985,9 @@ public class ConfigFragment extends Fragment {
                     //打开网络电台列表对话框
                     if (GeneralVariables.instructionSet== InstructionSet.FLEX_NETWORK) {
                         new SelectFlexRadioDialog(requireContext(), mainViewModel).show();
-                    }else if(GeneralVariables.instructionSet== InstructionSet.ICOM) {
+                    }else if(GeneralVariables.instructionSet== InstructionSet.ICOM
+                            ||GeneralVariables.instructionSet== InstructionSet.XIEGU_6100
+                            ||GeneralVariables.instructionSet== InstructionSet.XIEGUG90S) {
                         new LoginIcomRadioDialog(requireContext(), mainViewModel).show();
                     }else {
                         ToastMessage.show(GeneralVariables.getStringFromResource(R.string.only_flex_supported));
@@ -1030,6 +1067,16 @@ public class ConfigFragment extends Fragment {
                             , true).show();
             }
         });
+        //显示列表方式
+        binding.messageModeeHelpImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(),requireActivity()
+                        ,GeneralVariables.getStringFromResource(R.string.message_mode_help)
+                        ,true).show();
+            }
+        });
+
         //设置ABOUT
         binding.aboutButton.setOnClickListener(new View.OnClickListener() {
             @Override
