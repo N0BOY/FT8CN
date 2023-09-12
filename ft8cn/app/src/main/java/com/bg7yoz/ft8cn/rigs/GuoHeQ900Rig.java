@@ -183,6 +183,7 @@ public class GuoHeQ900Rig extends BaseRig {
 
     public GuoHeQ900Rig() {
          readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY, QUERY_FREQ_TIMEOUT);
+         //readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY, 4000);
     }
 
 }

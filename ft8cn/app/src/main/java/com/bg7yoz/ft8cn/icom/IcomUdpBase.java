@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.icom;
 /**
  * 简单封装的udp流处理。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -10,6 +11,8 @@ import android.util.Log;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
 
+import org.checkerframework.checker.units.qual.A;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,18 +21,20 @@ import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
+
 public class IcomUdpBase {
-    public enum IcomUdpStyle{//数据流的类型
+    public enum IcomUdpStyle {//数据流的类型
         UdpBase,
         ControlUdp,
         CivUdp,
         AudioUdp
     }
-    public static String getUdpStyle(IcomUdpStyle style){
-        switch (style){
+
+    public static String getUdpStyle(IcomUdpStyle style) {
+        switch (style) {
             case ControlUdp:
                 return GeneralVariables.getStringFromResource(R.string.control_stream);
-            case  CivUdp:
+            case CivUdp:
                 return GeneralVariables.getStringFromResource(R.string.civ_stream);
             case AudioUdp:
                 return GeneralVariables.getStringFromResource(R.string.audio_stream);
@@ -37,18 +42,24 @@ public class IcomUdpBase {
                 return GeneralVariables.getStringFromResource(R.string.data_stream);
         }
     }
+
     /**
      * 事件接口
      */
     public interface OnStreamEvents {
         void OnReceivedIAmHere(byte[] data);
+
         void OnReceivedCivData(byte[] data);
+
         void OnReceivedAudioData(byte[] audioData);
-        void OnUdpSendIOException(IcomUdpStyle style,IOException e);
+
+        void OnUdpSendIOException(IcomUdpStyle style, IOException e);
+
         void OnLoginResponse(boolean authIsOK);
         //void OnWatchDogAlert(IcomUdpStyle style,boolean isAlerted);
     }
-    public IcomUdpStyle udpStyle=IcomUdpStyle.UdpBase;
+
+    public IcomUdpStyle udpStyle = IcomUdpStyle.UdpBase;
 
     private static final String TAG = "IcomUdpBase";
     public int rigPort;
@@ -63,14 +74,13 @@ public class IcomUdpBase {
     public short innerSeq = 0x30;
     public int rigToken;//电台提供的令牌
     public short localToken = (short) System.currentTimeMillis();//本地生成的令牌，可以是随机数
-    public boolean isPttOn=false;
-
+    public boolean isPttOn = false;
 
 
     public IcomSeqBuffer txSeqBuffer = new IcomSeqBuffer();//发送命令的历史列表
     //public IcomSeqBuffer rxSeqBuffer = new IcomSeqBuffer();//接收命令的历史列表
-    public long lastReceivedTime=System.currentTimeMillis();//最后收到数据的时间
-    public long lastSentTime=System.currentTimeMillis();//最后收到数据的时间
+    public long lastReceivedTime = System.currentTimeMillis();//最后收到数据的时间
+    public long lastSentTime = System.currentTimeMillis();//最后收到数据的时间
 
 
     public IcomUdpClient udpClient;//用于与电台通讯的udp
@@ -79,32 +89,35 @@ public class IcomUdpBase {
     public OnStreamEvents onStreamEvents;//一些事件处理
     //Timer，执行代码部分：TimerTask，具体执行：timer.schedule(task,delay,period)
     public Timer areYouThereTimer;
+    private AreYouThereTimerTask areYouThereTask = null;
     public Timer pingTimer;
     public Timer idleTimer;//发送空数据包的时钟
 
 
-    public void close(){
-        onStreamEvents=null;//不用弹出网络异常的消息了
+    public void close() {
+        onStreamEvents = null;//不用弹出网络异常的消息了
         sendUntrackedPacket(IComPacketTypes.ControlPacket.toBytes(IComPacketTypes.CMD_DISCONNECT
-                ,(short)0,localId,remoteId));
+                , (short) 0, localId, remoteId));
         stopTimer(areYouThereTimer);
         stopTimer(pingTimer);
         stopTimer(idleTimer);
+        closeStream();
     }
 
     /**
      * 关闭udpClient
      */
-    public void closeStream(){
-        if (udpClient!=null){
+    public void closeStream() {
+        if (udpClient != null) {
             try {
                 udpClient.setActivated(false);
             } catch (SocketException e) {
                 e.printStackTrace();
-                Log.e(TAG, "closeStream: "+e.getMessage() );
+                Log.e(TAG, "closeStream: " + e.getMessage());
             }
         }
     }
+
     /**
      * 打开Udp流端口，如果Udp端口已经打开了，会再打开一次，本地端口应该会变化
      */
@@ -116,16 +129,17 @@ public class IcomUdpBase {
             @Override
             public void OnReceiveData(DatagramSocket socket, DatagramPacket packet, byte[] data) {
                 //屏蔽掉非法的数据包
-                if (data.length<IComPacketTypes.CONTROL_SIZE) return;//如果小于最小的控制包，退出
-                if (IComPacketTypes.ControlPacket.getRcvdId(data)!=localId) return;//如果接收的ID与我的ID不同，也退出
+                if (data.length < IComPacketTypes.CONTROL_SIZE) return;//如果小于最小的控制包，退出
+                if (IComPacketTypes.ControlPacket.getRcvdId(data) != localId)
+                    return;//如果接收的ID与我的ID不同，也退出
 
-                onDataReceived(packet,data);
+                onDataReceived(packet, data);
             }
 
             @Override
             public void OnUdpSendIOException(IOException e) {
-                if (onStreamEvents!=null){
-                    onStreamEvents.OnUdpSendIOException(udpStyle,e);
+                if (onStreamEvents != null) {
+                    onStreamEvents.OnUdpSendIOException(udpStyle, e);
                 }
             }
         });
@@ -158,7 +172,7 @@ public class IcomUdpBase {
      *
      * @param data 数据
      */
-    public void onDataReceived(DatagramPacket packet,byte[] data) {
+    public void onDataReceived(DatagramPacket packet, byte[] data) {
 
         //此处是对共性的数据接包做处理，不是共性的，可以在后续继承的类中override.
         switch (data.length) {
@@ -236,13 +250,6 @@ public class IcomUdpBase {
      */
     public void retransmitPacket(short retransmitSeq) {
         byte[] packet = txSeqBuffer.get(retransmitSeq);
-        if (packet==null){
-            Log.e(TAG, String.format("retransmitPacket:remotePort:%d,seq=0x%x,data:null ",rigPort,retransmitSeq) );
-        }else {
-            //IComPacketTypes.ControlPacket.setRcvdId(packet,remoteId);//如果mei
-            Log.e(TAG, String.format("retransmitPacket:remotePort:%d,seq=0x%x,data:%s "
-                    , rigPort,retransmitSeq, IComPacketTypes.byteToStr(packet)));
-        }
 
         if (packet != null) {//找到了历史发送的数据包
             sendUntrackedPacket(packet);
@@ -267,22 +274,19 @@ public class IcomUdpBase {
     }
 
 
-
     /**
      * 启动Are you there 时钟
+     * 每500ms触发一次
+     * Are you there包是控制包0x10包，类型 0x03
      */
     public void startAreYouThereTimer() {
+        Log.e(TAG, "startAreYouThereTimer: stop timer:" + this.toString());
         stopTimer(areYouThereTimer);
+
         areYouThereTimer = new Timer();
-        areYouThereTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Log.d(TAG, String.format("AreYouThereTimer: local port:%d,remote port %d", localPort, rigPort));
-                sendUntrackedPacket(
-                        IComPacketTypes.ControlPacket.toBytes(IComPacketTypes.CMD_ARE_YOU_THERE
-                                , (short) 0, localId, 0));
-            }
-        }, 0, IComPacketTypes.ARE_YOU_THERE_PERIOD_MS);
+
+        areYouThereTimer.scheduleAtFixedRate(new AreYouThereTimerTask()
+                , 0, IComPacketTypes.ARE_YOU_THERE_PERIOD_MS);
     }
 
     /**
@@ -292,13 +296,9 @@ public class IcomUdpBase {
         stopTimer(pingTimer);//如果之前有打开的时钟，就关闭
         Log.d(TAG, String.format("start PingTimer: local port:%d,remote port %d", localPort, rigPort));
         pingTimer = new Timer();
-        pingTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                sendPingPacket();//发送Ping包
-            }
-        }, 0, IComPacketTypes.PING_PERIOD_MS);//500ms周期
+        pingTimer.scheduleAtFixedRate(new PingTimerTask(), 0, IComPacketTypes.PING_PERIOD_MS);
     }
+
     /**
      * 发送空包时钟
      */
@@ -306,16 +306,8 @@ public class IcomUdpBase {
         stopTimer(idleTimer);
         Log.d(TAG, String.format("start Idle Timer: local port:%d,remote port %d", localPort, rigPort));
         idleTimer = new Timer();
-        idleTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (txSeqBuffer.getTimeOut()>200) {//当超过200毫秒没有发送指令，就发送一个空指令
-                    sendTrackedPacket(
-                            IComPacketTypes.ControlPacket.toBytes(IComPacketTypes.CMD_NULL
-                                    , (short) 0, localId, remoteId));
-                }
-            }
-        }, IComPacketTypes.IDLE_PERIOD_MS, IComPacketTypes.IDLE_PERIOD_MS);
+        idleTimer.scheduleAtFixedRate(new IdleTimerTask(), IComPacketTypes.IDLE_PERIOD_MS
+                , IComPacketTypes.IDLE_PERIOD_MS);
     }
 
     /**
@@ -349,9 +341,9 @@ public class IcomUdpBase {
      * 发送令牌包0x40
      * @param requestType 令牌类型，0x02确认，0x05续订
      */
-    public void sendTokenPacket(byte requestType){
-        sendTrackedPacket(IComPacketTypes.TokenPacket.getTokenPacketData((short)0
-                ,localId,remoteId,requestType,innerSeq,localToken,rigToken));
+    public void sendTokenPacket(byte requestType) {
+        sendTrackedPacket(IComPacketTypes.TokenPacket.getTokenPacketData((short) 0
+                , localId, remoteId, requestType, innerSeq, localToken, rigToken));
         innerSeq++;
     }
 
@@ -394,7 +386,7 @@ public class IcomUdpBase {
      */
     public synchronized void sendTrackedPacket(byte[] data) {
         try {
-            lastSentTime=System.currentTimeMillis();
+            lastSentTime = System.currentTimeMillis();
             System.arraycopy(IComPacketTypes.shortToBigEndian(trackedSeq), 0
                     , data, 6, 2);//把序号写到数据列表里
             udpClient.sendData(data, rigIp, rigPort);
@@ -426,5 +418,43 @@ public class IcomUdpBase {
         this.onStreamEvents = onStreamEvents;
     }
 
+    /**
+     * Are you there时钟任务
+     * 控制包0x10，类型0x03
+     */
+    public class AreYouThereTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            Log.d(TAG, String.format("Task,AreYouThereTimer: local port:%d,remote port %d", localPort, rigPort));
+            sendUntrackedPacket(
+                    IComPacketTypes.ControlPacket.toBytes(IComPacketTypes.CMD_ARE_YOU_THERE
+                            , (short) 0, localId, 0));
+        }
+    }
+
+    /**
+     * Ping时钟任务
+     */
+    public class PingTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            sendPingPacket();//发送Ping包
+        }
+    }
+
+    /**
+     * 空指令时钟任务
+     */
+    public class IdleTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            if (txSeqBuffer.getTimeOut() > 200) {//当超过200毫秒没有发送指令，就发送一个空指令
+                sendTrackedPacket(
+                        IComPacketTypes.ControlPacket.toBytes(IComPacketTypes.CMD_NULL
+                                , (short) 0, localId, remoteId));
+            }
+        }
+    }
 
 }

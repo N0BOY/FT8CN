@@ -1,5 +1,10 @@
 package com.bg7yoz.ft8cn.rigs;
 
+/**
+ * IcomRig是通用的Icom电台控制类。对于wifi模式，实际的控制是通过IComWifiConnector(继承于WifiConnector)
+ * 在IComWifiConnector中，有IComWifiRig具体操作电台
+ */
+
 import android.util.Log;
 
 import com.bg7yoz.ft8cn.Ft8Message;
@@ -131,9 +136,9 @@ public class IcomRig extends BaseRig {
 
     @Override
     public void sendWaveData(Ft8Message message) {//发送音频数据到电台，用于网络方式
-        if (getConnector() != null) {
+        if (getConnector() != null) {//把生成的具体音频数据传递到Connector，
             float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
-                    ,12000);//此处icom电台发射音频的采样率是12000，todo 此处可改为动态设置24000，48000
+                    ,12000);//此处icom电台发射音频的采样率是12000
             if (data==null){
                 setPTT(false);
                 return;

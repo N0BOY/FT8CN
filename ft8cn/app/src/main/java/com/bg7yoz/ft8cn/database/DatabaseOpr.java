@@ -1830,6 +1830,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.band = result.equals("") ? 14074000 : Long.parseLong(result);
                     GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
                 }
+
+                if (name.equalsIgnoreCase("msgMode")) {
+                    GeneralVariables.simpleCallItemMode = result.equals("1") ;
+                }
+
                 if (name.equalsIgnoreCase("ctrMode")) {
                     GeneralVariables.controlMode = result.equals("") ? ControlMode.VOX : Integer.parseInt(result);
                 }

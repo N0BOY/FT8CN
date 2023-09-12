@@ -1,0 +1,5 @@
+"Message mode" refers to how messages are displayed.
+
+Standard list mode is the default FT8 display mode. In addition to FT8 messages, it includes callsign, location, distance, worked zone indicator, message type, etc.
+
+Simple list mode is a simplified FT8 message display mode that contains only essential FT8 messages.

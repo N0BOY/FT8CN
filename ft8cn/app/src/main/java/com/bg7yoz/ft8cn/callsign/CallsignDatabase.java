@@ -84,9 +84,12 @@ public class CallsignDatabase extends SQLiteOpenHelper {
                     "GMT_offset REAL,\n" +
                     "DXCC TEXT)");
             db.execSQL("CREATE INDEX countries_id_IDX ON countries (id)");
+
             db.execSQL("CREATE TABLE callsigns (countryId INTEGER NOT NULL,callsign TEXT)");
             db.execSQL("CREATE INDEX callsigns_callsign_IDX ON callsigns (callsign)");
 
+            db.execSQL("CREATE INDEX countries_id_IDX_MORE ON countries (id,CountryNameEn,CountryNameCN,CQZone,ITUZone,DXCC)");
+            db.execSQL("CREATE INDEX callsigns_countryId_IDX ON callsigns (countryId)");
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
 

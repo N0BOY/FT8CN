@@ -19,4 +19,11 @@ public class InstructionSet {
     public  static final int WOLF_SDR_DIGU=15;//UA3REO Wolf SDR,DIG-U模式，兼容YAESU 450D;
     public  static final int WOLF_SDR_USB=16;//UA3REO Wolf SDR,USB模式，兼容YAESU 450D;
 
+    public  static final int TRUSDX=17;//(tr)USDX;
+    public  static final int KENWOOD_TS570=18;//KENWOOD TS-570D
+    public  static final int YAESU_3_9_U_DIG=19;//KENWOOD TS-570D
+
+
+
+
 }

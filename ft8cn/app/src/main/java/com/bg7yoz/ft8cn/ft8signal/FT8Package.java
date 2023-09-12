@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.ft8signal;
 /**
  * 按照FT8协议打包符号。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -28,6 +29,11 @@ public class FT8Package {
     }
 
 
+    /**
+     * 生成i3=4的非标准消息的77位数据包。
+     * @param message 消息
+     * @return 数据包
+     */
     public static byte[] generatePack77_i4(Ft8Message message) {
 
         String toCall = message.callsignTo.replace("<", "").replace(">", "");
@@ -61,30 +67,55 @@ public class FT8Package {
         data[8] = (byte) (((n58 & 0x0000_0000_0000_00ffL) << 2));
         //RRR=1,RR73=2,73=3,""=0
         if (message.checkIsCQ()) {
-            //data[8]=(byte) (data[8]| );//h1=0,r2=0 i3-4
             data[9] = (byte) 0x60;
         } else {
-            //data[9]=(byte)(data[9]&0xbf);//h1=0;
             data[9] = (byte) 0x20;
-            int r2;
-            if (message.extraInfo.equals("RRR")) {//r2=1
-                data[8] = (byte) (data[8] & 0xfe);
-                data[9] = (byte) (data[9] | 0x80);
-                r2 = 1;
-            } else if (message.extraInfo.equals("RR73")) {//r2=2
-                data[8] = (byte) (data[8] | 0x01);
-                data[9] = (byte) (data[9] | 0x80);
-                r2 = 2;
-            } else if (message.extraInfo.equals("73")) {//r2=3
-                data[8] = (byte) (data[8] | 0x01);
-                data[9] = (byte) (data[9] | 0x80);
-                r2 = 3;
+            switch (message.extraInfo) {
+                case "RRR": //r2=1
+                    data[8] = (byte) (data[8] & 0xfe);
+                    data[9] = (byte) (data[9] | 0x80);
+                    break;
+                case "RR73": //r2=2
+                    data[8] = (byte) (data[8] | 0x01);
+                    //data[9] = (byte) (data[9] | 0x00);//data[9]无需改变
+                    break;
+                case "73": //r2=3
+                    data[8] = (byte) (data[8] | 0x01);
+                    data[9] = (byte) (data[9] | 0x80);
+                    break;
             }
         }
 
         return data;
     }
 
+    /**
+     * 从复合呼号中提取标准呼号，复合呼号是指带“/”的呼号。
+     * 此应用场景：双方都是复合呼号，那么发送方（我方）要改为标准呼号。
+     * 从复合呼号提取标准呼号的逻辑是：拆解“/”分隔的部分，取符合FT8标准呼号的正则表达式，如果没有则取最长字符串部分。
+     * @param compoundCallsign 复合呼号
+     * @return 标准呼号
+     */
+    public static String getStdCall(String compoundCallsign) {
+        if (!compoundCallsign.contains("/")) return compoundCallsign;
+        String[] callsigns = compoundCallsign.split("/");
+        for (String callsign : callsigns) {//用正则表达式提取标准呼号
+            //FT8的认定：标准业余呼号由一个或两个字符的前缀组成，其中至少一个必须是字母，后跟一个十进制数字和最多三个字母的后缀。
+            if (callsign.matches("[A-Z0-9]?[A-Z0-9][0-9][A-Z][A-Z0-9]?[A-Z]?")) {
+                return callsign;
+            }
+        }
+        //当无法提取标准呼号时，取最长的字段
+        int len = 0;
+        int index = 0;
+        for (int i = 0; i < callsigns.length; i++) {
+            if (callsigns[i].length() > len) {
+                len = callsigns[i].length();
+                index = i;
+            }
+        }
+        return callsigns[index];
+    }
 
     /**
      * i1=1,i1=2，在FT8协议的定义当中，分别是标准消息，和欧盟甚高频（EU VHF），这两个消息的唯一区别是：
@@ -92,17 +123,14 @@ public class FT8Package {
      * 所以，这两个消息可以合并为一个类型。
      *
      * @param message 原始消息
-     * @return
+     * @return packet77
      */
     public static byte[] generatePack77_i1(Ft8Message message) {
-        //Log.e(TAG, "generatePack77_i1: "+message.toString() );
-        Log.e(TAG, "generatePack77_i1: message.callsignTo " + message.callsignTo);
-        Log.e(TAG, "generatePack77_i1: message.callsignFrom " + message.callsignFrom);
         String toCall = message.callsignTo.replace("<", "").replace(">", "");
         String fromCall = message.callsignFrom.replace("<", "").replace(">", "");
 
-        if (message.checkIsCQ()&& message.modifier!=null){//把修饰符加上
-            if (message.modifier.length()>0) {
+        if (message.checkIsCQ() && message.modifier != null) {//把修饰符加上
+            if (message.modifier.length() > 0) {
                 toCall = toCall + " " + message.modifier;
             }
         }
@@ -118,7 +146,8 @@ public class FT8Package {
 
         //当双方都是复合呼号或非标准呼号时（带/的呼号），我的呼号变成标准呼号
         if ((toCall.contains("/")) && fromCall.contains("/")) {
-            fromCall = fromCall.substring(0, fromCall.indexOf("/"));
+            fromCall = getStdCall(fromCall);//从复合呼号中提取标准呼号
+            // fromCall = fromCall.substring(0, fromCall.indexOf("/"));
         }
 
 
@@ -221,11 +250,11 @@ public class FT8Package {
         }
 
         //判断是否有修饰符000-999,A-Z,AA-ZZ,AAA-ZZZ,AAAA-ZZZZ
-        if (callsign.startsWith("CQ ")&&callsign.length()>3){
-            String temp=callsign.substring(3).trim().toUpperCase();
-            if (temp.matches("[0-9]{3}")){
-                int i=Integer.parseInt(temp);
-                return i+3;
+        if (callsign.startsWith("CQ ") && callsign.length() > 3) {
+            String temp = callsign.substring(3).trim().toUpperCase();
+            if (temp.matches("[0-9]{3}")) {
+                int i = Integer.parseInt(temp);
+                return i + 3;
             }
             if (temp.matches("[A-Z]{1,4}")) {
 
@@ -234,26 +263,26 @@ public class FT8Package {
                 int a2 = 0;
                 int a3 = 0;
                 if (temp.length() == 1) {//A-Z
-                    a0= (int) temp.charAt(0) - 65;
-                    return a0+1004;
+                    a0 = (int) temp.charAt(0) - 65;
+                    return a0 + 1004;
                 }
                 if (temp.length() == 2) {//AA-ZZ
-                    a0 =  (int) temp.charAt(0) - 65;
-                    a1 =  (int) temp.charAt(1) - 65;
-                    return a0*27+a1+1031;
+                    a0 = (int) temp.charAt(0) - 65;
+                    a1 = (int) temp.charAt(1) - 65;
+                    return a0 * 27 + a1 + 1031;
                 }
                 if (temp.length() == 3) {//AAA-ZZZ
-                    a0 =  (int) temp.charAt(0) - 65;
-                    a1 =  (int) temp.charAt(1) - 65;
-                    a2 =  (int) temp.charAt(2) - 65;
-                    return a0*27*27+a1*27+a2+1760;
+                    a0 = (int) temp.charAt(0) - 65;
+                    a1 = (int) temp.charAt(1) - 65;
+                    a2 = (int) temp.charAt(2) - 65;
+                    return a0 * 27 * 27 + a1 * 27 + a2 + 1760;
                 }
                 if (temp.length() == 4) {//AAAA-ZZZZ
-                    a0 =  (int) temp.charAt(0) - 65;
-                    a1 =  (int) temp.charAt(1) - 65;
-                    a2 =  (int) temp.charAt(2) - 65;
-                    a3 =  (int) temp.charAt(3) - 65;
-                    return a0*27*27*27+a1*27*27+a2*27+a3+21443;
+                    a0 = (int) temp.charAt(0) - 65;
+                    a1 = (int) temp.charAt(1) - 65;
+                    a2 = (int) temp.charAt(2) - 65;
+                    a3 = (int) temp.charAt(3) - 65;
+                    return a0 * 27 * 27 * 27 + a1 * 27 * 27 + a2 * 27 + a3 + 21443;
                 }
             }
         }
@@ -262,7 +291,7 @@ public class FT8Package {
         //格式化成标准的呼号。6位、第3位带数字
         //c6也可以是非标准呼号。大于6位的都是非标准呼号
         String c6 = formatCallsign(callsign);
-        //if (c6.length()>6){//生成HASH22+2063592
+        //判断是不是标准呼号
         if (!GenerateFT8.checkIsStandardCallsign(callsign)) {//生成HASH22+2063592
             return NTOKENS + getHash22(callsign);
         }
@@ -288,50 +317,6 @@ public class FT8Package {
 
     }
 
-    public static long pack_c58(String callsign) {
-        //byte[] data=new byte[]{(byte)0x00,(byte)0x00,(byte)0x00,(byte)0x00};
-        switch (callsign) {
-            case "DE":
-                return 0;
-            case "QRZ":
-                return 1;
-            case "CQ":
-                return 2;
-        }
-
-        //格式化成标准的呼号。6位、第3位带数字
-        String c6 = formatCallsign(callsign);
-
-//        n58 = ((uint64_t) (a77[1] & 0x0F) << 54); //57 ~ 54 : 4
-//        n58 |= ((uint64_t) a77[2] << 46); //53 ~ 46 : 12
-//        n58 |= ((uint64_t) a77[3] << 38); //45 ~ 38 : 12
-//        n58 |= ((uint64_t) a77[4] << 30); //37 ~ 30 : 12
-//        n58 |= ((uint64_t) a77[5] << 22); //29 ~ 22 : 12
-//        n58 |= ((uint64_t) a77[6] << 14); //21 ~ 14 : 12
-//        n58 |= ((uint64_t) a77[7] << 6); //13 ~ 6 : 12
-//        n58 |= ((uint64_t) a77[8] >> 2); //5 ~ 0 : 765432 10
-
-
-        //6位呼号取值
-        int i0, i1, i2, i3, i4, i5;
-        i0 = A1.indexOf(c6.substring(0, 1));
-        i1 = A2.indexOf(c6.substring(1, 2));
-        i2 = A3.indexOf(c6.substring(2, 3));
-        i3 = A4.indexOf(c6.substring(3, 4));
-        i4 = A4.indexOf(c6.substring(4, 5));
-        int n28 = i0;
-        n28 = n28 * 36 + i1;
-        n28 = n28 * 10 + i2;
-        n28 = n28 * 27 + i3;
-        n28 = n28 * 27 + i4;
-
-        if (c6.length() >= 5) {
-            i5 = A4.indexOf(c6.substring(5, 6));
-            n28 = n28 * 27 + i5;
-        }
-
-        return NTOKENS + MAX22 + n28;
-    }
 
     /**
      * 格式化标准的呼号

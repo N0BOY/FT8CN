@@ -1,8 +1,8 @@
 package com.bg7yoz.ft8cn.icom;
 /**
- * 处理ICom的音频流。
+ * 处理ICom的音频流，继承至AudioUdp。
  * @author BGY70Z
- * @date 2023-03-20
+ * @date 2023-08-26
  */
 
 import android.util.Log;
@@ -15,31 +15,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-public class IcomAudioUdp extends IcomUdpBase {
+public class IcomAudioUdp extends AudioUdp {
     private static final String TAG = "IcomAudioUdp";
 
-    public IcomAudioUdp() {
-        udpStyle = IcomUdpStyle.AudioUdp;
-    }
+
     private final ExecutorService doTXThreadPool =Executors.newCachedThreadPool();
     private final DoTXAudioRunnable doTXAudioRunnable=new DoTXAudioRunnable(this);
 
+
     @Override
-    public void onDataReceived(DatagramPacket packet, byte[] data) {
-        super.onDataReceived(packet, data);
-
-        if (!IComPacketTypes.AudioPacket.isAudioPacket(data)) return;
-        byte[] audioData = IComPacketTypes.AudioPacket.getAudioData(data);
-        if (onStreamEvents != null) {
-            onStreamEvents.OnReceivedAudioData(audioData);
-        }
-    }
-
-
     public void sendTxAudioData(float[] audioData) {
         if (audioData==null) return;
 
         short[] temp=new short[audioData.length];
+        //传递过来的音频是LPCM,32 float，12000Hz
+        //iCOM的音频格式是LPCM 16 Int，12000Hz
         //要做一下浮点到16位int的转换
         for (int i = 0; i < audioData.length; i++) {
             float x = audioData[i];
@@ -54,7 +44,7 @@ public class IcomAudioUdp extends IcomUdpBase {
     }
     private static class DoTXAudioRunnable implements Runnable{
         IcomAudioUdp icomAudioUdp;
-        short[] audioData;
+        short[] audioData;//传递过来的音频是LPCM 16bit Int,12000hz
 
         public DoTXAudioRunnable(IcomAudioUdp icomAudioUdp) {
             this.icomAudioUdp = icomAudioUdp;
@@ -95,9 +85,21 @@ public class IcomAudioUdp extends IcomUdpBase {
                     }
                 }
             }
-            Log.e(TAG, "run: 音频发送完毕！！" );
+            Log.d(TAG, "run: 音频发送完毕！！" );
             Thread.currentThread().interrupt();
         }
 
+    }
+
+
+    @Override
+    public void onDataReceived(DatagramPacket packet, byte[] data) {
+        super.onDataReceived(packet, data);
+        //接收到的是12000采样率的数据
+        if (!IComPacketTypes.AudioPacket.isAudioPacket(data)) return;
+        byte[] audioData = IComPacketTypes.AudioPacket.getAudioData(data);
+        if (onStreamEvents != null) {
+            onStreamEvents.OnReceivedAudioData(audioData);
+        }
     }
 }

@@ -630,6 +630,7 @@
     <string name="icom_login_button">ログイン</string>
     <string name="show_password">パスワードを表示する</string>
     <string name="connect_icom_ip">IComの無線機　%s に接続する</string>
+    <string name="connect_xiegu_ip">XIEGUの無線機　%s に接続する</string>
     <string name="network_exception">%s : ネットワーク送信例外 : %s</string>
     <string name="login_succeed">ログイン成功</string>
     <string name="loging_failed">ログイン失敗　無効なユーザー名もしくはパスワード</string>
@@ -766,6 +767,13 @@
     <string name="import_readed_html">確認済みQSL: %d</string>
     <string name="import_canceled_html">インポートが取り消されました！</string>
     <string name="import_cancel_button">インポートを取り消す</string>
+    <string name="qsl_query_log_menu">Log (%s)</string>
+    <string name="message_list_simple_mode">単純リストモード</string>
+    <string name="message_list_standard_mode">標準リストモード</string>
+    <string name="config_msg_mode">メッセージモード</string>
+    <string name="config_msg_std_mode">標準</string>
+    <string name="config_msg_simple_mode">わかりやすい</string>
+    <string name="message_mode_help">messageMode_en.txt</string>
 
 
 </resources>

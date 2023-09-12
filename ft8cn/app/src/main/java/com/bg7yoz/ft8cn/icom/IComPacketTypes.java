@@ -1,7 +1,10 @@
 package com.bg7yoz.ft8cn.icom;
 
+import android.util.Log;
+
 /**
  * ICom各数据包的解包和封包。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -9,6 +12,7 @@ public class IComPacketTypes {
     private static final String TAG = "IComPacketTypes";
 
     public static final int TX_BUFFER_SIZE = 0xf0;
+    public static final int XIEGU_TX_BUFFER_SIZE = 0x96;
     /**
      * 各类型包的长度
      */
@@ -25,7 +29,7 @@ public class IComPacketTypes {
     public static final int CAPABILITIES_SIZE = 0x42;//功能包
     public static final int RADIO_CAP_SIZE = 0x66;
     public static final int CAP_CAPABILITIES_SIZE = 0xA8;//0x42+0x66
-    public static final int AUDIO_HEAD_SIZE=0x18;//音频数据包的头是0x10+0x08，后面再跟音频数据
+    public static final int AUDIO_HEAD_SIZE = 0x18;//音频数据包的头是0x10+0x08，后面再跟音频数据
 
 
     public static final short CMD_NULL = 0x00;//空指令
@@ -53,7 +57,8 @@ public class IComPacketTypes {
     public static final long WATCH_DOG_ALERT_MS = 2000;//触发数据接收状况报警的阈值
     public static final long METER_TIMER_PERIOD_MS = 500;//检查meter的时钟周期
 
-    public static final int AUDIO_SAMPLE_RATE = 12000;//音频的采样率
+    public static final int AUDIO_SAMPLE_RATE = 12000;//音频的采样率，这是FT8CN发送给iCom使用的采样率
+    public static final int XIEGU_AUDIO_SAMPLE_RATE = 48000;//音频的采样率，这是FT8CN发送给XIEGU使用的采样率
 
     public static final short CODEC_ALL_SUPPORTED = 0x018b;
     public static final short CODEC_ONLY_24K = 0x0100;
@@ -124,109 +129,115 @@ public class IComPacketTypes {
             if (data.length < CONTROL_SIZE) return 0;
             return readIntBigEndianData(data, 0x0c);
         }
-        public static void setRcvdId(byte[] data,int rcvdId){
-            System.arraycopy(intToBigEndian(rcvdId),0x00,data,0x0c,4);
+
+        public static void setRcvdId(byte[] data, int rcvdId) {
+            System.arraycopy(intToBigEndian(rcvdId), 0x00, data, 0x0c, 4);
         }
     }
 
-    public static class AudioPacket{
+    public static class AudioPacket {
         /**
-         *  quint32 len;        // 0x00
-         *         quint16 type;       // 0x04
-         *         quint16 seq;        // 0x06
-         *         quint32 sentid;     // 0x08
-         *         quint32 rcvdid;     // 0x0c
-         *
-         *
-         *         //接收的时候，ident=0x8116 ，8106，8006
-         *         quint16 ident;      // 0x10 发射的时候： 当datalen=0xa0时,ident=0x9781,否则ident=0x0080;
-         *         quint16 sendseq;    // 0x12
-         *         quint16 unused;     // 0x14
-         *         quint16 datalen;    // 0x16
+         * quint32 len;        // 0x00
+         * quint16 type;       // 0x04
+         * quint16 seq;        // 0x06
+         * quint32 sentid;     // 0x08
+         * quint32 rcvdid;     // 0x0c
+         * <p>
+         * <p>
+         * //接收的时候，ident=0x8116 ，8106，8006
+         * quint16 ident;      // 0x10 发射的时候： 当datalen=0xa0时,ident=0x9781,否则ident=0x0080;
+         * quint16 sendseq;    // 0x12
+         * quint16 unused;     // 0x14
+         * quint16 datalen;    // 0x16
          */
-        public static boolean isAudioPacket(byte[] data){
-            if (data.length<AUDIO_HEAD_SIZE) return false;
-            return data.length-AUDIO_HEAD_SIZE==readShortData(data,0x16);
+        public static boolean isAudioPacket(byte[] data) {
+            if (data.length < AUDIO_HEAD_SIZE) return false;
+            return data.length - AUDIO_HEAD_SIZE == readShortData(data, 0x16);
         }
-        public static short getDataLen(byte[] data){
-            return readShortData(data,0x16);
+
+        public static short getDataLen(byte[] data) {
+            return readShortData(data, 0x16);
         }
-        public static byte[] getAudioData(byte[] data){
-            byte[] audio=new byte[data.length-AUDIO_HEAD_SIZE];
-            System.arraycopy(data,0x18,audio,0,audio.length);
+
+        public static byte[] getAudioData(byte[] data) {
+            byte[] audio = new byte[data.length - AUDIO_HEAD_SIZE];
+            System.arraycopy(data, 0x18, audio, 0, audio.length);
             return audio;
         }
 
-        public static byte[] getTxAudioPacket(byte[] audio,short seq,int sentid,int rcvdid,short sendSeq){
-            byte[] packet=new byte[audio.length+AUDIO_HEAD_SIZE];
-            System.arraycopy(intToBigEndian(packet.length),0,packet,0,4);
-            System.arraycopy(shortToBigEndian(seq),0,packet,0x06,2);
-            System.arraycopy(intToBigEndian(sentid),0,packet,0x08,4);
-            System.arraycopy(intToBigEndian(rcvdid),0,packet,0x0c,4);
-            if (audio.length==0xa0){
-                System.arraycopy(shortToByte((short)0x8197),0,packet,0x10,2);
-            }else {//这个是常用的数值
-                System.arraycopy(shortToByte((short)0x8000),0,packet,0x10,2);
+        public static byte[] getTxAudioPacket(byte[] audio, short seq, int sentid, int rcvdid, short sendSeq) {
+            byte[] packet = new byte[audio.length + AUDIO_HEAD_SIZE];
+            System.arraycopy(intToBigEndian(packet.length), 0, packet, 0, 4);//包长
+            System.arraycopy(shortToBigEndian(seq), 0, packet, 0x06, 2);//序号=0
+            System.arraycopy(intToBigEndian(sentid), 0, packet, 0x08, 4);//客户id
+            System.arraycopy(intToBigEndian(rcvdid), 0, packet, 0x0c, 4);//电台id
+            if (audio.length == 0xa0) {
+                System.arraycopy(shortToByte((short) 0x8197), 0, packet, 0x10, 2);
+            } else {//这个是常用的数值
+                System.arraycopy(shortToByte((short) 0x8000), 0, packet, 0x10, 2);//一般是这个值
             }
-            System.arraycopy(shortToByte(sendSeq),0,packet,0x12,2);
+            System.arraycopy(shortToByte(sendSeq), 0, packet, 0x12, 2);//包序号
 
-            System.arraycopy(shortToByte((short)audio.length),0,packet,0x16,2);
-            System.arraycopy(audio,0,packet,0x18,audio.length);
+            System.arraycopy(shortToByte((short) audio.length), 0, packet, 0x16, 2);
+            System.arraycopy(audio, 0, packet, 0x18, audio.length);
             return packet;
         }
     }
 
-    public static class CivPacket{
-           /*
-         quint32 len;        // 0x00
-        quint16 type;       // 0x04
-        quint16 seq;        // 0x06
-        quint32 sentid;     // 0x08
-        quint32 rcvdid;     // 0x0c
-        char reply;       // 0x10,civ是c1
-        quint16 civ_len;        // 0x11 此字段是小端模式，0x0001,在数组中的顺序是0x0100
-        quint16 sendseq;    //0x13
-        byte[] civ_data;//0x15
+    public static class CivPacket {
+        /**
+         * CIV指令包
+         * quint32 len;        // 0x00
+         * quint16 type;       // 0x04
+         * quint16 seq;        // 0x06
+         * quint32 sentid;     // 0x08
+         * quint32 rcvdid;     // 0x0c
+         * char reply;       // 0x10,civ是c1
+         * quint16 civ_len;        // 0x11 此字段是小端模式，0x0001,在数组中的顺序是0x0100
+         * quint16 sendseq;    //0x13
+         * byte[] civ_data;//0x15
          */
-        public static boolean checkIsCiv(byte[] data){
-            if (data.length<=0x15) return false;
+        public static boolean checkIsCiv(byte[] data) {
+            if (data.length <= 0x15) return false;
             //是civ指令的条件：长度不能小于0x15，dataLen字段与实际相符，reply=0xc1，type!=0x01
-            return (data.length-0x15==readShortBigEndianData(data,0x11))
-                    &&(data[0x10]==(byte)0xc1)
-                    &&(ControlPacket.getType(data)!=CMD_RETRANSMIT);
+            return (data.length - 0x15 == readShortBigEndianData(data, 0x11))
+                    && (data[0x10] == (byte) 0xc1)
+                    && (ControlPacket.getType(data) != CMD_RETRANSMIT);
         }
-        public static byte[] getCivData(byte[] data){
-            byte[] civ=new byte[data.length-0x15];
-            System.arraycopy(data,0x15,civ,0,data.length-0x15);
+
+        public static byte[] getCivData(byte[] data) {
+            byte[] civ = new byte[data.length - 0x15];
+            System.arraycopy(data, 0x15, civ, 0, data.length - 0x15);
             return civ;
         }
-        public static byte[] setCivData(short seq,int sentid,int rcvdid,short civSeq, byte[] data){
-            byte[] packet=new byte[data.length+0x15];
-            System.arraycopy(intToBigEndian(packet.length),0,packet,0,4);
-            System.arraycopy(shortToBigEndian(seq),0,packet,0x06,2);
-            System.arraycopy(intToBigEndian(sentid),0,packet,0x08,4);
-            System.arraycopy(intToBigEndian(rcvdid),0,packet,0x0c,4);
-            packet[0x10]=(byte) 0xc1;
-            System.arraycopy(shortToBigEndian((short)data.length),0,packet,0x11,2);
-            System.arraycopy(shortToByte(civSeq),0,packet,0x13,2);
-            System.arraycopy(data,0,packet,0x15,data.length);
+
+        public static byte[] setCivData(short seq, int sentid, int rcvdid, short civSeq, byte[] data) {
+            byte[] packet = new byte[data.length + 0x15];
+            System.arraycopy(intToBigEndian(packet.length), 0, packet, 0, 4);
+            System.arraycopy(shortToBigEndian(seq), 0, packet, 0x06, 2);
+            System.arraycopy(intToBigEndian(sentid), 0, packet, 0x08, 4);
+            System.arraycopy(intToBigEndian(rcvdid), 0, packet, 0x0c, 4);
+            packet[0x10] = (byte) 0xc1;
+            System.arraycopy(shortToBigEndian((short) data.length), 0, packet, 0x11, 2);
+            System.arraycopy(shortToByte(civSeq), 0, packet, 0x13, 2);
+            System.arraycopy(data, 0, packet, 0x15, data.length);
             return packet;
         }
     }
 
-    public static class OpenClosePacket{
-        /*
-         quint32 len;        // 0x00
-        quint16 type;       // 0x04
-        quint16 seq;        // 0x06
-        quint32 sentid;     // 0x08
-        quint32 rcvdid;     // 0x0c
-        char reply;       // 0x10,openClose是c0,civ是c1
-        quint16 civ_len;        // 0x11 此字段是小端模式，0x0001,在数组中的顺序是0x0100
-        quint16 sendseq;    //0x13
-        char magic;         // 0x15
+    public static class OpenClosePacket {
+        /**
+         * quint32 len;        // 0x00
+         * quint16 type;       // 0x04
+         * quint16 seq;        // 0x06
+         * quint32 sentid;     // 0x08
+         * quint32 rcvdid;     // 0x0c
+         * char reply;       // 0x10,openClose是c0,civ是c1
+         * quint16 civ_len;        // 0x11 此字段是小端模式，0x0001,在数组中的顺序是0x0100
+         * quint16 sendseq;    //0x13
+         * char magic;         // 0x15
          */
-        public static byte[] toBytes(short seq, int sentId, int rcvdId,short civSeq,byte magic) {
+        public static byte[] toBytes(short seq, int sentId, int rcvdId, short civSeq, byte magic) {
             byte[] packet = new byte[OPENCLOSE_SIZE];
             System.arraycopy(intToBigEndian(OPENCLOSE_SIZE), 0, packet, 0, 4);
             //System.arraycopy(shortToBigEndian(type), 0, packet, 4, 2);
@@ -234,10 +245,10 @@ public class IComPacketTypes {
             System.arraycopy(intToBigEndian(sentId), 0, packet, 8, 4);
             System.arraycopy(intToBigEndian(rcvdId), 0, packet, 12, 4);
 
-            packet[0x10]=(byte)0xc0;
-            System.arraycopy(shortToBigEndian((short)0x0001),0,packet,0x11,2);
-            System.arraycopy(shortToByte(civSeq),0,packet,0x13,2);
-            packet[0x15]=magic;
+            packet[0x10] = (byte) 0xc0;
+            System.arraycopy(shortToBigEndian((short) 0x0001), 0, packet, 0x11, 2);
+            System.arraycopy(shortToByte(civSeq), 0, packet, 0x13, 2);
+            packet[0x15] = magic;
             return packet;
         }
     }
@@ -247,22 +258,22 @@ public class IComPacketTypes {
      * 如果reply==0，说明是对方ping过来的包，必须要回复。如果reply=1,说明是对方回Ping的，本地的pingSeq++
      */
     public static class PingPacket {
-        /*
-        quint32 len;        // 0x00
-        quint16 type;       // 0x04
-        quint16 seq;        // 0x06
-        quint32 sentid;     // 0x08
-        quint32 rcvdid;     // 0x0c
-        char  reply;        // 0x10 如果接收的数据中reply=0x00，我就要用sendReplayPingData()回复Ping。
-        union { // 此部分发送与接收定义是不同的
-            struct { // Ping包
-                quint32 time;      // 0x11
-            };
-            struct { // 发送
-                quint16 datalen;    // 0x11
-                quint16 sendseq;    //0x13
-            };
-        }
+        /**
+         * quint32 len;        // 0x00
+         * quint16 type;       // 0x04
+         * quint16 seq;        // 0x06
+         * quint32 sentid;     // 0x08
+         * quint32 rcvdid;     // 0x0c
+         * char  reply;        // 0x10 如果接收的数据中reply=0x00，我就要用sendReplayPingData()回复Ping。
+         * union { // 此部分发送与接收定义是不同的
+         *      struct { // Ping包
+         *              quint32 time;      // 0x11
+         *              };
+         *      struct { // 发送
+         *               quint16 datalen;    // 0x11
+         *               quint16 sendseq;    //0x13
+         *              };
+         *      }
          */
         public static boolean isPingPacket(byte[] data) {
             return readShortBigEndianData(data, 0x04) == CMD_PING;
@@ -326,8 +337,8 @@ public class IComPacketTypes {
      * Status（0x50）包，
      */
     public static class StatusPacket {
-        /*
-         quint32 len;                // 0x00
+        /**
+        quint32 len;                // 0x00
         quint16 type;               // 0x04
         quint16 seq;                // 0x06
         quint32 sentid;             // 0x08
@@ -386,7 +397,7 @@ public class IComPacketTypes {
      * 0x90包。电台回复，或APP回复连接参数包.
      */
     public static class ConnInfoPacket {
-        /*
+        /**
         quint32 len;              // 0x00
         quint16 type;             // 0x04
         quint16 seq;              // 0x06
@@ -437,7 +448,7 @@ public class IComPacketTypes {
          */
 
         public static boolean getBusy(byte[] data) {
-            return data[0x60] == 0x00;
+            return data[0x60] != 0x00;
         }
 
         public static byte[] getMacAddress(byte[] data) {
@@ -497,7 +508,7 @@ public class IComPacketTypes {
                                                 short seq, int localSID, int remoteSID
                 , byte requestReply, byte requestType
                 , short authInnerSendSeq, short tokRequest, int token
-                , String rigName, String userName, int sampleRate
+                , String rigName, String userName, int rx_sampleRate,int tx_sampleRate
                 , int civPort, int audioPort, int txBufferSize) {
             byte[] packet = new byte[CONNINFO_SIZE];
             System.arraycopy(intToBigEndian(CONNINFO_SIZE), 0, packet, 0, 4);//len
@@ -527,8 +538,8 @@ public class IComPacketTypes {
             packet[0x71] = 0x01;//txEnable，支持发射
             packet[0x72] = IcomCodecType.LPCM_1CH_16BIT;//rxCodec,0x04:LPcm 16Bit 1ch,0x02:LPcm 8Bit 1ch
             packet[0x73] = IcomCodecType.LPCM_1CH_16BIT;//txCodec,0x04:LPcm 16Bit 1ch,0x02:LPcm 8Bit 1ch
-            System.arraycopy(intToByte(sampleRate), 0, packet, 0x74, 4);//rxSampleRate，采样率
-            System.arraycopy(intToByte(sampleRate), 0, packet, 0x78, 4);//txSampleRate，采样率
+            System.arraycopy(intToByte(rx_sampleRate), 0, packet, 0x74, 4);//rxSampleRate，采样率
+            System.arraycopy(intToByte(tx_sampleRate), 0, packet, 0x78, 4);//txSampleRate，采样率
             System.arraycopy(intToByte(civPort), 0, packet, 0x7c, 4);//civPort，本地CI-V端口
             System.arraycopy(intToByte(audioPort), 0, packet, 0x80, 4);//audioPort，本地音频端口
             System.arraycopy(intToByte(txBufferSize), 0, packet, 0x84, 4);//txBuffer，发送缓冲区
@@ -579,7 +590,7 @@ public class IComPacketTypes {
      * 电台参数数据包（0x66长度），它是在Capabilities（0x42长度）包的后面，如果是一个，总数据包的长度是0xA8，
      */
     public static class RadioCapPacket {
-        /*
+        /**
          union {
             struct {
                 quint8 unusede[7];          // 0x00
@@ -649,7 +660,7 @@ public class IComPacketTypes {
      * Token,tokRequest的值，关闭各端口，重新开始登录操作
      */
     public static class TokenPacket {
-        /*
+        /**
         public int len = TOKEN_SIZE;    // 0x00 (int32)
         public short type;              // 0x04(int16)
         public short seq;               // 0x06(int16)
@@ -755,7 +766,7 @@ public class IComPacketTypes {
      * 登录回复包，0x60包，长度96；
      */
     public static class LoginResponsePacket {
-        /*
+        /**
         public int len;// 0x00 (int32)
         public short type;              // 0x04(int16)
         public short seq;               // 0x06(int16)
@@ -802,7 +813,7 @@ public class IComPacketTypes {
      * 登录用数据包,0x80包，长度128
      */
     public static class LoginPacket {
-        /*
+        /**
         public int len = LOGIN_SIZE;    // 0x00 (int32)
         public short type;              // 0x04(int16)
         public short seq;               // 0x06(int16)
@@ -907,7 +918,7 @@ public class IComPacketTypes {
         byte[] buf = new byte[len];
         byte[] temp = s.getBytes();
         for (int i = 0; i < temp.length; i++) {
-            if (i > len) break;
+            if (i >= len) break;
             buf[i] = temp[i];
         }
         return buf;

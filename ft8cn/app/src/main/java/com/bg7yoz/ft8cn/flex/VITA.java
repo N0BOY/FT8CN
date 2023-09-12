@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.flex;
 /**
  * VITA49协议的简单解包和封包操作。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -126,32 +127,34 @@ public class VITA {
     /**
      * 生成音频流的VITA数据包，id应当是电台create stream是赋给的
      *
-     * @param id   streamId
+     * @param stream_id   streamId
      * @param data 音频流数据
      * @return vita数据包
      */
-    public byte[] audioDataToVita(int count,long id, float[] data) {
-        byte[] result = new byte[data.length*4 + 28];//一个float占用4个字节，28字节是包头的长度7个word
-        //packetType = VitaPacketType.EXT_DATA_WITH_STREAM;
-        packetType = VitaPacketType.IF_DATA_WITH_STREAM;
+    public byte[] audioDataToVita(int count, long stream_id, int class_id, float[] data) {
+        byte[] result = new byte[data.length * 4 + 28];//一个float占用4个字节，28字节是包头的长度7个word
+        packetType = VitaPacketType.EXT_DATA_WITH_STREAM;
+        //packetType = VitaPacketType.IF_DATA_WITH_STREAM;
         classIdPresent = true;
         trailerPresent = false;//没有尾巴
-        tsi = VitaTSI.TSI_NONE;//
-//        tsi = VitaTSI.TSI_OTHER;//
-        //tsf = VitaTSF.TSF_SAMPLE_COUNT;//--TODO---查一下这个数字是不是变化
-        tsf = VitaTSF.TSF_NONE;//--TODO---查一下这个数字是不是变化
+        //tsi = VitaTSI.TSI_NONE;//
+        tsi = VitaTSI.TSI_OTHER;//
+        tsf = VitaTSF.TSF_SAMPLE_COUNT;//--TODO---查一下这个数字是不是变化
+        //tsf = VitaTSF.TSF_NONE;//--TODO---查一下这个数字是不是变化
         //packetCount动态变化
         //packetCount=？应该是这个全部音频流的总包数
+        packetCount=count % 16;//模16
 
         //packetSize是以word（32位，4字节）为单位，
         //packetSize值为263居多估计以音频，还有其它的长度,263是包含7个word（28字节）的头长度。
-        packetSize = (data.length ) + 7;//7个word是VITA的包头
+        packetSize = (data.length) + 7;//7个word是VITA的包头
         //----以上是Header,32位，第一个word-------
 
-        streamId = id;//第二个word,此id是电台赋给的。经常是0x40000xx。
+        streamId = stream_id;//第二个word,此id是电台赋给的。经常是0x40000xx。
 
         oui = 0x00001c2d;//第三个word,FlexRadio Systems OUI
-        classId = 0x534c0123;//第四个word，64位
+        //classId = 0x534c0123;//第四个word，64位
+        classId = class_id;
         //classId = 0x534c03e3;//第四个word，64位
 
         //integerTimestamp =0;// System.currentTimeMillis() / 1000;//第五个word,时间戳的整数部分，以秒为单位。应该是取当前时间
@@ -171,11 +174,11 @@ public class VITA {
         result[0] |= temp;//其实就是0011 1000,0x38//CTRR,classIdPresent、trailerPresent、R、R
         result[0] |= 0x03c0;//CTRR,classIdPresent、trailerPresent、R、R
 
-        result[1]=(byte) 0xd0;
-        result[1]|=(byte)(count&0xf);//packet count
+        result[1] = (byte) 0x0000;
+        result[1] |= (byte) (packetCount & 0xf);//packet count
         result[1] = (byte) (tsi.ordinal() << 6);//TSI
         result[1] |= (byte) (tsf.ordinal() << 4);//TSF
-        result[1] |= (byte) (packetCount & 0xff);//packetCount
+        //result[1] |= (byte) (packetCount & 0xff);//packetCount
 
         //packetSize默认263（words）
         result[2] = (byte) ((packetSize >> 8) & 0xff);//packetSize 1（高8位）
@@ -183,10 +186,10 @@ public class VITA {
 
         //-----Stream Identifier--No.2 word----
         //streamId=id;//最后两位应当是Dax编号
-        result[4] = (byte) ((streamId& 0x00ff000000 >> 24) & 0xff);
-        result[5] = (byte) (((streamId & 0x00ff0000) >> 16) & 0xff);
-        result[6] = (byte) (((streamId & 0x0000ff00) >> 8) & 0xff);
-        result[7] = (byte) (streamId & 0x000000ff);
+        result[4] = (byte) ((streamId & 0x00ff000000 >> 24) & 0xff);
+        result[5] = (byte) (((streamId &  0x00ff0000) >> 16) & 0xff);
+        result[6] = (byte) (((streamId &  0x0000ff00) >> 8) & 0xff);
+        result[7] = (byte) (streamId &    0x000000ff);
 
         //----OUI--No.3 words----
         //OUI = 0x001C2D
@@ -196,10 +199,16 @@ public class VITA {
         result[11] = 0x2d;
         //---Class Identifier--No.4 word----
         //class id=0x534c0123
-        result[12] = 0x53;
-        result[13] = 0x4c;
-        result[14] = (byte) 0x01;
-        result[15] = (byte) 0x23;
+        result[12] = (byte) ((classId & 0x00ff000000 >> 24) & 0xff);
+        result[13] = (byte) (((classId &  0x00ff0000) >> 16) & 0xff);
+        result[14] = (byte) (((classId &  0x0000ff00) >> 8) & 0xff);
+        result[15] = (byte) (classId &    0x000000ff);
+
+//        result[12] = 0x53;
+//        result[13] = 0x4c;
+//        result[14] = (byte) 0x01;
+//        result[15] = (byte) 0x23;
+
 
         //---Timestamp--No.5 word----
         //integerTimestamp=0x01020304
@@ -229,11 +238,11 @@ public class VITA {
 //        result[26] = (byte) ((fracTimeStamp >> 8) & 0x000000ff);
 //        result[27] = (byte) (fracTimeStamp & 0x000000ff);
         for (int i = 0; i < data.length; i++) {
-            byte[] bytes=ByteBuffer.allocate(4).putFloat(data[i]).array();//float转byte[]
-            result[i*4+28]= bytes[0];
-            result[i*4+29]= bytes[1];
-            result[i*4+30]= bytes[2];
-            result[i*4+31]= bytes[3];
+            byte[] bytes = ByteBuffer.allocate(4).putFloat(data[i]).array();//float转byte[]
+            result[i * 4 + 28] = bytes[0];
+            result[i * 4 + 29] = bytes[1];
+            result[i * 4 + 30] = bytes[2];
+            result[i * 4 + 31] = bytes[3];
         }
 
         /*

@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.icom;
 /**
  * 简单封装的udp协议处理
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -22,31 +23,32 @@ public class IcomUdpClient {
     private static final String TAG = "RadioUdpSocket";
 
 
-    private final int MAX_BUFFER_SIZE = 1024 *2;
+    private final int MAX_BUFFER_SIZE = 1024 * 2;
     private DatagramSocket sendSocket;
     //private int remotePort;
-    private int localPort=-1;
+    private int localPort = -1;
     private boolean activated = false;
     private OnUdpEvents onUdpEvents = null;
     private final ExecutorService doReceiveThreadPool = Executors.newCachedThreadPool();
-    private DoReceiveRunnable doReceiveRunnable=new DoReceiveRunnable(this);
+    private DoReceiveRunnable doReceiveRunnable = new DoReceiveRunnable(this);
     private final ExecutorService sendDataThreadPool = Executors.newCachedThreadPool();
-    private SendDataRunnable sendDataRunnable=new SendDataRunnable(this);
+    private SendDataRunnable sendDataRunnable = new SendDataRunnable(this);
 
     public IcomUdpClient() {//本地端口随机
-        localPort=-1;
-    }
-    public IcomUdpClient(int localPort) {//如果localPort==-1，本地端口随机
-        this.localPort=localPort;
+        localPort = -1;
     }
 
-    public void sendData(byte[] data, String ip,int port) throws UnknownHostException {
+    public IcomUdpClient(int localPort) {//如果localPort==-1，本地端口随机
+        this.localPort = localPort;
+    }
+
+    public void sendData(byte[] data, String ip, int port) throws UnknownHostException {
         if (!activated) return;
 
         InetAddress address = InetAddress.getByName(ip);
-        sendDataRunnable.address=address;
-        sendDataRunnable.data=data;
-        sendDataRunnable.port=port;
+        sendDataRunnable.address = address;
+        sendDataRunnable.data = data;
+        sendDataRunnable.port = port;
         sendDataThreadPool.execute(sendDataRunnable);
 //        new Thread(new Runnable() {
 //            @Override
@@ -66,7 +68,8 @@ public class IcomUdpClient {
 //            }
 //        }).start();
     }
-    private static class SendDataRunnable implements Runnable{
+
+    private static class SendDataRunnable implements Runnable {
         byte[] data;
         int port;
         InetAddress address;
@@ -81,12 +84,15 @@ public class IcomUdpClient {
             DatagramPacket packet = new DatagramPacket(data, data.length, address, port);
             synchronized (this) {
                 try {
-                    client.sendSocket.send(packet);
+                    if (client.sendSocket != null) client.sendSocket.send(packet);
+
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.e(TAG, "IComUdpClient: " + e.getMessage());
-                    if (client.onUdpEvents!=null){
-                        client.onUdpEvents.OnUdpSendIOException(e);
+                    if (client != null) {
+                        if (client.onUdpEvents != null) {
+                            client.onUdpEvents.OnUdpSendIOException(e);
+                        }
                     }
                 }
             }
@@ -103,12 +109,12 @@ public class IcomUdpClient {
             sendSocket = new DatagramSocket();
             //new DatagramSocket(null);//绑定的端口号随机
             sendSocket.setReuseAddress(true);
-            if (localPort!=-1) {//绑定指定的本机端口
+            if (localPort != -1) {//绑定指定的本机端口
                 sendSocket.bind(new InetSocketAddress(localPort));
             }
 
             //更新一下本地端口值
-            localPort=sendSocket.getLocalPort();
+            localPort = sendSocket.getLocalPort();
             Log.e(TAG, "openUdpPort: " + sendSocket.getLocalPort());
             //Log.e(TAG, "openUdpIp: " + sendSocket.getLocalAddress());
 
@@ -161,6 +167,7 @@ public class IcomUdpClient {
 
     public interface OnUdpEvents {
         void OnReceiveData(DatagramSocket socket, DatagramPacket packet, byte[] data);
+
         void OnUdpSendIOException(IOException e);
     }
 
@@ -192,7 +199,8 @@ public class IcomUdpClient {
         }
         return s.toString();
     }
-    private static class DoReceiveRunnable implements Runnable{
+
+    private static class DoReceiveRunnable implements Runnable {
         IcomUdpClient icomUdpClient;
 
         public DoReceiveRunnable(IcomUdpClient icomUdpClient) {

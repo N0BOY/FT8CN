@@ -215,7 +215,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_begin="110dp" />
+                app:layout_constraintGuide_begin="105dp" />
 
             <TextView
                 android:id="@+id/textView4"

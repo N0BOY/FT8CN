@@ -118,7 +118,7 @@ public class CableSerialPort {
             Log.e(TAG, "串口号不存在，无法打开。");
             return false;
         }
-        Log.e(TAG, "connect: port size:" + String.valueOf(driver.getPorts().size()));
+        Log.d(TAG, "connect: port size:" + String.valueOf(driver.getPorts().size()));
         usbSerialPort = driver.getPorts().get(portNum);
         usbConnection = usbManager.openDevice(driver.getDevice());
 

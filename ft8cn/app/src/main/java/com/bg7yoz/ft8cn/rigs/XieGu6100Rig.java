@@ -5,16 +5,19 @@ import static com.bg7yoz.ft8cn.GeneralVariables.START_QUERY_FREQ_DELAY;
 
 import android.util.Log;
 
+import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.connector.ConnectMode;
 import com.bg7yoz.ft8cn.database.ControlMode;
+import com.bg7yoz.ft8cn.ft8transmit.GenerateFT8;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class XieGu6100Rig extends BaseRig {
-    private static final String TAG = "IcomRig";
+    private static final String TAG = "x6100Rig";
 
     private final int ctrAddress = 0xE0;//接收地址，默认0xE0;电台回复命令有时也可以是0x00
     private byte[] dataBuffer = new byte[0];//数据缓冲区
@@ -52,6 +55,12 @@ public class XieGu6100Rig extends BaseRig {
         super.setPTT(on);
 
         if (getConnector() != null) {
+
+            if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
+                getConnector().setPttOn(on);
+                return;
+            }
+
             switch (getControlMode()) {
                 case ControlMode.CAT://以CIV指令
                     getConnector().setPttOn(IcomRigConstant.setPTTState(ctrAddress, getCivAddress()
@@ -127,24 +136,24 @@ public class XieGu6100Rig extends BaseRig {
         if (headIndex == -1) {//说明没有指令头
             return;
         }
-        IcomCommand icomCommand;
+        XieGu6100Command xieGu6100Command;
         if (headIndex == 0) {
-            icomCommand = IcomCommand.getCommand(ctrAddress, getCivAddress(), data);
+            xieGu6100Command = XieGu6100Command.getCommand(ctrAddress, getCivAddress(), data);
         } else {
             byte[] temp = new byte[data.length - headIndex];
             System.arraycopy(data, headIndex, temp, 0, temp.length);
-            icomCommand = IcomCommand.getCommand(ctrAddress, getCivAddress(), temp);
+            xieGu6100Command = XieGu6100Command.getCommand(ctrAddress, getCivAddress(), temp);
         }
-        if (icomCommand == null) {
+        if (xieGu6100Command == null) {
             return;
         }
 
         //目前只对频率和模式消息作反应
-        switch (icomCommand.getCommandID()) {
+        switch (xieGu6100Command.getCommandID()) {
             case IcomRigConstant.CMD_SEND_FREQUENCY_DATA://获取到的是频率数据
             case IcomRigConstant.CMD_READ_OPERATING_FREQUENCY:
                 //获取频率
-                long freqTemp = icomCommand.getFrequency(false);
+                long freqTemp = xieGu6100Command.getFrequency(false);
                 if (freqTemp >= 500000 && freqTemp <= 250000000) {//协谷的频率范围
                     setFreq(freqTemp);
                 }
@@ -153,9 +162,9 @@ public class XieGu6100Rig extends BaseRig {
             case IcomRigConstant.CMD_READ_OPERATING_MODE:
                 break;
             case IcomRigConstant.CMD_READ_METER://读meter//此处的指令，只在网络模式实现，以后可能会在串口方面实现
-                if (icomCommand.getSubCommand() == IcomRigConstant.CMD_READ_METER_SWR) {
+                if (xieGu6100Command.getSubCommand() == IcomRigConstant.CMD_READ_METER_SWR) {
                     //协谷的小端模式
-                    int temp=IcomRigConstant.twoByteBcdToIntBigEnd(icomCommand.getData(true));
+                    int temp=IcomRigConstant.twoByteBcdToIntBigEnd(xieGu6100Command.getData(true));
                     if (temp!=255) {
                         swr = temp;//
                     }
@@ -210,9 +219,23 @@ public class XieGu6100Rig extends BaseRig {
     }
 
     @Override
+    public void sendWaveData(Ft8Message message) {//发送音频数据到电台，用于网络方式
+        if (getConnector() != null) {//把生成的具体音频数据传递到Connector，
+            float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
+                    ,12000);//此处icom电台发射音频的采样率是12000
+            if (data==null){
+                setPTT(false);
+                return;
+            }
+            getConnector().sendWaveData(data);
+        }
+    }
+
+    @Override
     public void readFreqFromRig() {
         if (getConnector() != null) {
             getConnector().sendData(IcomRigConstant.setReadFreq(ctrAddress, getCivAddress()));
+            //getConnector().sendData(IcomRigConstant.setReadFreq(getCivAddress(), getCivAddress()));
         }
     }
 
@@ -237,6 +260,5 @@ public class XieGu6100Rig extends BaseRig {
         setCivAddress(civAddress);
 
         readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY, QUERY_FREQ_TIMEOUT);
-        //readFreqTimer.schedule(readTask(),START_QUERY_FREQ_DELAY,1000);
     }
 }

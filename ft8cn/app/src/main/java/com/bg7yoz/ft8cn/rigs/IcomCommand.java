@@ -115,7 +115,7 @@ public class IcomCommand {
             if (buffer[i] == (byte) 0xfe
                     && buffer[i + 1] == (byte) 0xfe//命令头0xfe 0xfe
                     && (buffer[i + 2] == (byte) ctrAddr || buffer[i + 2] == (byte) 0x00)//控制者地址默认E0或00
-                    && buffer[i + 3] == (byte) rigAddr) {//电台地址，705的默认值是A4
+                    && buffer[i + 3] == (byte) rigAddr) {//电台地址，705的默认值是A4，协谷是70
                 position = i;
                 break;
             }

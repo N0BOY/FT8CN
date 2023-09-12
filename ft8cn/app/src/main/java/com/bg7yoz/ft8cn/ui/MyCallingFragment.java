@@ -26,6 +26,8 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -139,12 +141,28 @@ public class MyCallingFragment extends Fragment {
             case 6://from 的QRZ
                 showQrzFragment(ft8Message.getCallsignFrom());
                 break;
+            case 7://查to的日志
+                navigateToLogFragment(ft8Message.getCallsignTo());
+                break;
+            case 8://查from的日志
+                navigateToLogFragment(ft8Message.getCallsignFrom());
+                break;
+
 
         }
 
         return super.onContextItemSelected(item);
     }
-
+    /**
+     * 跳转到日志查询界面
+     * @param callsign 呼号
+     */
+    private void navigateToLogFragment(String callsign){
+        mainViewModel.queryKey=callsign;//把呼号作为关键字提交
+        NavController navController = Navigation.findNavController(requireActivity()
+                , R.id.fragmentContainerView);
+        navController.navigate(R.id.action_menu_nav_mycalling_to_menu_nav_history);//跳转到日志
+    }
     /**
      * 查询QRZ信息
      *
@@ -397,6 +415,22 @@ public class MyCallingFragment extends Fragment {
                 return true;
             }
         });
+
+        binding.mycallToolsBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                GeneralVariables.simpleCallItemMode=!GeneralVariables.simpleCallItemMode;
+                transmitRecycleView.setAdapter(transmitCallListAdapter);
+                transmitCallListAdapter.notifyDataSetChanged();
+                transmitRecycleView.scrollToPosition(transmitCallListAdapter.getItemCount() - 1);
+                if (GeneralVariables.simpleCallItemMode){
+                    ToastMessage.show(GeneralVariables.getStringFromResource(R.string.message_list_simple_mode));
+                }else {
+                    ToastMessage.show(GeneralVariables.getStringFromResource(R.string.message_list_standard_mode));
+                }
+            }
+        });
+
 
         showFreeTextEdit();
         return binding.getRoot();

@@ -98,12 +98,10 @@ public class GenerateFT8 {
         }else {
             temp=callsign;
         }
-       // Log.e(TAG, "checkIsStandardCallsign: 呼号："+temp.matches("[a-zA-Z0-9]?[a-zA-Z][0-9][a-zA-Z][a-zA-Z0-9]?[a-zA-Z]") );
-        //return temp.matches("[A-Z0-9]?[A-Z][0-9][A-Z][A-Z0-9]?[A-Z]?");
-
+        //FT8的认定：标准业余呼号由一个或两个字符的前缀组成，其中至少一个必须是字母，后跟一个十进制数字和最多三个字母的后缀。
         return temp.matches("[A-Z0-9]?[A-Z0-9][0-9][A-Z][A-Z0-9]?[A-Z]?");
 
-        //FT8的认定：标准业余呼号由一个或两个字符的前缀组成，其中至少一个必须是字母，后跟一个十进制数字和最多三个字母的后缀。
+
     }
 
     /**
@@ -147,7 +145,6 @@ public class GenerateFT8 {
         }else {
             msg.modifier="";
         }
-        //msg.callsignTo="CQ AzCz";
 
         //判定用非标准呼号i3=4的条件：
         //1.FROMCALL为非标准呼号 ，且 符合2或3
