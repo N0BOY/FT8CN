@@ -97,7 +97,7 @@ public class Yaesu3RigConstant {
         return USB_MODE.getBytes();
     }
     public static byte[] setOperationUSB_Data_Mode() {
-        return USB_MODE_DATA.getBytes();
+        return DATA_U_MODE.getBytes();
     }
 
     public static byte[] setOperationDATA_U_Mode() {

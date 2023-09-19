@@ -63,4 +63,5 @@ BG7YOZ
    BG2EFX，提供大数据量的日志用于测试
    DS1UFX，贡献(tr)uSDX audio over CAT代码
    BG8HT，提供某型号电台进行测试
+   UB6LUM，帮助解决某型号电台的操作模式设置
 ```
