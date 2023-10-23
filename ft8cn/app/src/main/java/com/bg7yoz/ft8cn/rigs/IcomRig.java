@@ -56,8 +56,13 @@ public class IcomRig extends BaseRig {
 
             switch (getControlMode()) {
                 case ControlMode.CAT://以CIV指令
-                    getConnector().setPttOn(IcomRigConstant.setPTTState(ctrAddress, getCivAddress()
-                            , on ? IcomRigConstant.PTT_ON : IcomRigConstant.PTT_OFF));
+                    try{
+                        Thread.sleep(100);
+                        getConnector().setPttOn(IcomRigConstant.setPTTState(ctrAddress, getCivAddress()
+                                , on ? IcomRigConstant.PTT_ON : IcomRigConstant.PTT_OFF));
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage());
+                    }
                     break;
                 //case ControlMode.NETWORK:
                 case ControlMode.RTS:
