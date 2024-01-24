@@ -33,12 +33,6 @@ public class FlexRadioInfoFragment extends Fragment {
     }
 
 
-//    public static FlexRadioInfoFragment newInstance(String param1, String param2) {
-//        FlexRadioInfoFragment fragment = new FlexRadioInfoFragment();
-//
-//        return fragment;
-//    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

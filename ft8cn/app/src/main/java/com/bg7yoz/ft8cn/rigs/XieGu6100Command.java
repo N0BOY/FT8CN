@@ -216,6 +216,7 @@ public class XieGu6100Command {
      */
     public long getFrequency(boolean hasSubCommand) {
         byte[] data = getData(hasSubCommand);
+        if (data == null) return -1;
         if (data.length < 5) {
             return -1;
         }

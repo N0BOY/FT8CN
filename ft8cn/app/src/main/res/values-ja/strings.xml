@@ -768,12 +768,38 @@
     <string name="import_canceled_html">インポートが取り消されました！</string>
     <string name="import_cancel_button">インポートを取り消す</string>
     <string name="qsl_query_log_menu">Log (%s)</string>
-    <string name="message_list_simple_mode">単純リストモード</string>
+    <string name="message_list_simple_mode">簡易リストモード</string>
     <string name="message_list_standard_mode">標準リストモード</string>
-    <string name="config_msg_mode">メッセージモード</string>
-    <string name="config_msg_std_mode">標準</string>
-    <string name="config_msg_simple_mode">わかりやすい</string>
+    <string name="config_msg_mode">表示</string>
+    <string name="config_msg_std_mode">標準表示</string>
+    <string name="config_msg_simple_mode">簡易表示</string>
     <string name="message_mode_help">messageMode_en.txt</string>
-
+    <string name="pl_select_xiegu_radio">存在するXIEGUを選択してください</string>
+    <string name="select_xiegu_device">選択されたXieguRadioデバイス: %s</string>
+    <string name="xiegu_connect_failed">XieguRadio %s の接続に失敗しました</string>
+    <string name="x6100_packet_lost">パケット損失：%d</string>
+    <string name="xiegu_name_label">XIEGU</string>
+    <string name="xiegu_ping_value">Ping: %d ms</string>
+    <string name="xiegu_start_atu">ATUを起動</string>
+    <string name="xiegu_atu_on">ATU On</string>
+    <string name="xiegu_atu_off">ATU Off</string>
+    <string name="xiegu_band_str">バンド: %s</string>
+    <string name="alc_low_alert">警告！ALCが低すぎます</string>
+    <string name="xiegu_meter_info">S.Meter: %.1f dBm\nSWR: %s\nALC: %.1f\nVolt: %.1fV\nTX power: %.1f W\nMax tx power: %.1f\nTX volume:%d%%</string>
+    <string name="serial_connect_no_access">シリアルポートに接続できません。USBデバイスへのアクセス権限があるか確認してください！</string>
+    <string name="serial_connect_failed">シリアルポートのオープンに失敗しました</string>
+    <string name="serial_no_driver">シリアルポートを接続できません、ドライブがないかシリアルポートが存在しません！</string>
+    <string name="serial_data_bits">Data bit</string>
+    <string name="serial_parity">Parity</string>
+    <string name="serial_parity_none">None</string>
+    <string name="serial_parity_odd">Odd</string>
+    <string name="serial_parity_even">Even</string>
+    <string name="serial_parity_mark">Mark</string>
+    <string name="serial_parity_space">Space</string>
+    <string name="serial_stop_bits">Stop bits</string>
+    <string name="serial_default">デフォルト設定</string>
+    <string name="serial_setting_help">serial_help_en.txt</string>
+    <string name="tcp_connect_closed">The network connection has been disconnected.</string>
+    <string name="rtty_ru_msg">RTTY RU</string>
 
 </resources>

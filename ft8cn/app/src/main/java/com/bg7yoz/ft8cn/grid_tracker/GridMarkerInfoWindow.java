@@ -91,7 +91,8 @@ public class GridMarkerInfoWindow extends InfoWindow {
 
 
         ImageButton imageButton=(ImageButton) this.mView.findViewById(R.id.callThisImageButton);
-        if (GeneralVariables.myCallsign.equals(msg.getCallsignFrom())){
+        //if (GeneralVariables.myCallsign.equals(msg.getCallsignFrom())){
+        if (GeneralVariables.checkIsMyCallsign(msg.getCallsignFrom())){
             imageButton.setVisibility(View.GONE);
         }
 

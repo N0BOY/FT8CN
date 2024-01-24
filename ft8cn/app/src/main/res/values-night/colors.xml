@@ -19,6 +19,9 @@
     <color name="tracker_line_color">#FFFFFFFF</color>
     <color name="tracker_in_my_line_color">#ffFF1E27</color>
 
+    <color name="xiegu_icon_start_color">#E6606060</color>
+    <color name="xiegu_icon_end_color">#DF1E1E1E</color>
+
     <color name="power_progress_value">#ff00ffff</color>
     <color name="power_progress_radar_value">#B552AEF8</color>
 

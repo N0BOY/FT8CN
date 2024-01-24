@@ -6,6 +6,7 @@ package com.bg7yoz.ft8cn;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
@@ -18,6 +19,7 @@ import com.bg7yoz.ft8cn.html.HtmlContext;
 import com.bg7yoz.ft8cn.icom.IcomAudioUdp;
 import com.bg7yoz.ft8cn.log.QSLRecord;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
+import com.bg7yoz.ft8cn.serialport.UsbSerialPort;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.util.ArrayList;
@@ -171,6 +173,9 @@ public class GeneralVariables {
     public static int civAddress = 0xa4;//civ地址
     public static int baudRate = 19200;//波特率
     public static long band = 14074000;//载波频段
+    public static int serialDataBits=8;//默认是8
+    public static int serialParity = 0;//UsbSerialPort.PARITY_NONE默认是0，即：无
+    public static int serialStopBits=1;//停止位的对应关系：1=1,2=3,3=1.5
     public static int instructionSet = 0;//指令集，0:icom，1:yaesu 2 代，2:yaesu 3代。
     public static int bandListIndex = -1;//电台波段的索引值
     public static MutableLiveData<Integer> mutableBandChange = new MutableLiveData<>();//波段索引值变化
@@ -254,6 +259,37 @@ public class GeneralVariables {
         return QSL_Callsign_list_other_band.contains(callsign);
     }
 
+    /**
+     * 检查呼号中是不是含有我的呼号
+     * @param callsign 呼号
+     * @return boolean
+     */
+    static public boolean checkIsMyCallsign(String callsign){
+        if (GeneralVariables.myCallsign.length() == 0) return false;
+        String temp = getShortCallsign(GeneralVariables.myCallsign);
+        return callsign.contains(temp);
+    }
+
+    /**
+     * 对于复合呼号，获取去掉前缀或后缀的呼号
+     * @return 呼号
+     */
+    static public String getShortCallsign(String callsign){
+        if (callsign.contains("/")){
+            String[] temp = callsign.split("/");
+            int max =0;
+            int max_index =0;
+            for (int i = 0; i < temp.length; i++) {
+                if (temp[i].length()>max){
+                    max = temp[i].length();
+                    max_index=i;
+                }
+            }
+            return temp[max_index];
+        }else{
+            return callsign;
+        }
+    }
 
     /**
      * 查该呼号是不是在关注的呼号列表中

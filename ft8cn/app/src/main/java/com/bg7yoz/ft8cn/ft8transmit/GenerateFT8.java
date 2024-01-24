@@ -122,15 +122,7 @@ public class GenerateFT8 {
         return generateFt8(msg,frequency,sample_rate,true);
     }
 
-    /**
-     * 生成FT8信号
-     * @param msg 消息
-     * @param frequency 频率
-     * @param sample_rate 采样率
-     * @param hasModifier 是否有修饰符
-     * @return
-     */
-    public static float[] generateFt8(Ft8Message msg, float frequency,int sample_rate,boolean hasModifier) {
+    public static byte[] generateA91(Ft8Message msg,boolean hasModifier){
         if (msg.callsignFrom.length()<3){
             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.callsign_error));
             return null;
@@ -146,6 +138,7 @@ public class GenerateFT8 {
             msg.modifier="";
         }
 
+
         //判定用非标准呼号i3=4的条件：
         //1.FROMCALL为非标准呼号 ，且 符合2或3
         //2.扩展消息时 网格、RR73,RRR,73
@@ -157,7 +150,9 @@ public class GenerateFT8 {
             if (!checkIsStandardCallsign(msg.callsignFrom)
                     && (!checkIsReport(msg.extraInfo) || msg.checkIsCQ())) {
                 msg.i3 = 4;
-            } else if (msg.callsignFrom.endsWith("/P")||(msg.callsignTo.endsWith("/P"))) {
+            //} else if (msg.callsignFrom.endsWith("/P")||(msg.callsignTo.endsWith("/P"))) {
+            } else if (msg.callsignFrom.endsWith("/P")//如果目标有/P后缀，则以目标呼号为准。如果目标没有/P后缀，则以发送方是否有/P后缀为准
+                    ||(msg.callsignTo.endsWith("/P")&&(!msg.callsignFrom.endsWith("/P")))) {
                 msg.i3 = 2;
             } else {
                 msg.i3 = 1;
@@ -172,39 +167,62 @@ public class GenerateFT8 {
             packFreeTextTo77(msg.getMessageText(), packed);
         }
 
-        return generateFt8ByA91(packed,frequency,sample_rate);
+        return packed;
+    }
 
-        /*
-        // 其次，将二进制消息编码为FSK音调序列,79个字节
-        byte[] tones = new byte[num_tones]; // 79音调（符号）数组
-        //此处是88个字节（91+7）/8，可以使用a91生成音频
-        ft8_encode(packed, tones);
+    /**
+     * 生成FT8信号
+     * @param msg 消息
+     * @param frequency 频率
+     * @param sample_rate 采样率
+     * @param hasModifier 是否有修饰符
+     * @return
+     */
+    public static float[] generateFt8(Ft8Message msg, float frequency,int sample_rate,boolean hasModifier) {
+//        if (msg.callsignFrom.length()<3){
+//            ToastMessage.show(GeneralVariables.getStringFromResource(R.string.callsign_error));
+//            return null;
+//        }
+//        // 首先，将文本数据打包为二进制消息,共12个字节
+//        byte[] packed = new byte[FTX_LDPC_K_BYTES];
+//        //把"<>"去掉
+//        msg.callsignTo = msg.callsignTo.replace("<", "").replace(">", "");
+//        msg.callsignFrom = msg.callsignFrom.replace("<", "").replace(">", "");
+//        if (hasModifier) {
+//            msg.modifier = GeneralVariables.toModifier;//修饰符
+//        }else {
+//            msg.modifier="";
+//        }
 
-        // 第三，将FSK音调转换为音频信号b
+        //判定用非标准呼号i3=4的条件：
+        //1.FROMCALL为非标准呼号 ，且 符合2或3
+        //2.扩展消息时 网格、RR73,RRR,73
+        //3.CQ,QRZ,DE
 
 
-        int num_samples = (int) (0.5f + num_tones * symbol_period * sample_rate); // 数据信号中的采样数0.5+79*0.16*12000
 
-        //float[] signal = new float[Ft8num_samples];
-        float[] signal = new float[num_samples];
+//        if (msg.i3 != 0) {//目前只支持i3=1,i3=2,i3=4,i3=0 && n3=0
+//            if (!checkIsStandardCallsign(msg.callsignFrom)
+//                    && (!checkIsReport(msg.extraInfo) || msg.checkIsCQ())) {
+//                msg.i3 = 4;
+//            } else if (msg.callsignFrom.endsWith("/P")||(msg.callsignTo.endsWith("/P"))) {
+//                msg.i3 = 2;
+//            } else {
+//                msg.i3 = 1;
+//            }
+//        }
+//
+//        if (msg.i3 == 1 || msg.i3 == 2) {
+//            packed = FT8Package.generatePack77_i1(msg);
+//        } else if (msg.i3 == 4) {//说明是非标准呼号
+//            packed = FT8Package.generatePack77_i4(msg);
+//        } else {
+//            packFreeTextTo77(msg.getMessageText(), packed);
+//        }
 
-        //Ft8num_sampleFT8声音的总采样数，不是字节数。15*12000
-        //for (int i = 0; i < Ft8num_samples; i++)//把数据全部静音。
-        for (int i = 0; i < num_samples; i++)//把数据全部静音。
-        {
-            signal[i] = 0;
-        }
+        return generateFt8ByA91(generateA91(msg,hasModifier),frequency,sample_rate);
+        //return generateFt8ByA91(packed,frequency,sample_rate);
 
-        // 用79个字节符号，生成FT8音频
-        synth_gfsk(tones, num_tones, frequency, symbol_bt, symbol_period, sample_rate, signal, 0);
-        for (int i = 0; i < num_samples; i++)//把数据全部静音。
-        {
-           if (signal[i]>1.0||signal[i]<-1.0){
-               Log.e(TAG, "generateFt8: "+signal[i] );
-           }
-        }
-        return signal;
-        */
     }
 
     public static float[] generateFt8ByA91(byte[] a91, float frequency,int sample_rate){
@@ -218,11 +236,6 @@ public class GenerateFT8 {
         int num_samples = (int) (0.5f + num_tones * symbol_period * sample_rate); // 数据信号中的采样数0.5+79*0.16*12000
 
 
-
-        //int num_silence = (int) ((slot_time * sample_rate - num_samples) / 2); // 两端填充静音到15秒（15*12000-num_samples）/2（1.18秒的样本数）
-        //int num_total_samples = num_silence + num_samples + num_silence;         // 填充信号中的样本数2.36秒+12.64秒=15秒的样本数
-
-        //float[] signal = new float[Ft8num_samples];
         float[] signal = new float[num_samples];
 
         //Ft8num_sampleFT8声音的总采样数，不是字节数。15*12000

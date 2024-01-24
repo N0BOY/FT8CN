@@ -29,6 +29,8 @@ public class IcomRig extends BaseRig {
     private boolean alcMaxAlert = false;
     private boolean swrAlert = false;
     private Timer meterTimer;//查询meter的Timer
+
+    private boolean oldVersion=false;//针对老电台，可能不支持SWR查询
     //private boolean isPttOn = false;
 
     @Override
@@ -166,9 +168,11 @@ public class IcomRig extends BaseRig {
 
         //目前只对频率和模式消息作反应
         switch (icomCommand.getCommandID()) {
+
             case IcomRigConstant.CMD_SEND_FREQUENCY_DATA://获取到的是频率数据
             case IcomRigConstant.CMD_READ_OPERATING_FREQUENCY:
                 //获取频率
+                //ToastMessage.show(byteToStr(icomCommand.getData(false)));
                 setFreq(icomCommand.getFrequency(false));
                 break;
             case IcomRigConstant.CMD_SEND_MODE_DATA://获取到的是模式数据
@@ -211,9 +215,7 @@ public class IcomRig extends BaseRig {
 
     @Override
     public void onReceiveData(byte[] data) {
-
-        //ToastMessage.show("--"+byteToStr(data));
-
+        //ToastMessage.show(byteToStr(data));
 
         int commandEnd = getCommandEnd(data);
         if (commandEnd <= -1) {//这是没有指令结尾
@@ -259,7 +261,7 @@ public class IcomRig extends BaseRig {
         meterTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                if (isPttOn()) {//当Ptt被按下去的时候测量
+                if (isPttOn() && !oldVersion) {//当Ptt被按下去的时候测量,并且不是老版本的电台
                     sendCivData(IcomRigConstant.getSWRState(ctrAddress, getCivAddress()));
                     sendCivData(IcomRigConstant.getALCState(ctrAddress, getCivAddress()));
                 }
@@ -272,8 +274,10 @@ public class IcomRig extends BaseRig {
         return BaseRigOperation.getFrequencyStr(getFreq());
     }
 
-    public IcomRig(int civAddress) {
+
+    public IcomRig(int civAddress,boolean newRig) {
         Log.d(TAG, "IcomRig: Create.");
+        this.oldVersion = !newRig;
         setCivAddress(civAddress);
         startMeterTimer();
     }

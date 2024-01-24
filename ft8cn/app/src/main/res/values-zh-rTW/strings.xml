@@ -490,6 +490,31 @@
     <string name="config_msg_std_mode">標准</string>
     <string name="config_msg_simple_mode">精簡</string>
     <string name="message_mode_help">messageMode.txt</string>
-
+    <string name="pl_select_xiegu_radio">請選擇協谷電臺設備</string>
+    <string name="select_xiegu_device">選擇協谷電臺：%s</string>
+    <string name="xiegu_connect_failed">連接Xiegu %s 失敗！</string>
+    <string name="x6100_packet_lost">丟包數：%d</string>
+    <string name="xiegu_name_label">XIEGU</string>
+    <string name="xiegu_ping_value">Ping: %d ms</string>
+    <string name="xiegu_start_atu">啓動ATU</string>
+    <string name="xiegu_atu_on">ATU On</string>
+    <string name="xiegu_atu_off">ATU Off</string>
+    <string name="xiegu_band_str">頻段：%s</string>
+    <string name="alc_low_alert">警告！ALC太低了。</string>
+    <string name="xiegu_meter_info">信號強度: %.1f dBm\n駐波: %s\nALC: %.1f\n電壓: %.1fV\n發射功率: %.1f W\n最大發射功率: %.1f\n發射音量:%d%%</string>
+    <string name="serial_connect_no_access">無法連接串口，請確認是否有訪問USB設備的權限！</string>
+    <string name="serial_connect_failed">串口打開失敗！</string>
+    <string name="serial_no_driver">無法連接串口，沒有驅動或串口不存在！</string>
+    <string name="serial_data_bits">數據位</string>
+    <string name="serial_parity">校驗位</string>
+    <string name="serial_parity_none">無校驗位</string>
+    <string name="serial_parity_odd">奇數校驗</string>
+    <string name="serial_parity_even">偶數校驗</string>
+    <string name="serial_parity_mark">總爲1</string>
+    <string name="serial_parity_space">總爲0</string>
+    <string name="serial_stop_bits">停止位</string>
+    <string name="serial_default">默認設置</string>
+    <string name="serial_setting_help">serial_help.txt</string>
+    <string name="tcp_connect_closed">網路連接已經斷開！</string>
 
 </resources>

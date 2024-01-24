@@ -209,22 +209,24 @@ public class HamRecorder {
             onHamRecord = new OnHamRecord() {
                 @Override
                 public void OnReceiveData(float[] data, int size) {
-                    for (int i = 0; (i < size) && (dataCount < voiceData.length); i++) {
-                        voiceData[dataCount] = data[i];//把录音缓冲区的数据搬运到本监听器中来
-                        dataCount++;
-                    }
-                    if (dataCount >= (voiceData.length)) {//当数据量达到所需要的。发起回调。
-//                        new Thread(new Runnable() {//以新的线程运行，防止占用过多的录音时间。
-//                            @Override
-//                            public void run() {
-                                onGetVoiceDataDone.onGetDone(voiceData);
-//                            }
-//                        }).start();
+                    int remainingSize = size+dataCount-voiceData.length;//如果大于0,就是剩余的数据量，
 
+                    for (int i = 0; (i < size) && (dataCount < voiceData.length); i++) {
+                            voiceData[dataCount] = data[i];//把录音缓冲区的数据搬运到本监听器中来
+                            dataCount++;
+                    }
+
+                    if (dataCount >= (voiceData.length)) {//当数据量达到所需要的。发起回调。
+                        onGetVoiceDataDone.onGetDone(voiceData);
                         if (afterDoneRemove) {//如果是一次性的获取数据，则在录音对象中的监听列表中删除此监听回调。
                             hamRecorder.deleteVoiceDataMonitor(voiceDataMonitor);
                         } else {
                             dataCount = 0;//如果是循环录音，则复位计数器。
+                            if (remainingSize>0) {//把剩余的数据补发到后续事件上
+                                float[] remainingData = new float[remainingSize];
+                                System.arraycopy(data, size - remainingSize, remainingData, 0, remainingSize);
+                                OnReceiveData(remainingData,remainingSize);
+                            }
                         }
                     }
                 }

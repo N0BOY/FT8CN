@@ -139,6 +139,7 @@ public class Flex6000Rig extends BaseRig {
                 }
             }
         },START_QUERY_FREQ_DELAY-500);
+
         readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY,QUERY_FREQ_TIMEOUT);
     }
 }

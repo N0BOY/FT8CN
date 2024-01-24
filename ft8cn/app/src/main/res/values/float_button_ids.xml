@@ -7,5 +7,6 @@
     <item name="grid_tracker_config" type="id" />
     <item name="grid_tracker_trans" type="id" />
     <item name="flex_radio" type="id" />
+    <item name="xiegu_radio" type="id" />
 
 </resources>

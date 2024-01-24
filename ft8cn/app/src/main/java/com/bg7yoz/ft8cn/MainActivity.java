@@ -16,7 +16,6 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -61,12 +60,7 @@ import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -232,30 +226,16 @@ public class MainActivity extends AppCompatActivity {
 
 
         //观察是不是flex radio
-
         mainViewModel.mutableIsFlexRadio.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                //if (floatView==null) return;
                 if (aBoolean) {
                     //添加flex配置按钮
                     floatView.addButton(R.id.flex_radio, "flex_radio", R.drawable.flex_icon
                             , new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-
                                     navController.navigate(R.id.flexRadioInfoFragment);
-
-//                                    if (mainViewModel.baseRig != null) {
-//                                        if (mainViewModel.baseRig.isConnected()) {
-//                                            ToastMessage.show("flex connected");
-//                                        }else {
-//                                            ToastMessage.show("flex disconnected");
-//                                        }
-//                                    }else {
-//                                        ToastMessage.show("rig is null");
-//                                    }
-
                                 }
                             });
                 } else {//删除flex配置按钮
@@ -264,6 +244,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //观察是不是xiegu radio
+        mainViewModel.mutableIsXieguRadio.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if (aBoolean) {
+                    //添加xiegu配置按钮
+                    floatView.addButton(R.id.xiegu_radio, "xiegu_radio", R.drawable.xiegulogo32
+                            , new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    navController.navigate(R.id.xieguInfoFragment);
+                                }
+                            });
+                } else {//删除xiegu配置按钮
+                    floatView.deleteButtonByName("xiegu_radio");
+                }
+            }
+        });
 
         //关闭串口设备列表按钮
         binding.closeSelectSerialPortImageView.setOnClickListener(new View.OnClickListener() {

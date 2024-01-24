@@ -62,6 +62,9 @@ public class VolumeProgress extends View {
         init();
         invalidate();
     }
+    public float getPercent(){
+        return mPercent;
+    }
     public void reDraw(){
         setPercent(mPercent);
     }

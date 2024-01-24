@@ -53,4 +53,9 @@
         android:name="com.bg7yoz.ft8cn.ui.FlexRadioInfoFragment"
         android:label="fragment_flex_radio_info"
         tools:layout="@layout/fragment_flex_radio_info" />
+    <fragment
+        android:id="@+id/xieguInfoFragment"
+        android:name="com.bg7yoz.ft8cn.ui.XieguInfoFragment"
+        android:label="fragment_xiegu_info"
+        tools:layout="@layout/fragment_xiegu_info" />
 </navigation>

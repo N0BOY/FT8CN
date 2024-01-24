@@ -12,9 +12,11 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -24,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bg7yoz.ft8cn.Ft8Message;
+import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.util.ArrayList;
@@ -44,7 +47,8 @@ public class WaterfallView extends View {
     private Paint touchPaint = new Paint();
     private final Paint fontPaint = new Paint();
     private final Paint messagePaint = new Paint();
-    private final Paint messagePaintBack = new Paint();//消息背景
+    private final Paint textLinePaint = new Paint();
+//    private final Paint messagePaintBack = new Paint();//消息背景
     private final Paint utcPaint = new Paint();
     Paint linearPaint = new Paint();
     private final Paint utcPainBack = new Paint();
@@ -105,6 +109,14 @@ public class WaterfallView extends View {
         fontPaint.setDither(true);
         fontPaint.setTextAlign(Paint.Align.LEFT);
 
+
+        textLinePaint.setColor(0xff00ffff);
+        textLinePaint.setAntiAlias(true);
+        textLinePaint.setDither(true);
+        textLinePaint.setStrokeWidth(2);
+        textLinePaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
+
         // messagePaint = new Paint();
         messagePaint.setTextSize(dpToPixel(11));
         messagePaint.setColor(0xff00ffff);
@@ -113,16 +125,17 @@ public class WaterfallView extends View {
         messagePaint.setStrokeWidth(0);
         messagePaint.setStyle(Paint.Style.FILL_AND_STROKE);
         messagePaint.setTextAlign(Paint.Align.CENTER);
+        messagePaint.setShadowLayer(10,5,5,Color.BLACK);
 
         //messagePaintBack = new Paint();
-        messagePaintBack.setTextSize(dpToPixel(11));
-        messagePaintBack.setColor(0xff000000);//背景不透明
-        messagePaintBack.setAntiAlias(true);
-        messagePaintBack.setDither(true);
-        messagePaintBack.setStrokeWidth(dpToPixel(3));
-        messagePaintBack.setFakeBoldText(true);
-        messagePaintBack.setStyle(Paint.Style.FILL_AND_STROKE);
-        messagePaintBack.setTextAlign(Paint.Align.CENTER);
+//        messagePaintBack.setTextSize(dpToPixel(11));
+//        messagePaintBack.setColor(0xff000000);//背景不透明
+//        messagePaintBack.setAntiAlias(true);
+//        messagePaintBack.setDither(true);
+//        messagePaintBack.setStrokeWidth(dpToPixel(3));
+//        messagePaintBack.setFakeBoldText(true);
+//        messagePaintBack.setStyle(Paint.Style.FILL_AND_STROKE);
+//        messagePaintBack.setTextAlign(Paint.Align.CENTER);
 
         //utcPaint = new Paint();
         utcPaint.setTextSize(dpToPixel(10));
@@ -132,6 +145,7 @@ public class WaterfallView extends View {
         utcPaint.setStrokeWidth(0);
         utcPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         utcPaint.setTextAlign(Paint.Align.LEFT);
+
 
         //utcPainBack = new Paint();
         utcPainBack.setTextSize(dpToPixel(10));
@@ -242,27 +256,39 @@ public class WaterfallView extends View {
         //消息有3种：普通、CQ、有我
         if (drawMessage && messages != null) {
             drawMessage = false;//只画一遍
-            fontPaint.setTextAlign(Paint.Align.LEFT);
+            //fontPaint.setTextAlign(Paint.Align.LEFT);
+            //fontPaint.setStrikeThruText(true);
             for (Ft8Message msg : messages) {
 
                 if (msg.inMyCall()) {//与我有关
                     messagePaint.setColor(0xffffb2b2);
+                    textLinePaint.setColor(0xffffb2b2);
                 } else if (msg.checkIsCQ()) {//CQ
                     messagePaint.setColor(0xffeeee00);
+                    textLinePaint.setColor(0xffeeee00);
                 } else {
                     messagePaint.setColor(0xff00ffff);
+                    textLinePaint.setColor(0xff00ffff);
                 }
+
                 Path path = new Path();
 
                 path.moveTo(msg.freq_hz * freq_width, pathStart);
                 path.lineTo(msg.freq_hz * freq_width, pathEnd);
 
 
-                _canvas.drawTextOnPath(msg.getMessageText(true), path
-                        , 0, 0, messagePaintBack);//消息背景
+
+//                _canvas.drawTextOnPath(msg.getMessageText(true), path
+//                        , 0, 0, messagePaintBack);//消息背景
                 _canvas.drawTextOnPath(msg.getMessageText(true), path
                         , 0, 0, messagePaint);//消息
-
+                if (GeneralVariables.checkQSLCallsign(msg.getCallsignFrom())) {//画删除线
+                    float text_len = messagePaint.measureText(msg.getMessageText(true));
+                    float text_start = ((pathEnd- pathStart)-text_len)/2;
+                    float text_high =dpToPixel(4);//messagePaint.getFontSpacing()/2;
+                    _canvas.drawLine(msg.freq_hz * freq_width + text_high , text_start
+                            , msg.freq_hz * freq_width + text_high, text_len + text_start, textLinePaint);
+                }
             }
         }
 

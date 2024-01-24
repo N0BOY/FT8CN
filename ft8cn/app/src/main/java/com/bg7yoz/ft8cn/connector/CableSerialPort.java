@@ -20,6 +20,8 @@ import android.os.Build;
 import android.util.Log;
 
 import com.bg7yoz.ft8cn.BuildConfig;
+import com.bg7yoz.ft8cn.GeneralVariables;
+import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.serialport.CdcAcmSerialDriver;
 import com.bg7yoz.ft8cn.serialport.UsbSerialDriver;
 import com.bg7yoz.ft8cn.serialport.UsbSerialPort;
@@ -134,7 +136,7 @@ public class CableSerialPort {
         }
         if (driver == null) {
             if (onStateChanged!=null){
-                onStateChanged.onRunError("无法连接串口，没有驱动或串口不存在！");
+                onStateChanged.onRunError(GeneralVariables.getStringFromResource(R.string.serial_no_driver));
             }
             return false;
         }
@@ -164,7 +166,7 @@ public class CableSerialPort {
         }
         if (usbConnection == null) {
             if (onStateChanged!=null){
-                onStateChanged.onRunError("无法连接串口，可能没有访问USB设备的权限！");
+                onStateChanged.onRunError(GeneralVariables.getStringFromResource(R.string.serial_connect_no_access));
             }
 
             return false;
@@ -172,7 +174,13 @@ public class CableSerialPort {
         try {
             usbSerialPort.open(usbConnection);
             //波特率、停止位
-            usbSerialPort.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE);
+            //usbSerialPort.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE);
+            Log.d(TAG,String.format("serial:baud rate：%d,data bits:%d,stop bits:%d,parity bit:%d"
+                    ,baudRate,GeneralVariables.serialDataBits
+                    ,GeneralVariables.serialStopBits
+                    ,GeneralVariables.serialParity));
+            usbSerialPort.setParameters(baudRate, GeneralVariables.serialDataBits
+                    , GeneralVariables.serialStopBits, GeneralVariables.serialParity);
             usbIoManager = new SerialInputOutputManager(usbSerialPort, new SerialInputOutputManager.Listener() {
                 @Override
                 public void onNewData(byte[] data) {
@@ -201,7 +209,8 @@ public class CableSerialPort {
         } catch (Exception e) {
             Log.e(TAG, "串口打开失败: " + e.getMessage());
             if (onStateChanged!=null){
-                onStateChanged.onRunError("串口打开失败: " + e.getMessage());
+                onStateChanged.onRunError(GeneralVariables.getStringFromResource(R.string.serial_connect_failed)
+                        + e.getMessage());
             }
             disconnect();
             return false;

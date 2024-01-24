@@ -19,6 +19,8 @@ public class Yaesu2RigConstant {
     private static final byte[] PTT_ON = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x08};
     private static final byte[] PTT_OFF = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x88};
     private static final byte[] GET_METER = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xBD};
+    private static final byte[] GET_CONNECT = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
+    private static final byte[] GET_DISCONNECT = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x80};
     //USB模式
     private static final byte[] USB_MODE = {(byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x07};
     //DIG模式
@@ -61,11 +63,19 @@ public class Yaesu2RigConstant {
     public static byte[] setOperationUSBMode() {
         return DIG_MODE;
     }
-
+    public static byte[] setOperationUSB847Mode() {
+        return USB_MODE;
+    }
     public static byte[] readMeter() {
         return GET_METER;
     }
 
+    public static byte[] sendConnectData() {
+        return GET_CONNECT;
+    }
+    public static byte[] sendDisconnectData() {
+        return GET_DISCONNECT;
+    }
     public static byte[] setOperationFreq(long freq) {
         byte[] data = new byte[]{
                 (byte) (((byte) (freq % 1000000000 / 100000000) << 4) + (byte) (freq % 100000000 / 10000000))
