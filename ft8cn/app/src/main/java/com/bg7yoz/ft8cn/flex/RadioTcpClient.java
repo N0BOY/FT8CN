@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,7 +22,7 @@ public class RadioTcpClient {
     private static RadioTcpClient radioTcpClient = null;
     private String ip;
     private int port;
-    public static final int MAX_BUFFER_SIZE=1024 * 64;
+    public static final int MAX_BUFFER_SIZE=1024 * 32;
 
     private final ExecutorService sendByteThreadPool = Executors.newCachedThreadPool();
     private final SendByteRunnable sendByteRunnable=new SendByteRunnable(this);
@@ -115,27 +116,40 @@ public class RadioTcpClient {
                     return;
                 }
 
-            } catch (IOException e) {
-
+            }catch (SocketException e){
+                Log.e(TAG,"TCP Connection exception:"+e.getMessage());
+            }
+            catch (IOException e) {
                 connectFail();
                 Log.e(TAG, "SocketThread connect io exception = " + e.getMessage());
                 e.printStackTrace();
                 return;
             }
-
+            int errorCount=0;
             //read ...
             while (isConnect() && !isStop && !isInterrupted()) {
                 int size;
                 try {
                     byte[] buffer = new byte[MAX_BUFFER_SIZE];
                     if (mInputStream == null) return;
-                    size = mInputStream.read(buffer);//null data -1 , zrd serial rule size default 10
+                    size = mInputStream.read(buffer);//null data -1 ,
                     if (size > 0) {
                         if (onDataReceiveListener != null) {
                             byte[] temp = Arrays.copyOf(buffer, size);
                             onDataReceiveListener.onDataReceive(temp);
                         }
+                        errorCount =0;
+                    }else {
+                        errorCount ++;
+                        if (errorCount > 10){
+                            if (onDataReceiveListener!=null){
+                                onDataReceiveListener.onConnectionClosed();
+                            }
+                        }
                     }
+
+                } catch (SocketException e){
+                    Log.e(TAG,"Tcp Connection exception:"+e.getMessage());
                 } catch (IOException e) {
                     //uiHandler.sendEmptyMessage(-1);
                     Log.e(TAG, "SocketThread read io exception = " + e.getMessage());
@@ -207,6 +221,7 @@ public class RadioTcpClient {
         void onConnectFail();
 
         void onDataReceive(byte[] buffer);
+        void onConnectionClosed();
     }
 
     public void setOnDataReceiveListener(

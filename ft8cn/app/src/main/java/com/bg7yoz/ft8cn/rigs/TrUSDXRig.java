@@ -248,7 +248,8 @@ public class TrUSDXRig extends BaseRig {
         rxStreamBuffer.write(data, 0, data.length);
         if (rxStreamBuffer.size() >= 256 || force) {//8位转16位，7812Hz转12000Hz
             //byte[] resampled = rxResample.processCopy(toWaveSamples8To16(rxStreamBuffer.toByteArray()));
-            float[] resampled = FT8Resample.get32Resample16(toWaveSamples8To16Int(rxStreamBuffer.toByteArray()), rxSampling, 12000);
+            float[] resampled = FT8Resample.get32Resample16(
+                    toWaveSamples8To16Int(rxStreamBuffer.toByteArray()), rxSampling, 12000,1);
             rxStreamBuffer.reset();
             getConnector().receiveWaveData(resampled);
         }
@@ -280,7 +281,7 @@ public class TrUSDXRig extends BaseRig {
 //        txResample.close();
 //        byte[] pcm8 = toWaveSamples16To8(resampled);
 
-        byte[] pcm8 = FT8Resample.get8Resample32(wave, 24000, txSampling);
+        byte[] pcm8 = FT8Resample.get8Resample32(wave, 24000, txSampling,1);
 
 
         for (int i = 0; i < pcm8.length; i++) {

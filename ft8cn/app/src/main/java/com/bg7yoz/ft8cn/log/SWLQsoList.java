@@ -79,7 +79,8 @@ public class SWLQsoList {
         long time_on = System.currentTimeMillis();//先把当前的时间作为最早时间
         for (int i = allMessages.size() - 1; i >= 0; i--) {
             Ft8Message msg = allMessages.get(i);
-            if (msg.callsignFrom.equals(record.getMyCallsign())
+            //if (msg.callsignFrom.equals(record.getMyCallsign())
+            if (GeneralVariables.checkIsMyCallsign(msg.callsignFrom)
                     && msg.callsignTo.equals(record.getToCallsign())
                     && !foundFromReport) {//callsignFrom发出的信号报告
                 int report = GeneralVariables.checkFun2_3(msg.extraInfo);
@@ -92,7 +93,8 @@ public class SWLQsoList {
             }
 
             if (msg.callsignFrom.equals(record.getToCallsign())
-                    && msg.callsignTo.equals(record.getMyCallsign())
+                    //&& msg.callsignTo.equals(record.getMyCallsign())
+                    && GeneralVariables.checkIsMyCallsign(msg.callsignTo)
                     && !foundToReport) {//callsignTo发出的信号报告
                 int report = GeneralVariables.checkFun2_3(msg.extraInfo);
                 if (time_on > msg.utcTime) time_on = msg.utcTime;//取最早的时间
@@ -123,7 +125,8 @@ public class SWLQsoList {
         for (int i = allMessages.size() - 1; i >= 0; i--) {
             Ft8Message msg = allMessages.get(i);
             if (!foundFromGrid
-                    && msg.callsignFrom.equals(record.getMyCallsign())
+                    //&& msg.callsignFrom.equals(record.getMyCallsign())
+                    && GeneralVariables.checkIsMyCallsign(msg.callsignFrom)
                     && (msg.callsignTo.equals(record.getToCallsign()) || msg.checkIsCQ())) {//callsignFrom的网格报告
 
                 if (GeneralVariables.checkFun1_6(msg.extraInfo)) {
@@ -135,7 +138,9 @@ public class SWLQsoList {
 
             if (!foundToGrid
                     && msg.callsignFrom.equals(record.getToCallsign())
-                    && (msg.callsignTo.equals(record.getMyCallsign())|| msg.checkIsCQ())) {//callsignTo发出的信号报告
+                    //&& (msg.callsignTo.equals(record.getMyCallsign())
+                    && (GeneralVariables.checkIsMyCallsign(msg.callsignTo)
+                    || msg.checkIsCQ())) {//callsignTo发出的信号报告
                 if (GeneralVariables.checkFun1_6(msg.extraInfo)) {
                     record.setToMaidenGrid(msg.extraInfo.trim());
                     foundToGrid = true;

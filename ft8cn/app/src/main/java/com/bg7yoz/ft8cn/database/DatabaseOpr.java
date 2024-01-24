@@ -51,7 +51,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
     public static DatabaseOpr getInstance(@Nullable Context context, @Nullable String databaseName) {
         if (instance == null) {
-            instance = new DatabaseOpr(context, databaseName, null, 14);
+            instance = new DatabaseOpr(context, databaseName, null, 15);
         }
         return instance;
     }
@@ -364,6 +364,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     }
 
     private void createSWLTables(SQLiteDatabase sqLiteDatabase) {
+        //Log.e(TAG,"upgrade database.");
         if (!checkTableExists(sqLiteDatabase, "SWLMessages")) {
             sqLiteDatabase.execSQL("CREATE TABLE SWLMessages (\n" +
                     "\tID INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -384,6 +385,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "ON SWLMessages (CALL_TO,CALL_FROM)");
             sqLiteDatabase.execSQL("CREATE INDEX SWLMessages_UTC_IDX ON SWLMessages (UTC)");
         }
+
         if (!checkTableExists(sqLiteDatabase, "SWLQSOTable")) {
             sqLiteDatabase.execSQL("CREATE TABLE SWLQSOTable (\n" +
                     "\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n" +
@@ -400,7 +402,11 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "\tfreq TEXT,\n" +
                     "\tstation_callsign TEXT,\n" +
                     "\tmy_gridsquare TEXT,\n" +
+                    "\toperator TEXT,\n" +
                     "\tcomment TEXT)");
+        }else {
+            alterTable(sqLiteDatabase, "SWLQSOTable", "operator"
+                    , "operator TEXT");
         }
     }
 
@@ -1201,8 +1207,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     });
             //添加记录
             querySQL = "INSERT INTO SWLQSOTable([call], gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
-                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare,comment)\n" +
-                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare,operator,comment)\n" +
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             databaseOpr.db.execSQL(querySQL, new String[]{qslRecord.getToCallsign()
                     , qslRecord.getToMaidenGrid()
@@ -1218,6 +1224,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , BaseRigOperation.getFrequencyFloat(qslRecord.getBandFreq())
                     , qslRecord.getMyCallsign()
                     , qslRecord.getMyMaidenGrid()
+                    , GeneralVariables.myCallsign//我的呼号，不是双方的呼号
                     , qslRecord.getComment()});
 
 
@@ -1794,6 +1801,12 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                         Ft8Message.hashList.addHash(FT8Package.getHash22(callsign), callsign);
                         Ft8Message.hashList.addHash(FT8Package.getHash12(callsign), callsign);
                         Ft8Message.hashList.addHash(FT8Package.getHash10(callsign), callsign);
+                        if (callsign.contains("/")) {
+                            String shortCallsign = GeneralVariables.getShortCallsign(callsign);
+                            Ft8Message.hashList.addHash(FT8Package.getHash22(shortCallsign), shortCallsign);
+                            Ft8Message.hashList.addHash(FT8Package.getHash12(shortCallsign), shortCallsign);
+                            Ft8Message.hashList.addHash(FT8Package.getHash10(shortCallsign), shortCallsign);
+                        }
                     }
                 }
                 if (name.equalsIgnoreCase("toModifier")) {
@@ -1899,6 +1912,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("deepMode")) {//是不是深度解码模式
                     GeneralVariables.deepDecodeMode =result.equals("1");
                 }
+                if (name.equalsIgnoreCase("dataBits")) {//串口数据位
+                    GeneralVariables.serialDataBits =Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("stopBits")) {//串口停止位
+                    GeneralVariables.serialStopBits =Integer.parseInt(result);
+                }
+                if (name.equalsIgnoreCase("parityBits")) {//串口校验位
+                    GeneralVariables.serialParity =Integer.parseInt(result);
+                }
+
             }
 
             cursor.close();

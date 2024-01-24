@@ -491,6 +491,33 @@
     <string name="config_msg_std_mode">Standard</string>
     <string name="config_msg_simple_mode">Simple</string>
     <string name="message_mode_help">messageMode_en.txt</string>
+    <string name="pl_select_xiegu_radio">Please select an available XIEGU Radio</string>
+    <string name="select_xiegu_device">Select XieguRadio device : %s</string>
+    <string name="xiegu_connect_failed">XieguRadio %s connect failed !</string>
+    <string name="x6100_packet_lost">Loss of packets: %d</string>
+    <string name="xiegu_name_label">XIEGU</string>
+    <string name="xiegu_ping_value">Ping: %d ms</string>
+    <string name="xiegu_start_atu">Start ATU</string>
+    <string name="xiegu_atu_on">ATU On</string>
+    <string name="xiegu_atu_off">ATU Off</string>
+    <string name="xiegu_band_str">Band: %s</string>
+    <string name="alc_low_alert">Warning ! ALC is too low .</string>
+    <string name="xiegu_meter_info">S.Meter: %.1f dBm\nSWR: %s\nALC: %.1f\nVolt: %.1fV\nTX power: %.1f W\nMax tx power: %.1f\nTX volume:%d%%</string>
+    <string name="serial_connect_no_access">Unable to connect to the serial port, please confirm if you have access to the USB device!</string>
+    <string name="serial_connect_failed">Serial port opening failed</string>
+    <string name="serial_no_driver">Unable to connect to serial port, no driver or serial port not present!</string>
+    <string name="serial_data_bits">Data bit</string>
+    <string name="serial_parity">Parity bit</string>
+    <string name="serial_parity_none">None</string>
+    <string name="serial_parity_odd">Odd</string>
+    <string name="serial_parity_even">Even</string>
+    <string name="serial_parity_mark">Mark</string>
+    <string name="serial_parity_space">Space</string>
+    <string name="serial_stop_bits">Stop bits</string>
+    <string name="serial_default">Default</string>
+    <string name="serial_setting_help">serial_help_en.txt</string>
+    <string name="tcp_connect_closed">The network connection has been disconnected.</string>
+    <string name="rtty_ru_msg">RTTY RU</string>
 
     <!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->
 

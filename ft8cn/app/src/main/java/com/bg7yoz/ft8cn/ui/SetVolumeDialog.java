@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -60,6 +61,12 @@ public class SetVolumeDialog extends Dialog {
                 GeneralVariables.volumePercent=i/100f;
                 GeneralVariables.mutableVolumePercent.postValue(i/100f);
                 mainViewModel.databaseOpr.writeConfig("volumeValue",String.valueOf(i),null);
+                if (mainViewModel.baseRig!=null){
+                    if (mainViewModel.baseRig.getConnector()!=null) {
+                        mainViewModel.baseRig.getConnector().setRFVolume(i);
+                        Log.e(TAG,String.format("set volume:%d",i));
+                    }
+                }
             }
 
             @Override

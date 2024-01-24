@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.wave.FT8Resample;
 
 import java.io.ByteArrayInputStream;
@@ -95,7 +96,7 @@ public class FlexRadio {
     private boolean allFlexRadioStatusEvent = false;
     private String clientID = "";
     private long daxAudioStreamId = 0;
-    private long daxTxAudioStreamId = 0;
+    private int daxTxAudioStreamId = 0;
     private long panadapterStreamId = 0;
     private final HashSet<Long> streamIdSet = new HashSet<>();
 
@@ -250,6 +251,12 @@ public class FlexRadio {
                     onReceiveDataListener.onDataReceive(buffer);
                 }
                 onReceiveData(buffer);
+            }
+
+            @Override
+            public void onConnectionClosed() {
+                tcpClient.disconnect();
+                ToastMessage.show(GeneralVariables.getStringFromResource(R.string.tcp_connect_closed));
             }
         });
         clearBufferData();//清除一下缓存的指令数据
@@ -483,9 +490,13 @@ public class FlexRadio {
                         }
 
                         //byte[] send = vita.audioDataToVita(packetCount, streamTxId,0x534c2d, voice);
-                    //daxTxAudioStreamId=0x0084000001&0x00000000ffffffff;
-                    //Log.e(TAG, String.format("run: daxTxAudioStreamId:0x%X",daxTxAudioStreamId) );
-                        byte[] send = vita.audioDataToVita(packetCount, daxTxAudioStreamId,0x534c0123, voice);
+                        //daxTxAudioStreamId=0x0084000001&0x00000000ffffffff;
+                        //Log.e(TAG, String.format("run: daxTxAudioStreamId:0x%X",daxTxAudioStreamId) );
+                        //daxTxAudioStreamId,0x534c0123,
+                        vita.streamId=daxTxAudioStreamId;
+                        vita.classId = 0x534c0123;
+                        vita.classId64 = 0x00001c2d534c0123L;
+                        byte[] send = vita.audioFloatDataToVita(packetCount,  voice);
                         packetCount++;
                         try {
                             //Log.e(TAG, String.format("run: send ip:%s, port:%d",ip,4993) );
@@ -581,7 +592,7 @@ public class FlexRadio {
             commandStr = String.format("C%d%03d|%s\n", commandSeq, command.ordinal()
                     , cmdContent);
             tcpClient.sendByte(commandStr.getBytes());
-            Log.e(TAG, "sendCommand: " + commandStr);
+            Log.d(TAG, "sendCommand: " + commandStr);
         }
     }
 
@@ -652,7 +663,7 @@ public class FlexRadio {
                 }
                 if (response.daxTxStreamId != 0) {
                     this.daxTxAudioStreamId = response.daxTxStreamId;
-                    Log.e(TAG, String.format("doReceiveLineEvent: txStreamID:0x%x", daxTxAudioStreamId));
+                    Log.d(TAG, String.format("doReceiveLineEvent: txStreamID:0x%x", daxTxAudioStreamId));
                 }
 
                 break;
@@ -1033,7 +1044,7 @@ public class FlexRadio {
         public String version;//版本信息
         public int message_num;//消息号，32位，16进制。其中位24-25包含消息的严重性（0=信息，1=警告，2=错误，3=致命错误）
         public long daxStreamId = 0;
-        public long daxTxStreamId = 0;
+        public int daxTxStreamId = 0;
         public long panadapterStreamId = 0;
         public FlexCommand flexCommand = FlexCommand.UNKNOW;
         public long resultValue = 0;
@@ -1135,12 +1146,12 @@ public class FlexRadio {
             }
         }
 
-        private long getStreamId(String line) {
+        private int getStreamId(String line) {
             String[] lines = line.split("\\|");
             if (lines.length > 2) {
                 if (lines[1].equals("0")) {
                     try {
-                        return Long.parseLong(lines[2], 16);//stream id，16进制
+                        return Integer.parseInt(lines[2], 16);//stream id，16进制
                     } catch (NumberFormatException e) {
                         e.printStackTrace();
                         Log.e(TAG, "getDaxStreamId exception: " + e.getMessage());

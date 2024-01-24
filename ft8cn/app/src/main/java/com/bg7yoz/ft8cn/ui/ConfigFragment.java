@@ -48,6 +48,9 @@ public class ConfigFragment extends Fragment {
     private FragmentConfigBinding binding;
     private BandsSpinnerAdapter bandsSpinnerAdapter;
     private BauRateSpinnerAdapter bauRateSpinnerAdapter;
+    private SerialDataBitsSpinnerAdapter dataBitsSpinnerAdapter;
+    private SerialParityBitsSpinnerAdapter parityBitsSpinnerAdapter;
+    private SerialStopBitsSpinnerAdapter stopBitsSpinnerAdapter;
     private RigNameSpinnerAdapter rigNameSpinnerAdapter;
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
@@ -257,13 +260,6 @@ public class ConfigFragment extends Fragment {
         mainViewModel = MainViewModel.getInstance(this);
         binding = FragmentConfigBinding.inflate(inflater, container, false);
 
-        //只对中国开方问题收集
-//        if (GeneralVariables.isChina) {
-//            binding.faqButton.setVisibility(View.VISIBLE);
-//        } else {
-//            binding.faqButton.setVisibility(View.GONE);
-//        }
-
 
         //设置时间偏移
         setUtcTimeOffsetSpinner();
@@ -276,6 +272,15 @@ public class ConfigFragment extends Fragment {
 
         //设置波特率列表
         setBauRateSpinner();
+
+        //设置数据位列表
+        setDataBitsSpinner();
+
+        //设置校验位
+        setParityBitsSpinner();
+
+        //设置停止位
+        setStopBitsSpinner();
 
         //设置电台名称，参数列表
         setRigNameSpinner();
@@ -306,6 +311,9 @@ public class ConfigFragment extends Fragment {
 
         //设置无回应次数中断
         setNoReplyLimitSpinner();
+
+        //设置各个spinner的OnItemSelected事件
+        setSpinnerOnItemSelected();
 
         //显示滚动箭头
         new Handler().postDelayed(new Runnable() {
@@ -387,122 +395,24 @@ public class ConfigFragment extends Fragment {
         });
 
         //设置PTT延迟
-        binding.pttDelayOffsetSpinner.setOnItemSelectedListener(null);
         binding.pttDelayOffsetSpinner.setSelection(GeneralVariables.pttDelay / 10);
-        binding.pttDelayOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                GeneralVariables.pttDelay = i * 10;
-                writeConfig("pttDelay", String.valueOf(GeneralVariables.pttDelay));
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-
         //获取操作的波段
-        binding.operationBandSpinner.setOnItemSelectedListener(null);
         binding.operationBandSpinner.setSelection(GeneralVariables.bandListIndex);
-        binding.operationBandSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                GeneralVariables.bandListIndex = i;
-                GeneralVariables.band = OperationBand.getBandFreq(i);//把当前的频段保存下来
-
-                mainViewModel.databaseOpr.getAllQSLCallsigns();//通联成功的呼号读出来
-                writeConfig("bandFreq", String.valueOf(GeneralVariables.band));
-                if (GeneralVariables.controlMode == ControlMode.CAT//CAT、RTS、DTR模式下控制电台
-                        || GeneralVariables.controlMode == ControlMode.RTS
-                        || GeneralVariables.controlMode == ControlMode.DTR) {
-                    //如果在CAT、RTS模式下，修改电台的频率
-                    mainViewModel.setOperationBand();
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-
         //获取电台型号
-        binding.rigNameSpinner.setOnItemSelectedListener(null);
         binding.rigNameSpinner.setSelection(GeneralVariables.modelNo);
-        new Handler().postDelayed(new Runnable() {//延迟2秒修改OnItemSelectedListener
-            @Override
-            public void run() {
-                binding.rigNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        GeneralVariables.modelNo = i;
-                        writeConfig("model", String.valueOf(i));
-                        setAddrAndBauRate(rigNameSpinnerAdapter.getRigName(i));
-
-                        //指令集
-                        GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
-                        writeConfig("instruction", String.valueOf(GeneralVariables.instructionSet));
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-                    }
-                });
-            }
-        }, 2000);
-
-
+        //串口数据位
+        binding.dataBitsSpinner.setSelection(dataBitsSpinnerAdapter.getPosition(GeneralVariables.serialDataBits));
+        //串口停止位
+        binding.stopBitsSpinner.setSelection(stopBitsSpinnerAdapter.getPosition(GeneralVariables.serialStopBits));
+        binding.parityBitsSpinner.setSelection(parityBitsSpinnerAdapter.getPosition(GeneralVariables.serialParity));
         //获取波特率
-        binding.baudRateSpinner.setOnItemSelectedListener(null);
         binding.baudRateSpinner.setSelection(bauRateSpinnerAdapter.getPosition(
                 GeneralVariables.baudRate));
-        binding.baudRateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                GeneralVariables.baudRate = bauRateSpinnerAdapter.getValue(i);
-                writeConfig("baudRate", String.valueOf(GeneralVariables.baudRate));
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-            }
-        });
-
         //设置发射监管
-        binding.launchSupervisionSpinner.setOnItemSelectedListener(null);
         binding.launchSupervisionSpinner.setSelection(launchSupervisionSpinnerAdapter
                 .getPosition(GeneralVariables.launchSupervision));
-        binding.launchSupervisionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                GeneralVariables.launchSupervision = LaunchSupervisionSpinnerAdapter.getTimeOut(i);
-                writeConfig("launchSupervision", String.valueOf(GeneralVariables.launchSupervision));
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
         //设置无回应中断
-        binding.noResponseCountSpinner.setOnItemSelectedListener(null);
         binding.noResponseCountSpinner.setSelection(GeneralVariables.noReplyLimit);
-        binding.noResponseCountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                GeneralVariables.noReplyLimit = i;
-                writeConfig("noReplyLimit", String.valueOf(GeneralVariables.noReplyLimit));
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
 
 
         //设置自动关注CQ
@@ -587,8 +497,175 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //串口默认值设置复位键
+        binding.serialDefaultButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                GeneralVariables.serialParity = 0;
+                GeneralVariables.serialDataBits = 8;
+                GeneralVariables.serialStopBits = 1;
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        binding.parityBitsSpinner.setSelection(
+                                parityBitsSpinnerAdapter.getPosition(GeneralVariables.serialParity));
+                        binding.dataBitsSpinner.setSelection(
+                                dataBitsSpinnerAdapter.getPosition(GeneralVariables.serialDataBits));
+                        binding.stopBitsSpinner.setSelection(
+                                stopBitsSpinnerAdapter.getPosition(GeneralVariables.serialStopBits));
+                    }
+                });
+
+            }
+        });
+
 
         return binding.getRoot();
+    }
+
+    /**
+     * 设置各个spinner的OnItemSelected事件，防止在进入主界面时，重复向数据库写入配置信息
+     */
+    private void setSpinnerOnItemSelected(){
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                binding.pttDelayOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.pttDelay = i * 10;
+                        writeConfig("pttDelay", String.valueOf(GeneralVariables.pttDelay));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+                binding.operationBandSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.bandListIndex = i;
+                        GeneralVariables.band = OperationBand.getBandFreq(i);//把当前的频段保存下来
+
+                        mainViewModel.databaseOpr.getAllQSLCallsigns();//通联成功的呼号读出来
+                        writeConfig("bandFreq", String.valueOf(GeneralVariables.band));
+                        if (GeneralVariables.controlMode == ControlMode.CAT//CAT、RTS、DTR模式下控制电台
+                                || GeneralVariables.controlMode == ControlMode.RTS
+                                || GeneralVariables.controlMode == ControlMode.DTR) {
+                            //如果在CAT、RTS模式下，修改电台的频率
+                            mainViewModel.setOperationBand();
+                        }
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+                binding.rigNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.modelNo = i;
+                        writeConfig("model", String.valueOf(i));
+                        setAddrAndBauRate(rigNameSpinnerAdapter.getRigName(i));
+
+                        //指令集
+                        GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
+                        writeConfig("instruction", String.valueOf(GeneralVariables.instructionSet));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+
+
+                binding.baudRateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.baudRate = bauRateSpinnerAdapter.getValue(i);
+                        writeConfig("baudRate", String.valueOf(GeneralVariables.baudRate));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+                    }
+                });
+
+
+                binding.launchSupervisionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.launchSupervision = LaunchSupervisionSpinnerAdapter.getTimeOut(i);
+                        writeConfig("launchSupervision", String.valueOf(GeneralVariables.launchSupervision));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+
+                binding.noResponseCountSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.noReplyLimit = i;
+                        writeConfig("noReplyLimit", String.valueOf(GeneralVariables.noReplyLimit));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+                //串口数据位
+                binding.dataBitsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.serialDataBits =  dataBitsSpinnerAdapter.getValue(i);
+                        writeConfig("dataBits", String.valueOf(GeneralVariables.serialDataBits));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+                //串口停止位
+                binding.stopBitsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.serialStopBits =  stopBitsSpinnerAdapter.getValue(i);
+                        writeConfig("stopBits", String.valueOf(GeneralVariables.serialStopBits));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+                //校验位
+                binding.parityBitsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        GeneralVariables.serialParity =  parityBitsSpinnerAdapter.getValue(i);
+                        writeConfig("parityBits", String.valueOf(GeneralVariables.serialParity));
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+            }
+        }, 1000);
     }
 
     /**
@@ -597,7 +674,6 @@ public class ConfigFragment extends Fragment {
      * @param rigName 电台型号
      */
     private void setAddrAndBauRate(RigNameList.RigName rigName) {
-        //mainViewModel.setCivAddress(rigName.address);
         GeneralVariables.civAddress = rigName.address;
         mainViewModel.setCivAddress();
         GeneralVariables.baudRate = rigName.bauRate;
@@ -716,6 +792,49 @@ public class ConfigFragment extends Fragment {
     }
 
     /**
+     * 设置数据位列表
+     */
+    private void setDataBitsSpinner(){
+        dataBitsSpinnerAdapter = new SerialDataBitsSpinnerAdapter(requireContext());
+        binding.dataBitsSpinner.setAdapter(dataBitsSpinnerAdapter);
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                dataBitsSpinnerAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    /**
+     * 设置校验位列表
+     */
+    private void setParityBitsSpinner(){
+        parityBitsSpinnerAdapter = new SerialParityBitsSpinnerAdapter(requireContext());
+        binding.parityBitsSpinner.setAdapter(parityBitsSpinnerAdapter);
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                parityBitsSpinnerAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+    /**
+     * 设置停止位列表
+     */
+    private void setStopBitsSpinner(){
+        stopBitsSpinnerAdapter = new SerialStopBitsSpinnerAdapter(requireContext());
+        binding.stopBitsSpinner.setAdapter(stopBitsSpinnerAdapter);
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                stopBitsSpinnerAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+
+
+    /**
      * 设置无回应次数中断
      */
     private void setNoReplyLimitSpinner() {
@@ -771,6 +890,8 @@ public class ConfigFragment extends Fragment {
                 binding.pttDelayOffsetSpinner.setSelection(GeneralVariables.pttDelay / 10);
             }
         });
+
+
     }
 
 
@@ -943,13 +1064,15 @@ public class ConfigFragment extends Fragment {
      * 设置连线的方式，可以是USB，也可以是BLUE_TOOTH
      */
     private void setConnectMode() {
-        if (GeneralVariables.controlMode == ControlMode.CAT
+        if ((GeneralVariables.controlMode == ControlMode.CAT)
                 //&& BluetoothConstants.checkBluetoothIsOpen()
             ) {
             //此处要改成VISIBLE
             binding.connectModeLayout.setVisibility(View.VISIBLE);
+            binding.serialLayout.setVisibility(View.VISIBLE);
         } else {
             binding.connectModeLayout.setVisibility(View.GONE);
+            binding.serialLayout.setVisibility(View.GONE);
         }
         binding.connectModeRadioGroup.clearCheck();
         switch (GeneralVariables.connectMode) {
@@ -985,7 +1108,10 @@ public class ConfigFragment extends Fragment {
                     //打开网络电台列表对话框
                     if (GeneralVariables.instructionSet== InstructionSet.FLEX_NETWORK) {
                         new SelectFlexRadioDialog(requireContext(), mainViewModel).show();
-                    }else if(GeneralVariables.instructionSet== InstructionSet.ICOM
+                    }else if (GeneralVariables.instructionSet== InstructionSet.XIEGU_6100_FT8CNS) {
+                        new SelectXieguRadioDialog(requireContext(), mainViewModel).show();
+                    }
+                    else if(GeneralVariables.instructionSet== InstructionSet.ICOM
                             ||GeneralVariables.instructionSet== InstructionSet.XIEGU_6100
                             ||GeneralVariables.instructionSet== InstructionSet.XIEGUG90S) {
                         new LoginIcomRadioDialog(requireContext(), mainViewModel).show();
@@ -1067,6 +1193,16 @@ public class ConfigFragment extends Fragment {
                             , true).show();
             }
         });
+        //设置串口参数帮助
+        binding.serialHelpImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.serial_setting_help)
+                        , true).show();
+            }
+        });
+
         //显示列表方式
         binding.messageModeeHelpImageButton.setOnClickListener(new View.OnClickListener() {
             @Override

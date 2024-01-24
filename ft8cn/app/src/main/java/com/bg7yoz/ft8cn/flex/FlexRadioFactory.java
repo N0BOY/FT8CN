@@ -10,18 +10,18 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 // VITA 形成的发现消息解析器的枚举定义
-enum VitaTokens {
-    nullToken ,
-    ipToken,
-    portToken,
-    modelToken,
-    serialToken,
-    callsignToken,
-    nameToken,
-    dpVersionToken,
-    versionToken,
-    statusToken,
-};
+//enum VitaTokens {
+//    nullToken ,
+//    ipToken,
+//    portToken,
+//    modelToken,
+//    serialToken,
+//    callsignToken,
+//    nameToken,
+//    dpVersionToken,
+//    versionToken,
+//    statusToken,
+//};
 /**
  * RadioFactory 当前发现的所有收音机。
  * RadioFactory: 实例化这个类来创建一个 Radio Factory，它将为网络上发现的无线电维护FlexRadio列表flexRadios。

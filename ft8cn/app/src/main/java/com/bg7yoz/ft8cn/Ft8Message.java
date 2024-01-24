@@ -12,6 +12,7 @@ package com.bg7yoz.ft8cn;
  */
 
 import android.annotation.SuppressLint;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -47,6 +48,15 @@ public class Ft8Message {
 
     public String extraInfo = null;
     public String maidenGrid = null;
+
+    public String rtty_state =null;//RTTY RU(i3=3类型)的地区名，两位字母如：CA、AL
+    public int r_flag=0;//RTTY RU,EU VHF(i3=3,i3=5类型)的R标志
+    public int rtty_tu;//RTTY RU(i3=3类型)的TU;标志
+    public int eu_serial;//EU VHF i3=5中的序列号
+    public String arrl_rac;//Field day 消息，Arrl rac
+    public String arrl_class;//Field day 发射级别
+    public String dx_call_to2;//DXpediton 消息中第二个接收的呼号
+
     public int report = -100;//当-100时，意味着没有信号报告
     public long callFromHash10 = 0;//12位长度的哈希码
     public long callFromHash12 = 0;//12位长度的哈希码
@@ -76,6 +86,7 @@ public class Ft8Message {
     public LatLng toLatLng = null;
 
     public boolean isWeakSignal=false;
+
 
 
 
@@ -172,6 +183,16 @@ public class Ft8Message {
             hashList.addHash(callFromHash12, callsignFrom);
             hashList.addHash(callFromHash22, callsignFrom);
 
+            //rtty ru(i3=3)消息新增的
+            rtty_tu = message.rtty_tu;
+            rtty_state = message.rtty_state;
+            r_flag =message.r_flag;
+            eu_serial =message.eu_serial;
+            //field day 增加的
+            arrl_class = message.arrl_class;
+            arrl_rac = message.arrl_rac;
+            dx_call_to2 = message.dx_call_to2;
+
 
             //Log.d(TAG, String.format("i3:%d,n3:%d,From:%s,To:%s", i3, n3, getCallsignFrom(), getCallsignTo()));
         }
@@ -200,6 +221,7 @@ public class Ft8Message {
      *
      * @return String
      */
+    @SuppressLint("DefaultLocale")
     public String getMessageText() {
 
         if (i3 == 0 && n3 == 0) {//说明是自由文本
@@ -209,6 +231,49 @@ public class Ft8Message {
                 return extraInfo.toUpperCase().substring(0, 13);
             }
         }
+        if (i3 == 0 && (n3 == 3 || n3 == 4)) {//说明是野外日
+            return String.format("%s %s %s%d%s %s"
+                    ,callsignTo
+                    ,callsignFrom
+                    ,r_flag==0?"":"R "
+                    ,eu_serial
+                    ,arrl_class
+                    ,arrl_rac
+            );
+        }
+
+        if (i3 == 0 && (n3 == 1)) {//说明是DXpedition
+
+            return String.format("%s RR73; %s %s %s%d"
+                    ,callsignTo
+                    ,dx_call_to2
+                    ,hashList.getCallsign(new long[]{callFromHash10})
+                    ,report > 0 ? "+" : "-"
+                    ,report
+            );
+        }
+
+        if (i3 == 3){//说明是RTTY RU消息
+            return String.format("%s%s %s %s%d %s"
+                    ,rtty_tu==0?"":"TU; "
+                    ,callsignTo
+                    ,callsignFrom
+                    ,r_flag==0?"":"R "
+                    ,report
+                    ,rtty_state);
+        }
+
+        if (i3 == 5){//说明是EU VHF <G4ABC> <PA9XYZ> R 570007 JO22DB
+            return String.format("%s %s %s%d%04d %s"
+                    , callsignTo
+                    , callsignFrom
+                    , r_flag == 0?"":"R "
+                    , report
+                    , eu_serial
+                    , maidenGrid
+                    ).trim();
+        }
+
         if (modifier != null && checkIsCQ()) {//修饰符
             if (modifier.matches("[0-9]{3}|[A-Z]{1,4}")) {
                 return String.format("%s %s %s %s", callsignTo, modifier, callsignFrom, extraInfo).trim();
@@ -217,15 +282,6 @@ public class Ft8Message {
         return String.format("%s %s %s", callsignTo, callsignFrom, extraInfo).trim();
     }
 
-    /**
-     * 返回解码消息带信噪比的内容
-     *
-     * @return 内容
-     */
-    @SuppressLint("DefaultLocale")
-    public String getMessageTextWithDb() {
-        return String.format("%d %s %s %s", snr, callsignTo, callsignFrom, extraInfo).trim();
-    }
 
     /**
      * 返回消息的延迟时间。可能不一定对，待研究清楚解码算法后在确定
@@ -288,10 +344,13 @@ public class Ft8Message {
      * @return boolean
      */
     public boolean inMyCall() {
-        if (GeneralVariables.myCallsign.length() == 0) return false;
-        return this.callsignFrom.contains(GeneralVariables.myCallsign)
-                || this.callsignTo.contains(GeneralVariables.myCallsign);
-        //return (this.callsignFrom.contains(mycall) || this.callsignTo.contains(mycall)) && (!mycall.equals(""));
+        //判断是不是自己，有时候，我的呼号带/P或/R，对方可能会丢掉这个后缀
+//        if (GeneralVariables.myCallsign.length() == 0) return false;
+
+         return GeneralVariables.checkIsMyCallsign(this.callsignFrom)
+                 ||GeneralVariables.checkIsMyCallsign(this.callsignTo);
+//        return this.callsignFrom.contains(GeneralVariables.myCallsign)
+//                || this.callsignTo.contains(GeneralVariables.myCallsign);
     }
 /*
 i3.n3类型	基本目的	消息范例	位字段标签
@@ -433,7 +492,9 @@ t71	遥感数据，最多18位十六进制数字
             case 2:
                 return String.format(format, i, 0, GeneralVariables.getStringFromResource(R.string.std_msg));
             case 5:
+                return String.format(format, i, 0, "EU VHF");
             case 3:
+                return String.format(format, i, 0, GeneralVariables.getStringFromResource(R.string.rtty_ru_msg));
             case 4:
                 return String.format(format, i, 0, GeneralVariables.getStringFromResource(R.string.none_std_msg));
             case 0:

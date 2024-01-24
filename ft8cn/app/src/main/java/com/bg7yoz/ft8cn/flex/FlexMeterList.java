@@ -5,6 +5,8 @@ package com.bg7yoz.ft8cn.flex;
  * @date 2023-03-20
  */
 
+import static com.bg7yoz.ft8cn.flex.VITA.readShortData;
+
 import android.annotation.SuppressLint;
 
 import java.util.HashMap;
@@ -73,25 +75,8 @@ public class FlexMeterList extends HashMap<Integer, FlexMeterList.FlexMeter> {
 
 
 
-    /**
-     * 把字节转换成short，不做小端转换！！
-     *
-     * @param data 字节数据
-     * @return short
-     */
-    public static short readShortData(byte[] data, int start) {
-        if (data.length - start < 2) return 0;
-        return (short) ((short) data[start + 1] & 0xff
-                | ((short) data[start] & 0xff) << 8);
-    }
 
-    public static float readShortFloat(byte[] data, int start) {
-        if (data.length - start < 2) return 0.0f;
-        int accum = 0;
-        accum = accum | (data[start] & 0xff) << 0;
-        accum = accum | (data[start + 1] & 0xff) << 8;
-        return Float.intBitsToFloat(accum);
-    }
+
 
 
     public static class FlexMeter {

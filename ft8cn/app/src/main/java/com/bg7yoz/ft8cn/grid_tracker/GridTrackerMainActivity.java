@@ -222,6 +222,7 @@ public class GridTrackerMainActivity extends AppCompatActivity {
                                 getString(R.string.decoding_takes_milliseconds)
                                 , mainViewModel.ft8SignalListener.decodeTimeSec.getValue())));
 
+
                 //画电台之间的连线
                 //对CQ的电台打点
                 for (Ft8Message msg : tempMsg) {
@@ -765,7 +766,8 @@ public class GridTrackerMainActivity extends AppCompatActivity {
                     if (message != null) {
                         //呼叫的目标不能是自己
                         if (!message.getCallsignFrom().equals("<...>")
-                                && !message.getCallsignFrom().equals(GeneralVariables.myCallsign)
+                                //&& !message.getCallsignFrom().equals(GeneralVariables.myCallsign)
+                                && !GeneralVariables.checkIsMyCallsign(message.getCallsignFrom())
                                 && !(message.i3 == 0 && message.n3 == 0)) {
                             doCallNow(message);
                         }

@@ -11,6 +11,8 @@
     <color name="tracker_sample_qso_text_color">#FF0000</color>
     <color name="tracker_sample_qsx_color">#7f0000ff</color>
     <color name="tracker_sample_qsx_text_color">#FFFFFF</color>
+    <color name="xiegu_icon_start_color">#BF9C9C9C</color>
+    <color name="xiegu_icon_end_color">#E1FFFFFF</color>
 
 
 

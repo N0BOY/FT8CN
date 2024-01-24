@@ -141,13 +141,24 @@ public class FT8Package {
         }
 
         if (fromCall.endsWith("/P") || fromCall.endsWith("/R")) {
-            fromCall = message.callsignFrom.substring(0, message.callsignFrom.length() - 2);
+            fromCall = fromCall.substring(0, fromCall.length() - 2);
+//            fromCall = message.callsignFrom.substring(0, message.callsignFrom.length() - 2);
         }
 
         //当双方都是复合呼号或非标准呼号时（带/的呼号），我的呼号变成标准呼号
         if ((toCall.contains("/")) && fromCall.contains("/")) {
             fromCall = getStdCall(fromCall);//从复合呼号中提取标准呼号
             // fromCall = fromCall.substring(0, fromCall.indexOf("/"));
+        }
+        byte r1_p1=pack_r1_p1(message.callsignTo);
+
+        byte r2_p2;
+        //如果双方都有后缀，但不是相同的类型后缀，则取消r1或p1标志，以发送方后缀为准
+        if ((message.callsignFrom.endsWith("/R")&&message.callsignTo.endsWith("/P"))
+            ||(message.callsignFrom.endsWith("/P")&&message.callsignTo.endsWith("/R"))){
+            r2_p2=0;
+        }else {
+            r2_p2 = pack_r1_p1(message.getCallsignFrom());
         }
 
 
@@ -156,7 +167,8 @@ public class FT8Package {
         data[1] = (byte) ((pack_c28(toCall) & 0x00ffffff) >> 12);
         data[2] = (byte) ((pack_c28(toCall) & 0x0000ffff) >> 4);
         data[3] = (byte) ((pack_c28(toCall) & 0x0000000f) << 4);
-        data[3] = (byte) (data[3] | (pack_r1_p1(message.callsignTo) << 3));
+        //data[3] = (byte) (data[3] | (pack_r1_p1(message.callsignTo) << 3));
+        data[3] = (byte) (data[3] | (r1_p1 << 3));
         data[3] = (byte) (data[3] | (pack_c28(fromCall) & 0x00fffffff) >> 25);
 
 
@@ -166,7 +178,8 @@ public class FT8Package {
         data[7] = (byte) ((pack_c28(fromCall) & 0x0000000ff) << 7);
 
 
-        data[7] = (byte) (data[7] | (pack_r1_p1(message.getCallsignFrom())) << 6);
+        data[7] = (byte) (data[7] | (r2_p2) << 6);
+        //data[7] = (byte) (data[7] | (pack_r1_p1(message.getCallsignFrom())) << 6);
         data[7] = (byte) (data[7] | (pack_R1_g15(message.extraInfo) & 0x0ffff) >> 10);
         data[8] = (byte) ((pack_R1_g15(message.extraInfo) & 0x0003fff) >> 2);
         data[9] = (byte) ((pack_R1_g15(message.extraInfo) & 0x00000ff) << 6);

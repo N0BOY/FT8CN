@@ -14,11 +14,11 @@ import com.bg7yoz.ft8cn.serialport.util.SerialInputOutputManager;
  * @date 2023-03-20
  */
 public class CableConnector extends BaseRigConnector {
-    private static final String TAG="CableConnector";
+    private static final String TAG = "CableConnector";
 
     //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
     public interface OnCableDataReceived {
-        void OnWaveReceived(int bufferLen,float[] buffer);
+        void OnWaveReceived(int bufferLen, float[] buffer);
     }
 
     private final CableSerialPort cableSerialPort;
@@ -26,26 +26,26 @@ public class CableConnector extends BaseRigConnector {
     private final BaseRig cableConnectedRig;
     private OnCableDataReceived onCableDataReceived;
 
-    public CableConnector(Context context,CableSerialPort.SerialPort serialPort, int baudRate
-            //, int controlMode) {
+    public CableConnector(Context context, CableSerialPort.SerialPort serialPort, int baudRate
+                          //, int controlMode) {
             , int controlMode, BaseRig cableConnectedRig) {
         super(controlMode);
         this.cableConnectedRig = cableConnectedRig;
-        cableSerialPort= new CableSerialPort(context,serialPort,baudRate,getOnConnectorStateChanged());
-        cableSerialPort.ioListener=new SerialInputOutputManager.Listener() {
+        cableSerialPort = new CableSerialPort(context, serialPort, baudRate, getOnConnectorStateChanged());
+        cableSerialPort.ioListener = new SerialInputOutputManager.Listener() {
             @Override
             public void onNewData(byte[] data) {
-                if (getOnConnectReceiveData()!=null){
+                if (getOnConnectReceiveData() != null) {
                     getOnConnectReceiveData().onData(data);
                 }
             }
 
             @Override
             public void onRunError(Exception e) {
-                Log.e(TAG, "CableConnector error: "+e.getMessage() );
-                    getOnConnectorStateChanged().onRunError("与串口失去连接："+e.getMessage());
+                Log.e(TAG, "CableConnector error: " + e.getMessage());
+                getOnConnectorStateChanged().onRunError("与串口失去连接：" + e.getMessage());
             }
-        }  ;
+        };
         //connect();
     }
 
@@ -58,10 +58,12 @@ public class CableConnector extends BaseRigConnector {
     @Override
     public void setPttOn(boolean on) {
         //只处理RTS和DTR
-        switch (getControlMode()){
-            case ControlMode.DTR:  cableSerialPort.setDTR_On(on);//打开和关闭DTR
+        switch (getControlMode()) {
+            case ControlMode.DTR:
+                cableSerialPort.setDTR_On(on);//打开和关闭DTR
                 break;
-            case ControlMode.RTS:cableSerialPort.setRTS_On(on);//打开和关闭RTS
+            case ControlMode.RTS:
+                cableSerialPort.setRTS_On(on);//打开和关闭RTS
                 break;
         }
     }
@@ -87,12 +89,12 @@ public class CableConnector extends BaseRigConnector {
 //    }
 
     @Override
-    public void receiveWaveData(float[] data){
+    public void receiveWaveData(float[] data) {
         Log.i(TAG, "received wave data");
 
-        if (onCableDataReceived!=null){
+        if (onCableDataReceived != null) {
             Log.i(TAG, "call onCableDataReceived.OnWaveReceived");
-            onCableDataReceived.OnWaveReceived(data.length,data);
+            onCableDataReceived.OnWaveReceived(data.length, data);
         }
     }
 

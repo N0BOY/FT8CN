@@ -1,0 +1,7 @@
+About Serial Connection Settings:
+Data bits: can be 6 bits, 7 bits, or 8 bits (8 bits is most common)
+Stop bits: can be 1 bit, 1.5 bits, or 2 bits (1 bit is most common)
+Parity bit: Parity bit is used to check for errors in received data and can be odd, even, or no parity.
+
+Note: The default serial port settings for FT8CN are 8 data bits, 1 stop bit, and no parity.
+The serial connection settings may vary for different radios. Please ensure it matches the settings in your radio.

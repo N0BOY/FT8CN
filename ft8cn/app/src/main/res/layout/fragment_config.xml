@@ -968,6 +968,130 @@
                         </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/serialLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/connectModeLayout">
+
+
+                        <TextView
+                            android:id="@+id/serialDataBitsTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/serial_data_bits"
+                            app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
+
+                        <Spinner
+                            android:id="@+id/dataBitsSpinner"
+                            android:layout_width="48dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/timeOffset"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintStart_toEndOf="@+id/serialDataBitsTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
+                            tools:listitem="@layout/serial_data_bits_spinner_item" />
+
+                        <TextView
+                            android:id="@+id/parityTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/serial_parity"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/parityBitsSpinner"
+                            app:layout_constraintStart_toEndOf="@+id/dataBitsSpinner"
+                            app:layout_constraintStart_toStartOf="@+id/serialDataBitsTextView"
+                            app:layout_constraintTop_toTopOf="@+id/parityBitsSpinner" />
+
+                        <Spinner
+                            android:id="@+id/parityBitsSpinner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/timeOffset"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/parityTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/dataBitsSpinner"
+                            app:layout_constraintVertical_bias="1.0"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
+                            tools:listitem="@layout/serial_parity_bits_spinner_item" />
+
+                        <TextView
+                            android:id="@+id/stopBitsTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="24dp"
+                            android:text="@string/serial_stop_bits"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/serialDataBitsTextView"
+                            app:layout_constraintStart_toEndOf="@+id/dataBitsSpinner"
+                            app:layout_constraintTop_toTopOf="@+id/serialDataBitsTextView" />
+
+                        <Spinner
+                            android:id="@+id/stopBitsSpinner"
+                            android:layout_width="48dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/timeOffset"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintBottom_toBottomOf="@+id/stopBitsTextView"
+                            app:layout_constraintStart_toEndOf="@+id/stopBitsTextView"
+                            app:layout_constraintTop_toTopOf="@+id/stopBitsTextView"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
+                            tools:listitem="@layout/serial_stop_bits_spinner_item" />
+
+                        <ImageButton
+                            android:id="@+id/serialHelpImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                        <Button
+                            android:id="@+id/serialDefaultButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/serial_default"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/serialHelpImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/parityBitsSpinner"
+                            app:layout_constraintTop_toBottomOf="@+id/dataBitsSpinner" />
+
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/civAddressLayout"
@@ -977,7 +1101,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/connectModeLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/serialLayout">
 
 
                         <TextView

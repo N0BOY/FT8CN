@@ -23,6 +23,10 @@ public class InstructionSet {
     public  static final int KENWOOD_TS570=18;//KENWOOD TS-570D
     public  static final int YAESU_3_9_U_DIG=19;//KENWOOD TS-570D
 
+    public static final int XIEGU_6100_FT8CNS=20;//6100的ft8cns版
+    public static final int YAESU_847=21;//Ft-847
+    public static final int ICOM_756=22;//Ft-847
+
 
 
 

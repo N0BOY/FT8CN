@@ -50,11 +50,17 @@ public class RigNameSpinnerAdapter extends BaseAdapter {
         view=_LayoutInflater.inflate(R.layout.rig_name_spinner_item, null);
         if (view!=null){
             TextView textView=view.findViewById(R.id.rigNameItemTextView);
+            if (rigNameList.getRigNameInfo(i).startsWith("#")) {
+                view.setVisibility(View.GONE);
+            }
             ImageView imageView=view.findViewById(R.id.rigLogoImageView);
-            if (rigNameList.getRigNameInfo(i).contains("GUOHE")){
+            if (rigNameList.getRigNameInfo(i).toUpperCase().contains("GUOHE")){
                 imageView.setImageDrawable(mContext.getDrawable(R.drawable.guohe_logo));
                 imageView.setVisibility(View.VISIBLE);
-            }else {
+            }else if (rigNameList.getRigNameInfo(i).toUpperCase().contains("XIEGU")){
+                imageView.setImageDrawable(mContext.getDrawable(R.drawable.xiegulogo));
+                imageView.setVisibility(View.VISIBLE);
+            }else  {
                 imageView.setVisibility(View.GONE);
                 imageView.setImageDrawable(null);
             }

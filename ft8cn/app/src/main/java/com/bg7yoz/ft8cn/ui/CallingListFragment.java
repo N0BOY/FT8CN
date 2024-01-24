@@ -230,8 +230,9 @@ public class CallingListFragment extends Fragment {
                     if (message != null) {
                         //呼叫的目标不能是自己
                         if (!message.getCallsignFrom().equals("<...>")
-                                && !message.getCallsignFrom().equals(GeneralVariables.myCallsign)
-                                && !(message.i3 == 0 && message.n3 == 0)) {
+                                //&& !message.getCallsignFrom().equals(GeneralVariables.myCallsign)
+                                && !GeneralVariables.checkIsMyCallsign(message.getCallsignFrom())
+                                && !(message.i3 == 0 && (message.n3 == 0 || message.n3 == 5))) {//遥测和自由文本不能呼叫
                             doCallNow(message);
                         } else {
                             callingListAdapter.notifyItemChanged(viewHolder.getAdapterPosition());

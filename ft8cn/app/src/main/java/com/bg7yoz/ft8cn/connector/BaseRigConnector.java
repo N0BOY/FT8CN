@@ -91,6 +91,13 @@ public class BaseRigConnector {
     public void sendWaveData(float[] data){
         //留给网络方式发送音频流
     }
+    public void sendFt8A91(byte[] a91,float baseFreq){
+        //用于给x6100的ft8cns模式
+    }
+
+    public void setRFVolume(int volume){
+        //用于给x6100的ft8cns模式
+    }
 
     //2023-08-16 由DS1UFX提交修改（基于0.9版），用于(tr)uSDX audio over cat的支持。
     public void receiveWaveData(byte[] data){

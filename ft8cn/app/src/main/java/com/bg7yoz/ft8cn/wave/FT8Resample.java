@@ -12,18 +12,19 @@ public class FT8Resample {
     }
 
     public static native short[] get16Resample16(short[] inputData, int inputRate
-            , int outputRate);
+            , int outputRate,int channels);
+
     public static native float[] get32Resample16(short[] inputData, int inputRate
-            , int outputRate);
+            , int outputRate,int channels);
     public static native short[] get16Resample32(float[] inputData, int inputRate
-            , int outputRate);
+            , int outputRate,int channels);
     public static native float[] get32Resample32(float[] inputData, int inputRate
-            , int outputRate);
+            , int outputRate,int channels);
 
     public static native byte[] get8Resample16(short[] inputData, int inputRate
-            , int outputRate);
+            , int outputRate,int channels);
 
     public static native byte[] get8Resample32(float[] inputData, int inputRate
-            , int outputRate);
+            , int outputRate,int channels);
 
 }

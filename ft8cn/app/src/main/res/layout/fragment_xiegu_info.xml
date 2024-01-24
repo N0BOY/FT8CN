@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/xiegu_info_frameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.XieguInfoFragment">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/xieguInfoMainLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/xieguInfoTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/xiegu_name_label"
+                android:textColor="@color/power_progress_value"
+                android:textSize="30sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/xieguLogoImageView"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/xiegu_name_label"
+                android:src="@drawable/xiegulogo"
+                app:layout_constraintBottom_toBottomOf="@+id/xieguInfoTextView"
+                app:layout_constraintEnd_toStartOf="@+id/xieguInfoTextView"
+                app:layout_constraintTop_toTopOf="@+id/xieguInfoTextView" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/xieguRulersLayout"
+                android:layout_width="0dp"
+                android:layout_height="124dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/flex_meter_style"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/xieguInfoTextView">
+
+                <com.bg7yoz.ft8cn.ui.FlexMeterRulerView
+                    android:id="@+id/xieguSMeterRulerView"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/flex_meter_ruler_style"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.bg7yoz.ft8cn.ui.FlexMeterRulerView
+                    android:id="@+id/xieguAlcMeterRulerView"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/flex_meter_ruler_style"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguSMeterRulerView" />
+
+                <com.bg7yoz.ft8cn.ui.FlexMeterRulerView
+                    android:id="@+id/xieguSwrMeterRulerView"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/flex_meter_ruler_style"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguAlcMeterRulerView" />
+
+                <com.bg7yoz.ft8cn.ui.FlexMeterRulerView
+                    android:id="@+id/xieguPowerMeterRulerView"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/flex_meter_ruler_style"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguSwrMeterRulerView" />
+
+                <com.bg7yoz.ft8cn.ui.FlexMeterRulerView
+                    android:id="@+id/xieguVoltMeterRulerView"
+                    android:layout_width="0dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/flex_meter_ruler_style"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguPowerMeterRulerView" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/xieguConfigLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/flex_meter_style"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/xieguRulersLayout">
+
+                <TextView
+                    android:id="@+id/xieguMaxTxPowertextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/flex_max_tx_power"
+                    android:textColor="@color/power_progress_value"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.bg7yoz.ft8cn.ui.VolumeProgress
+                    android:id="@+id/xieguMaxPwrProgress"
+                    android:layout_width="0dp"
+                    android:layout_height="15dp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:rotation="180"
+                    android:rotationX="180"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguMaxTxPowertextView" />
+
+                <SeekBar
+                    android:id="@+id/xiegumaxPowerSeekBar"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/flex_meter_ruler_style"
+                    android:max="100"
+                    android:progress="3"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguMaxPwrProgress" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/xieguAtuLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/flex_meter_style"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/xieguConfigLayout">
+
+                <Button
+                    android:id="@+id/xieguStartAtuButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/xiegu_start_atu"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/xieguAtuOffButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/xiegu_atu_off"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/xieguAtuOnButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/xiegu_atu_on"
+                    android:textSize="12sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/xieguAtuOffButton"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/xieguAllInfoLayout"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/flex_meter_style"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/xieguAtuLayout">
+
+                <TextView
+                    android:id="@+id/xieguMetersValueTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/current_frequency"
+                    android:textColor="@color/power_progress_value"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguFreqValueTextView" />
+
+                <TextView
+                    android:id="@+id/xieguFreqValueTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/current_frequency"
+                    android:textColor="@color/power_progress_value"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/xieguPingValueTextView" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.5" />
+
+                <TextView
+                    android:id="@+id/xieguLossValueTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/x6100_packet_lost"
+                    android:textColor="@color/power_progress_value"
+                    app:layout_constraintStart_toStartOf="@+id/guideline"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/xieguPingValueTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/xiegu_ping_value"
+                    android:textColor="@color/power_progress_value"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

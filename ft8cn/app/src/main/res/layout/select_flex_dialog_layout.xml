@@ -52,7 +52,7 @@
             android:layout_marginStart="8dp"
             android:text="@string/flex_ip_addr"
             android:textAlignment="textEnd"
-            android:textColor="@color/text_view_color"
+            android:textColor="#FFFFFF"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="@+id/inputFlexAddressEdit"
             app:layout_constraintStart_toStartOf="parent"

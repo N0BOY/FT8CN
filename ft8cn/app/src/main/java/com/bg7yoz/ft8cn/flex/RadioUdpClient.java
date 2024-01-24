@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 
 public class RadioUdpClient {
     private static final String TAG = "RadioUdpSocket";
-    private final int MAX_BUFFER_SIZE = 1024*2;
+    private final int MAX_BUFFER_SIZE = 1024*4;
     private DatagramSocket sendSocket;
     private int port;
     private boolean activated = false;
@@ -76,7 +76,6 @@ public class RadioUdpClient {
         if (activated) {//通过activated判断是否结束接收线程，并清空sendSocket指针
             sendSocket = new DatagramSocket(null);//绑定的端口号随机
             sendSocket.bind(new InetSocketAddress(port));
-            // Log.e(TAG, "openUdpPort: "+sendSocket.getLocalPort());
             receiveData();
         }else {
             if (sendSocket!=null){
@@ -92,31 +91,6 @@ public class RadioUdpClient {
 
     private void receiveData() {
         receiveThreadPool.execute(receiveRunnable);
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while (activated) {
-//                    byte[] data = new byte[MAX_BUFFER_SIZE];
-//                    DatagramPacket packet = new DatagramPacket(data, data.length);
-//                    try {
-//                        sendSocket.receive(packet);
-//                        if (onUdpEvents != null) {
-//                            byte[] temp = Arrays.copyOf(packet.getData(), packet.getLength());
-//                            onUdpEvents.OnReceiveData(sendSocket, packet, temp);
-//                        }
-//                        //Log.d(TAG, "receiveData:host ip: " + packet.getAddress().getHostName());
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                        Log.e(TAG, "receiveData: error:" + e.getMessage());
-//                    }
-//
-//                }
-//                Log.e(TAG, "udpClient: is exit!");
-//                sendSocket.close();
-//                sendSocket = null;
-//            }
-//        }).start();
-
     }
     private static class ReceiveRunnable implements Runnable{
         RadioUdpClient client;
@@ -128,15 +102,18 @@ public class RadioUdpClient {
         @Override
         public void run() {
             while (client.activated) {
+
                 byte[] data = new byte[client.MAX_BUFFER_SIZE];
                 DatagramPacket packet = new DatagramPacket(data, data.length);
                 try {
                     client.sendSocket.receive(packet);
                     if (client.onUdpEvents != null) {
                         byte[] temp = Arrays.copyOf(packet.getData(), packet.getLength());
+
                         client.onUdpEvents.OnReceiveData(client.sendSocket, packet, temp);
+
+
                     }
-                    //Log.d(TAG, "receiveData:host port: " + packet.getPort());
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.e(TAG, "receiveData: error:" + e.getMessage());
@@ -152,7 +129,7 @@ public class RadioUdpClient {
         this.onUdpEvents = onUdpEvents;
     }
 
-    interface OnUdpEvents {
+    public interface OnUdpEvents {
         void OnReceiveData(DatagramSocket socket, DatagramPacket packet, byte[] data);
     }
 

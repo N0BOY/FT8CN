@@ -73,12 +73,10 @@
             android:id="@+id/gridMessageLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginTop="-12dp"
             android:background="@drawable/tracker_config_bar_style"
-            app:layout_constraintEnd_toStartOf="@+id/trackerSampleLayout"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/trackerSampleLayout">
+            app:layout_constraintStart_toStartOf="@+id/guideline32"
+            app:layout_constraintTop_toBottomOf="@+id/trackerSampleLayout">
 
             <TextView
                 android:id="@+id/gridMessageTextView"
@@ -89,7 +87,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:text="message"/>
+                tools:text="message" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout

@@ -21,7 +21,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
- * 有线连接方式的Connector，这里是指USB方式的
+ * flex网络连接方式的Connector
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -35,7 +35,7 @@ public class FlexConnector extends BaseRigConnector {
     public int maxRfPower;
     public int maxTunePower;
 
-    private static final String TAG = "CableConnector";
+    private static final String TAG = "FlexConnector";
 
     private FlexRadio flexRadio;
 
@@ -108,7 +108,7 @@ public class FlexConnector extends BaseRigConnector {
                     //Log.e(TAG, "onResponse: "+response.resultStatus());
                 }
 
-                Log.e(TAG, "onResponse: command:"+response.flexCommand.toString());
+                Log.d(TAG, "onResponse: command:"+response.flexCommand.toString());
                 //Log.e(TAG, "onResponse: "+response.resultStatus());
                 Log.e(TAG, "onResponse: "+response.rawData );
 

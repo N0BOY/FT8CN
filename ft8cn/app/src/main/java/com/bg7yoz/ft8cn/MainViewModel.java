@@ -46,11 +46,13 @@ import com.bg7yoz.ft8cn.connector.CableSerialPort;
 import com.bg7yoz.ft8cn.connector.ConnectMode;
 import com.bg7yoz.ft8cn.connector.FlexConnector;
 import com.bg7yoz.ft8cn.connector.IComWifiConnector;
+import com.bg7yoz.ft8cn.connector.X6100Connector;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.database.OnAfterQueryFollowCallsigns;
 import com.bg7yoz.ft8cn.database.OperationBand;
 import com.bg7yoz.ft8cn.flex.FlexRadio;
+import com.bg7yoz.ft8cn.flex.RadioTcpClient;
 import com.bg7yoz.ft8cn.ft8listener.FT8SignalListener;
 import com.bg7yoz.ft8cn.ft8listener.OnFt8Listen;
 import com.bg7yoz.ft8cn.ft8transmit.FT8TransmitSignal;
@@ -76,9 +78,11 @@ import com.bg7yoz.ft8cn.rigs.KenwoodTS590Rig;
 import com.bg7yoz.ft8cn.rigs.OnRigStateChanged;
 import com.bg7yoz.ft8cn.rigs.TrUSDXRig;
 import com.bg7yoz.ft8cn.rigs.Wolf_sdr_450Rig;
+import com.bg7yoz.ft8cn.rigs.XieGu6100NetRig;
 import com.bg7yoz.ft8cn.rigs.XieGu6100Rig;
 import com.bg7yoz.ft8cn.rigs.XieGuRig;
 import com.bg7yoz.ft8cn.rigs.Yaesu2Rig;
+import com.bg7yoz.ft8cn.rigs.Yaesu2_847Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu38Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu38_450Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu39Rig;
@@ -89,6 +93,7 @@ import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.wave.HamRecorder;
 import com.bg7yoz.ft8cn.wave.OnGetVoiceDataDone;
+import com.bg7yoz.ft8cn.x6100.X6100Radio;
 
 import java.io.File;
 import java.io.IOException;
@@ -126,6 +131,7 @@ public class MainViewModel extends ViewModel {
     public ArrayList<Ft8Message> currentMessages = null;//本周期解码的消息（用于画到频谱上）
 
     public MutableLiveData<Boolean> mutableIsFlexRadio = new MutableLiveData<>();//是不是flex电台
+    public MutableLiveData<Boolean> mutableIsXieguRadio = new MutableLiveData<>();//是不是flex电台
 
     private final ExecutorService getQTHThreadPool = Executors.newCachedThreadPool();
     private final ExecutorService sendWaveDataThreadPool = Executors.newCachedThreadPool();
@@ -251,6 +257,7 @@ public class MainViewModel extends ViewModel {
         hamRecorder.startRecord();
 
         mutableIsFlexRadio.setValue(false);
+        mutableIsXieguRadio.setValue(false);
 
         //创建用于显示时间的计时器
         utcTimer = new UtcTimer(10, false, new OnUtcTimer() {
@@ -494,8 +501,10 @@ public class MainViewModel extends ViewModel {
         int count = 0;
         for (Ft8Message msg : messages) {
             //与我的呼号有关，与关注的呼号有关
-            if (msg.getCallsignFrom().equals(GeneralVariables.myCallsign)
-                    || msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+            //if (msg.getCallsignFrom().equals(GeneralVariables.myCallsign)
+            if (GeneralVariables.checkIsMyCallsign(msg.getCallsignFrom())
+                    //|| msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+                    || GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
                     || GeneralVariables.callsignInFollow(msg.getCallsignFrom())
                     || (GeneralVariables.callsignInFollow(msg.getCallsignTo()) && (msg.getCallsignTo() != null))
                     || (GeneralVariables.autoFollowCQ && msg.checkIsCQ())) {//是CQ，并且允许关注CQ
@@ -768,6 +777,54 @@ public class MainViewModel extends ViewModel {
         }, 3000);
     }
 
+    /**
+     * 连接到协谷Radio
+     *
+     * @param context   context
+     * @param xieguRadio X6100Radio对象
+     */
+    public void connectXieguRadioRig(Context context, X6100Radio xieguRadio) {
+        if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
+            if (baseRig != null) {
+                if (baseRig.getConnector() != null) {
+                    baseRig.getConnector().disconnect();
+                }
+            }
+        }
+        GeneralVariables.controlMode = ControlMode.CAT;//网络控制模式
+        X6100Connector xieguConnector = new X6100Connector(context, xieguRadio, GeneralVariables.controlMode);
+        xieguConnector.setOnWaveDataReceived(new X6100Connector.OnWaveDataReceived() {
+            @Override
+            public void OnDataReceived(int bufferLen, float[] buffer) {
+                //Log.e(TAG,String.format("data len:%d",bufferLen));
+                hamRecorder.doOnWaveDataReceived(bufferLen, buffer);
+            }
+        });
+
+
+        xieguConnector.connect();
+        connectRig();
+        xieguConnector.setBaseRig(baseRig);
+        //接收电台发回的数据
+        xieguRadio.setOnReceiveDataListener(new X6100Radio.OnReceiveDataListener() {
+            @Override
+            public void onDataReceive(byte[] data) {
+                baseRig.onReceiveData(data);
+            }
+        });
+
+
+        baseRig.setOnRigStateChanged(onRigStateChanged);
+        baseRig.setConnector(xieguConnector);
+
+        new Handler().postDelayed(new Runnable() {//连接是需要时间的，等2秒再设置频率
+            @Override
+            public void run() {
+                setOperationBand();//设置载波频率
+            }
+        }, 3000);
+    }
+
 
     /**
      * 根据指令集创建不同型号的电台
@@ -778,10 +835,16 @@ public class MainViewModel extends ViewModel {
         //此处判断是用什么类型的电台，ICOM,YAESU 2,YAESU 3
         switch (GeneralVariables.instructionSet) {
             case InstructionSet.ICOM:
-                baseRig = new IcomRig(GeneralVariables.civAddress);
+                baseRig = new IcomRig(GeneralVariables.civAddress,true);
+                break;
+            case InstructionSet.ICOM_756:
+                baseRig = new IcomRig(GeneralVariables.civAddress,false);
                 break;
             case InstructionSet.YAESU_2:
                 baseRig = new Yaesu2Rig();
+                break;
+            case InstructionSet.YAESU_847:
+                baseRig = new Yaesu2_847Rig();
                 break;
             case InstructionSet.YAESU_3_9:
                 baseRig = new Yaesu39Rig(false);//yaesu3代指令，9位频率,usb模式
@@ -819,6 +882,13 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.FLEX_NETWORK:
                 baseRig = new FlexNetworkRig();
                 break;
+            case InstructionSet.XIEGU_6100_FT8CNS:
+                if (GeneralVariables.connectMode == ConnectMode.NETWORK) {//只在网络模式下工作
+                    baseRig = new XieGu6100NetRig(GeneralVariables.civAddress);//协谷6100ft8cns模式
+                }else{//否则使用传统的模式
+                    baseRig = new XieGu6100Rig(GeneralVariables.civAddress);//协谷6100
+                }
+                break;
             case InstructionSet.XIEGU_6100:
                 baseRig = new XieGu6100Rig(GeneralVariables.civAddress);//协谷6100
                 break;
@@ -841,11 +911,11 @@ public class MainViewModel extends ViewModel {
 
         if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
                 || ((GeneralVariables.instructionSet == InstructionSet.ICOM
-                ||GeneralVariables.instructionSet==InstructionSet.XIEGU_6100)
+                || GeneralVariables.instructionSet==InstructionSet.XIEGU_6100
+                || GeneralVariables.instructionSet==InstructionSet.XIEGU_6100_FT8CNS)
                 && GeneralVariables.connectMode == ConnectMode.NETWORK)) {
             hamRecorder.setDataFromLan();
         } else {
-            //hamRecorder.setDataFromMic();
             if (GeneralVariables.controlMode != ControlMode.CAT || baseRig == null
                     || !baseRig.supportWaveOverCAT()) {
                 hamRecorder.setDataFromMic();
@@ -855,6 +925,7 @@ public class MainViewModel extends ViewModel {
         }
 
         mutableIsFlexRadio.postValue(GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK);
+        mutableIsXieguRadio.postValue(GeneralVariables.instructionSet == InstructionSet.XIEGU_6100_FT8CNS);
 
     }
 

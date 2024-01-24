@@ -341,7 +341,7 @@ public class FT8TransmitSignal {
                 try {
                     Thread.sleep(1);
                     long current = System.currentTimeMillis() - now;
-                    if (current > 13000) {//实际发射的时长
+                    if (current > 13100) {//实际发射的时长
                         isTransmitting = false;
                         break;
                     }
@@ -491,7 +491,8 @@ public class FT8TransmitSignal {
             if ((GeneralVariables.checkFun3(message.extraInfo)
                     || GeneralVariables.checkFun2(message.extraInfo))
                     && (message.callsignFrom.equals(toCallsign.callsign)
-                    && message.callsignTo.equals(GeneralVariables.myCallsign))) {
+                    && GeneralVariables.checkIsMyCallsign(message.callsignTo))) {
+                    //&& message.callsignTo.equals(GeneralVariables.myCallsign))) {
                 receiveTargetReport = getReportFromExtraInfo(message.extraInfo);
                 break;
             }
@@ -502,7 +503,8 @@ public class FT8TransmitSignal {
             if ((GeneralVariables.checkFun3(message.extraInfo)
                     || GeneralVariables.checkFun2(message.extraInfo))
                     && (message.callsignTo.equals(toCallsign.callsign)
-                    && message.callsignFrom.equals(GeneralVariables.myCallsign))) {
+                    && GeneralVariables.checkIsMyCallsign(message.callsignFrom))) {
+                    //&& message.callsignFrom.equals(GeneralVariables.myCallsign))) {
                 sentTargetReport = getReportFromExtraInfo(message.extraInfo);
                 break;
             }
@@ -581,7 +583,8 @@ public class FT8TransmitSignal {
             if (toCallsign == null) {
                 continue;
             }
-            if (ft8Message.getCallsignTo().equals(GeneralVariables.myCallsign)
+            //if (ft8Message.getCallsignTo().equals(GeneralVariables.myCallsign)
+            if (GeneralVariables.checkIsMyCallsign(ft8Message.getCallsignTo())
                     && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 return 0;
             }
@@ -606,7 +609,8 @@ public class FT8TransmitSignal {
                 continue;
             }
             //是双方的呼叫信息
-            if (ft8Message.getCallsignTo().equals(GeneralVariables.myCallsign)
+            //if (ft8Message.getCallsignTo().equals(GeneralVariables.myCallsign)
+            if (GeneralVariables.checkIsMyCallsign(ft8Message.getCallsignTo())
                     && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 //--TODO ----检查起始时间是不是0，如果是0，补充起始时间。因为有的呼叫会越过第一步
 
@@ -676,7 +680,8 @@ public class FT8TransmitSignal {
             if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
             if (toCallsign == null) break;
 
-            if (msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+            //if (msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+            if (GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
                     && msg.getCallsignFrom().equals(toCallsign.callsign)//todo 注意测试复合呼号的情况
                     && !GeneralVariables.checkFun5(msg.extraInfo)) {//cq我、不是73、发送方是我关注的目标
                 //设置发射之前，确定消息的序号，避免从头开始
@@ -692,7 +697,8 @@ public class FT8TransmitSignal {
         for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
             Ft8Message msg = messages.get(i);
             if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
-            if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+            //if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+            if ((GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
                     && !GeneralVariables.checkFun5(msg.extraInfo))) {//cq我、不是73、
                 //设置发射之前，确定消息的序号，避免从头开始
                 setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
@@ -728,7 +734,8 @@ public class FT8TransmitSignal {
                     && ((GeneralVariables.autoCallFollow && GeneralVariables.autoFollowCQ)//自动呼叫CQ
                     || GeneralVariables.callsignInFollow(msg.getCallsignFrom()))//是我关注的
                     && !GeneralVariables.checkQSLCallsign(msg.getCallsignFrom())//之前没有联通成功过
-                    && !msg.callsignFrom.equals(GeneralVariables.myCallsign))) {//不是我自己
+                    && !GeneralVariables.checkIsMyCallsign(msg.callsignFrom))) {//不是我自己
+                    //&& !msg.callsignFrom.equals(GeneralVariables.myCallsign))) {//不是我自己
 
                 resetTargetReport();
                 setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz

@@ -1297,6 +1297,7 @@ public class LogHttpServer extends NanoHTTPD {
                         , GeneralVariables.getStringFromResource(R.string.html_qsl_freq)//"freq"
                         , GeneralVariables.getStringFromResource(R.string.html_callsign)//"station_callsign"
                         , GeneralVariables.getStringFromResource(R.string.html_qsl_grid)//"my_gridsquare"
+                        , "Operator"//"my_gridsquare"
                         , GeneralVariables.getStringFromResource(R.string.html_comment))//"comment")
                 .append("\n");
         HtmlContext.tableRowEnd(result).append("\n");
@@ -1317,6 +1318,7 @@ public class LogHttpServer extends NanoHTTPD {
             String freq = cursor.getString(cursor.getColumnIndex("freq"));
             String station_callsign = cursor.getString(cursor.getColumnIndex("station_callsign"));
             String my_gridsquare = cursor.getString(cursor.getColumnIndex("my_gridsquare"));
+            String operator = cursor.getString(cursor.getColumnIndex("operator"));
             String comment = cursor.getString(cursor.getColumnIndex("comment"));
 
 
@@ -1336,9 +1338,9 @@ public class LogHttpServer extends NanoHTTPD {
                             .replace(">", "")
                     , station_callsign.replace("<", "&lt;")
                             .replace(">", "&gt;")));
-            HtmlContext.tableCell(result, my_gridsquare == null ? "" : my_gridsquare
-                    , comment).append("\n");
 
+            HtmlContext.tableCell(result, my_gridsquare == null ? "" : my_gridsquare);
+            HtmlContext.tableCell(result, operator == null ? "" : operator, comment).append("\n");
             HtmlContext.tableRowEnd(result).append("\n");
             order++;
         }
@@ -1888,6 +1890,7 @@ public class LogHttpServer extends NanoHTTPD {
             } else {
                 logStr.append("<swl:1>Y ");
             }
+
             if (cursor.getString(cursor.getColumnIndex("gridsquare")) != null) {
                 logStr.append(String.format("<gridsquare:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("gridsquare")).length()
@@ -1958,6 +1961,14 @@ public class LogHttpServer extends NanoHTTPD {
                 logStr.append(String.format("<my_gridsquare:%d>%s "
                         , cursor.getString(cursor.getColumnIndex("my_gridsquare")).length()
                         , cursor.getString(cursor.getColumnIndex("my_gridsquare"))));
+            }
+
+            if (cursor.getColumnIndex("operator") != -1) {
+                if (cursor.getString(cursor.getColumnIndex("operator")) != null) {
+                    logStr.append(String.format("<operator:%d>%s "
+                            , cursor.getString(cursor.getColumnIndex("operator")).length()
+                            , cursor.getString(cursor.getColumnIndex("operator"))));
+                }
             }
 
             String comment = cursor.getString(cursor.getColumnIndex("comment"));

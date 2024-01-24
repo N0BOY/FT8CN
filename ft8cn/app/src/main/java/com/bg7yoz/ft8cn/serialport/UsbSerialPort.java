@@ -27,6 +27,7 @@ import java.util.EnumSet;
 public interface UsbSerialPort extends Closeable {
 
     /** 5 data bits. */
+    //数据位
     int DATABITS_5 = 5;
     /** 6 data bits. */
     int DATABITS_6 = 6;
@@ -39,6 +40,7 @@ public interface UsbSerialPort extends Closeable {
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({PARITY_NONE, PARITY_ODD, PARITY_EVEN, PARITY_MARK, PARITY_SPACE})
     @interface Parity {}
+    //奇偶校验位
     /** No parity. */
     int PARITY_NONE = 0;
     /** Odd parity. */
