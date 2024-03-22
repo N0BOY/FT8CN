@@ -21,6 +21,8 @@ public class ElecraftRigConstant {
     private static final String PTT_ON = "TX;";
     private static final String PTT_OFF = "RX;";
     private static final String USB_MODE = "MD2;";
+    private static final String DATA_MODE = "MD6;";
+    private static final String DATA_R_MODE = "MD7;";
     private static final String READ_FREQ = "FA;";
     private static final String READ_SWR = "SWR;";
 
@@ -65,6 +67,10 @@ public class ElecraftRigConstant {
 
     public static byte[] setOperationUSBMode() {
         return USB_MODE.getBytes();
+    }
+
+    public static byte[] setOperationDataMode() {
+        return DATA_MODE.getBytes();
     }
 
 

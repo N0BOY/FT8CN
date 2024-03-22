@@ -101,7 +101,7 @@ public class ElecraftRig extends BaseRig {
     @Override
     public void setUsbModeToRig() {
         if (getConnector() != null) {
-            getConnector().sendData(ElecraftRigConstant.setOperationUSBMode());
+            getConnector().sendData(ElecraftRigConstant.setOperationDataMode());
         }
     }
 
