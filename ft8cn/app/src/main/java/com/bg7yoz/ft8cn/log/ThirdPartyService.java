@@ -19,8 +19,8 @@ import java.util.HashMap;
 
 public class ThirdPartyService {
     public static String TAG = "ThirdPartyService";
-    public static void UploadToCloudLog(QSLRecord qslRecord){
-        // 转换为adif格式
+
+    private static String QSLRecordToADIF(QSLRecord qslRecord){
         StringBuilder logStr = new StringBuilder();
         logStr.append(String.format("<call:%d>%s "
                 , qslRecord.getToCallsign().length()
@@ -104,7 +104,11 @@ public class ThirdPartyService {
         logStr.append(String.format("<comment:%d>%s <eor>\n"
                 , comment.length()
                 , comment));
-        Log.d(TAG, logStr.toString());
+        return logStr.toString();
+    }
+    public static void UploadToCloudLog(QSLRecord qslRecord){
+        // 转换为adif格式
+        String logStr = QSLRecordToADIF(qslRecord);
         String address = GeneralVariables.getCloudlogServerAddress();
         if (!address.endsWith("/")){
             address+="/";
@@ -113,12 +117,12 @@ public class ThirdPartyService {
         json.put("key", GeneralVariables.getCloudlogServerApiKey());
         json.put("station_profile_id", GeneralVariables.getCloudlogStationID());
         json.put("type","adif");
-        json.put("string",logStr.toString());
+        json.put("string", logStr);
 
         JSONStringer js = new JSONStringer();
         try {
             String result = js.object().key("key").value(GeneralVariables.getCloudlogServerApiKey()).key("station_profile_id").value(GeneralVariables.getCloudlogStationID())
-                    .key("type").value("adif").key("string").value(logStr.toString()).endObject().toString();
+                    .key("type").value("adif").key("string").value(logStr).endObject().toString();
             sendPostRequest(address+"api/qso/",result);
         }catch (Exception k){
             Log.d(TAG, k.toString());
@@ -143,6 +147,45 @@ public class ThirdPartyService {
         }catch (Exception e){
             Log.d(TAG, e.toString());
             return false;
+        }
+    }
+
+    public static boolean CheckQRZConnection(){
+        String apiKey = GeneralVariables.getQrzApiKey();
+        try{
+            String url = "https://logbook.qrz.com/api?KEY="+apiKey+"&ACTION=STATUS";
+            String result = sendGetRequest(url);
+            HashMap<String,String> status = new HashMap<>();
+            for (String s : result.split("&")) {
+                String[] split = s.split("=");
+                if (split.length>1){
+                    status.put(split[0],split[1]);
+                }
+            }
+            Log.d(TAG, status.toString());
+            if (!status.get("RESULT").equals("OK")){
+                return false;
+            }
+            return true;
+        }catch (Exception e){
+            Log.d(TAG, e.toString());
+            return false;
+        }
+    }
+
+    public static void UploadToQRZ(QSLRecord qslRecord){
+        // 转换为adif格式
+        String logStr = QSLRecordToADIF(qslRecord);
+        String apikey = GeneralVariables.getQrzApiKey();
+        HashMap<String,String> json = new HashMap<>();
+
+        String url = String.format("https://logbook.qrz.com/api/KEY=%s&ACTION=INSERT&ADIF=%s",apikey,logStr);
+
+        try {
+            String result = sendGetRequest(url);
+            Log.d(TAG,result);
+        }catch (Exception k){
+            Log.d(TAG, k.toString());
         }
     }
 

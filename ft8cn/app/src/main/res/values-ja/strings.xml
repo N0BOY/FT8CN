@@ -812,5 +812,9 @@
     <string name="fail">Fail!</string>
     <string name="testing">Testing...</string>
     <string name="test">Test</string>
+    <string name="qrz_settings">QRZ.com Settings</string>
+    <string name="qrz_api_key">API KEY</string>
+    <string name="config_enable_qrz">Enable QRZ sync</string>
+    <string name="qrz_help">qrz_en.txt</string>
 
 </resources>

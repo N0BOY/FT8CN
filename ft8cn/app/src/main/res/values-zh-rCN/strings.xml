@@ -528,6 +528,10 @@
     <string name="fail">失败！</string>
     <string name="testing">测试中...</string>
     <string name="test">测试</string>
+    <string name="qrz_settings">QRZ.com设置</string>
+    <string name="qrz_api_key">API密钥</string>
+    <string name="config_enable_qrz">自动上传至QRZ.com</string>
+    <string name="qrz_help">qrz.txt</string>
 
 
 </resources>

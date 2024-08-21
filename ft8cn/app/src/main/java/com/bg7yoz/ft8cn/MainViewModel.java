@@ -455,6 +455,9 @@ public class MainViewModel extends ViewModel {
                 if (GeneralVariables.enableCloudlog){
                     ThirdPartyService.UploadToCloudLog(qslRecord);
                 }
+                if (GeneralVariables.enableQRZ){
+                    ThirdPartyService.UploadToQRZ(qslRecord);
+                }
                 if (qslRecord.getToCallsign() != null) {//把通联成功的分区加入到分区列表
                     GeneralVariables.callsignDatabase.getCallsignInformation(qslRecord.getToCallsign()
                             , new OnAfterQueryCallsignLocation() {

@@ -1,0 +1,5 @@
+About QRZ
+
+This feature allows you to upload the QSO record to QRZ immediately after QSO is completed.
+
+You need to obtain the API KEY in the logbook of the QRZ and enter it into the software.

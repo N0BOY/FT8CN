@@ -1936,6 +1936,13 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.cloudlogStationID = result;
                 }
 
+                //QRZ
+                if (name.equalsIgnoreCase("enableQRZ")) {
+                    GeneralVariables.enableQRZ = result.equals("1");
+                }
+                if (name.equalsIgnoreCase("qrzApiKey")) {
+                    GeneralVariables.qrzApiKey = result;
+                }
             }
 
             cursor.close();

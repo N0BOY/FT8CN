@@ -38,6 +38,8 @@ public class GeneralVariables {
     public static boolean saveSWL_QSO=false;//保存解码消息消息中的QSO开关
     public static boolean enableCloudlog=false;//是否启用Cloudlog自动同步
 
+    public static boolean enableQRZ=false;//是否启用qrz自动同步
+
     public static boolean deepDecodeMode=false;//是否开启深度解码
 
     public static boolean audioOutput32Bit =true;//音频输出类型true=float,false=int16
@@ -172,6 +174,8 @@ public class GeneralVariables {
     public static String cloudlogApiKey = "";//cloudlog的APIKEY
     public static String cloudlogStationID = "";//cloudlog的站点ID
 
+    public static String qrzApiKey = ""; //qrz的key
+
     public static boolean synFrequency = false;//同频发射
     public static int transmitDelay = 500;//发射延迟时间，这个时间也是给上一个周期的解码时间
     public static int pttDelay = 100;//PTT的响应时间，在给电台PTT指令后，一般电台会有一个响应时间，此处默认是100毫秒
@@ -236,6 +240,10 @@ public class GeneralVariables {
 
     public static String getCloudlogServerApiKey() {
         return cloudlogApiKey;
+    }
+
+    public static String getQrzApiKey() {
+        return qrzApiKey;
     }
 
     @SuppressLint("DefaultLocale")

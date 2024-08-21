@@ -218,6 +218,25 @@ public class ConfigFragment extends Fragment {
         }
     };
 
+    // qrz的api
+    private final TextWatcher onQrzApiKeyChanged=new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            GeneralVariables.qrzApiKey = editable.toString();
+            writeConfig("qrzApiKey", GeneralVariables.getQrzApiKey());
+        }
+    };
+
     //排除的呼号前缀
     private final TextWatcher onExcludedCallsigns=new TextWatcher() {
         @Override
@@ -445,6 +464,11 @@ public class ConfigFragment extends Fragment {
         binding.cloudlogStationIdEdit.setText(GeneralVariables.getCloudlogStationID());
         binding.cloudlogStationIdEdit.addTextChangedListener(onCloudlogStationIDChanged);
 
+        // qrz相关配置
+        binding.qrzApiKeyTextEdit.removeTextChangedListener(onQrzApiKeyChanged);
+        binding.qrzApiKeyTextEdit.setText(GeneralVariables.getQrzApiKey());
+        binding.qrzApiKeyTextEdit.addTextChangedListener(onQrzApiKeyChanged);
+
 
         //设置同频发射开关
         binding.synFrequencySwitch.setOnCheckedChangeListener(null);
@@ -567,6 +591,21 @@ public class ConfigFragment extends Fragment {
                     mainViewModel.databaseOpr.writeConfig("enableCloudlog", "1", null);
                 } else {
                     mainViewModel.databaseOpr.writeConfig("enableCloudlog", "0", null);
+                }
+            }
+        });
+
+        //设置保存QRZ选项
+        binding.enableQrzSwitch.setOnCheckedChangeListener(null);
+        binding.enableQrzSwitch.setChecked(GeneralVariables.enableQRZ);
+        binding.enableQrzSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.enableQRZ = binding.enableQrzSwitch.isChecked();
+                if (binding.enableQrzSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("enableQRZ", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("enableQRZ", "0", null);
                 }
             }
         });
@@ -1243,6 +1282,15 @@ public class ConfigFragment extends Fragment {
                         , true).show();
             }
         });
+        //qrz帮助
+        binding.qrzSettingsImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.qrz_help)
+                        , true).show();
+            }
+        });
         //梅登海德网格的帮助
         binding.maidenGridImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1460,6 +1508,37 @@ public class ConfigFragment extends Fragment {
                                     public void run() {
                                         binding.testCloudlogButton.setEnabled(true);
                                         binding.testCloudlogButton.setText(getResources().getString(R.string.test));
+                                    }
+                                }, 3000);
+                            }
+                        });
+                    }
+                }).start();}
+        });
+        // QRZ测试...
+        binding.testQrzButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                binding.testQrzButton.setEnabled(false);
+                binding.testQrzButton.setText(getResources().getString(R.string.testing));
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        boolean result = ThirdPartyService.CheckQRZConnection();
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (result) {
+                                    binding.testQrzButton.setText(getResources().getString(R.string.pass));
+                                } else {
+                                    binding.testQrzButton.setText(getResources().getString(R.string.fail));
+                                }
+                                // 清空文本
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        binding.testQrzButton.setEnabled(true);
+                                        binding.testQrzButton.setText(getResources().getString(R.string.test));
                                     }
                                 }, 3000);
                             }
