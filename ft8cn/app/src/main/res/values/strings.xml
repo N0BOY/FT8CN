@@ -529,5 +529,9 @@
     <string name="test_cloudlog_config">TEST</string>
     <string name="cloudlog_station_id">Station ID</string>
     <string name="cloudlog_help">cloudlog_en.txt</string>
+    <string name="pass">Pass!</string>
+    <string name="fail">Fail!</string>
+    <string name="testing">Testing...</string>
+    <string name="test">Test</string>
 
 </resources>

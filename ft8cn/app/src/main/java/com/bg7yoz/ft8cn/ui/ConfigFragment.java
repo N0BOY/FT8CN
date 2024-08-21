@@ -1440,7 +1440,8 @@ public class ConfigFragment extends Fragment {
         binding.testCloudlogButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                binding.cloudlogServerTestResultTextView.setText("TESTING...!");
+                binding.testCloudlogButton.setEnabled(false);
+                binding.testCloudlogButton.setText(getResources().getString(R.string.testing));
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -1449,15 +1450,16 @@ public class ConfigFragment extends Fragment {
                             @Override
                             public void run() {
                                 if (result) {
-                                    binding.cloudlogServerTestResultTextView.setText("PASSED!");
+                                    binding.testCloudlogButton.setText(getResources().getString(R.string.pass));
                                 } else {
-                                    binding.cloudlogServerTestResultTextView.setText("FAILED!");
+                                    binding.testCloudlogButton.setText(getResources().getString(R.string.fail));
                                 }
                                 // 清空文本
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        binding.cloudlogServerTestResultTextView.setText("");
+                                        binding.testCloudlogButton.setEnabled(true);
+                                        binding.testCloudlogButton.setText(getResources().getString(R.string.test));
                                     }
                                 }, 3000);
                             }

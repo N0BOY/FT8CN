@@ -523,5 +523,9 @@
     <string name="test_cloudlog_config">测试</string>
     <string name="cloudlog_station_id">站点ID</string>
     <string name="cloudlog_help">cloudlog.txt</string>
+    <string name="pass">成功！</string>
+    <string name="fail">失败！</string>
+    <string name="testing">测试中...</string>
+    <string name="test">测试</string>
 
 </resources>
