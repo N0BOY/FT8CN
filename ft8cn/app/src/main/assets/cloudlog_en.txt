@@ -1,0 +1,9 @@
+About Cloudlog
+
+This feature allows you to upload the QSO record to Cloudlog immediately after QSO is completed.
+
+You need to obtain the API KEY in the API Key field of the cloudlog and enter it into the software.
+
+The server address must start with http or https, for example, http://192.168.1.3:1234.
+
+You can view the station ID in the "Station Locations" part of Cloudlog.

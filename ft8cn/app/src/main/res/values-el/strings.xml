@@ -518,6 +518,13 @@
     <string name="serial_setting_help">serial_help_en.txt</string>
     <string name="tcp_connect_closed">The network connection has been disconnected.</string>
     <string name="rtty_ru_msg">RTTY RU</string>
+    <string name="cloudlog_settings">Cloudlog Settings</string>
+    <string name="config_enable_cloudlog">Enable Cloudlog sync</string>
+    <string name="cloudlog_addr">Server address</string>
+    <string name="cloudlog_api_key">Apikey</string>
+    <string name="test_cloudlog_config">TEST</string>
+    <string name="cloudlog_station_id">Station ID</string>
+    <string name="cloudlog_help">cloudlog_en.txt</string>
 
     <!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->
 

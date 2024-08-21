@@ -508,6 +508,176 @@
 
 
                     <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/cloudlogLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.333"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/audioOutputLayout">
+
+                        <TextView
+                            android:id="@+id/cloudlogSettingsTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/cloudlog_settings"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Switch
+                            android:id="@+id/enableCloudlogSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="8dp"
+
+                            android:checked="false"
+                            android:text="@string/config_enable_cloudlog"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toTopOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <TextView
+                            android:id="@+id/cloudlogServerAddressTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/cloudlog_addr"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/enableCloudlogSwitch" />
+
+                        <EditText
+                            android:id="@+id/cloudlogServerAddressEdit"
+                            android:layout_width="140dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:inputType="text|textUri"
+                            android:minHeight="15dp"
+
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogServerAddressTextView"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck" />
+
+                        <TextView
+                            android:id="@+id/cloudlogServerApiKeyTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/cloudlog_api_key"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressTextView" />
+
+                        <EditText
+                            android:id="@+id/cloudlogServerApiKeyEdit"
+                            android:layout_width="140dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="6dp"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:inputType="text"
+                            android:minHeight="15dp"
+
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintStart_toStartOf="@+id/cloudlogServerAddressEdit"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressTextView"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck" />
+
+                        <TextView
+                            android:id="@+id/cloudlogStationIdTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/cloudlog_station_id"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            android:layout_marginTop="10dp"
+                            app:layout_constraintStart_toEndOf="@+id/cloudlogSettingsTextView"
+                            app:layout_constraintTop_toBottomOf="@+id/cloudlogServerApiKeyTextView" />
+
+                        <EditText
+                            android:id="@+id/cloudlogStationIdEdit"
+                            android:layout_width="140dp"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:layout_marginTop="2dp"
+                            android:inputType="text|textUri"
+                            android:minHeight="15dp"
+
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintStart_toStartOf="@+id/cloudlogServerApiKeyEdit"
+                            app:layout_constraintTop_toBottomOf="@id/cloudlogServerApiKeyEdit"
+                            tools:ignore="TextContrastCheck,TooManyViews,TouchTargetSizeCheck" />
+
+
+                        <Button
+                            android:id="@+id/testCloudlogButton"
+                            android:layout_width="100dp"
+                            android:layout_height="wrap_content"
+                            android:text="@string/test_cloudlog_config"
+                            android:textSize="12sp"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toEndOf="@id/cloudlogServerApiKeyTextView"
+                            app:layout_constraintTop_toBottomOf="@id/cloudlogStationIdEdit"/>
+
+                        <TextView
+                            android:id="@+id/cloudlogServerTestResultTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="8dp"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="12sp"
+                            app:layout_constraintBottom_toBottomOf="@id/testCloudlogButton"
+                            app:layout_constraintLeft_toRightOf="@id/testCloudlogButton" />
+
+                        <ImageButton
+                            android:id="@+id/cloudlogSettingsImageButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/operatonBandLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -1641,7 +1811,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/audioOutputLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/cloudlogLayout">
 
                         <TextView
                             android:id="@+id/clearCacheText"

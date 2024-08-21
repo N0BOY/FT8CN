@@ -1,0 +1,9 @@
+关于Cloudlog
+
+该功能帮助您在完成通联后即时上传本次QSO到Cloudlog。
+
+您需要在cloudlog的“API密钥”中获取API KEY，并填写至软件中。
+
+服务器地址需要以http或https开头，例: http://192.168.1.3:1234。
+
+台站ID可以在cloudlog中的“台站地址”中查看到。

@@ -517,6 +517,13 @@
     <string name="serial_setting_help">serial_help.txt</string>
     <string name="tcp_connect_closed">網路連接已經斷開！</string>
     <string name="rtty_ru_msg">RTTY RU</string>
+    <string name="cloudlog_settings">Cloudlog设置</string>
+    <string name="config_enable_cloudlog">自动上传至Cloudlog</string>
+    <string name="cloudlog_addr">服务器地址</string>
+    <string name="cloudlog_api_key">API密钥</string>
+    <string name="test_cloudlog_config">测试</string>
+    <string name="cloudlog_station_id">站点ID</string>
+    <string name="cloudlog_help">cloudlog.txt</string>
 
 
 </resources>

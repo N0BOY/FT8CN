@@ -1922,6 +1922,20 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.serialParity =Integer.parseInt(result);
                 }
 
+                // cloudlogs
+                if (name.equalsIgnoreCase("enableCloudlog")) {
+                    GeneralVariables.enableCloudlog = result.equals("1");
+                }
+                if (name.equalsIgnoreCase("cloudlogServerAddress")) {
+                    GeneralVariables.cloudlogServerAddress = result;
+                }
+                if (name.equalsIgnoreCase("cloudlogApiKey")) {
+                    GeneralVariables.cloudlogApiKey = result;
+                }
+                if (name.equalsIgnoreCase("cloudlogStationID")) {
+                    GeneralVariables.cloudlogStationID = result;
+                }
+
             }
 
             cursor.close();
