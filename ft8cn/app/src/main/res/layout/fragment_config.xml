@@ -522,12 +522,12 @@
                             android:id="@+id/cloudlogSettingsTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
                             android:text="@string/cloudlog_settings"
                             android:textAlignment="textEnd"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
-                            app:layout_constraintStart_toStartOf="parent"/>
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="@id/cloudlogServerApiKeyTextView"/>
 
                         <Switch
                             android:id="@+id/enableCloudlogSwitch"
@@ -643,7 +643,7 @@
                             android:textSize="12sp"
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintLeft_toLeftOf="@id/cloudlogSettingsTextView"
-                            app:layout_constraintTop_toTopOf="@id/cloudlogServerApiKeyTextView"/>
+                            app:layout_constraintBottom_toBottomOf="@id/enableCloudlogSwitch"/>
 
                         <ImageButton
                             android:id="@+id/cloudlogSettingsImageButton"
@@ -736,7 +736,7 @@
                             android:text="@string/test_cloudlog_config"
                             android:textSize="12sp"
                             app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintLeft_toLeftOf="@id/cloudlogSettingsTextView"
+                            app:layout_constraintLeft_toLeftOf="@id/qrzSettingsTextView"
                             app:layout_constraintTop_toBottomOf="@id/qrzSettingsTextView"/>
 
                         <ImageButton

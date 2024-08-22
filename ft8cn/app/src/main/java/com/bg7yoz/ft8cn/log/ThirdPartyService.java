@@ -17,10 +17,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 
+enum ServiceType{
+    Cloudlog,
+    QRZ
+}
+
 public class ThirdPartyService {
     public static String TAG = "ThirdPartyService";
 
-    private static String QSLRecordToADIF(QSLRecord qslRecord){
+    private static String QSLRecordToADIF(QSLRecord qslRecord, ServiceType serv){
         StringBuilder logStr = new StringBuilder();
         logStr.append(String.format("<call:%d>%s "
                 , qslRecord.getToCallsign().length()
@@ -80,9 +85,16 @@ public class ThirdPartyService {
         }
 
         if (String.valueOf(qslRecord.getBandFreq()) != null) {
+            String freq = "";
+            Log.d(TAG,String.valueOf(qslRecord.getBandFreq()));
+            if (serv == ServiceType.Cloudlog || serv == ServiceType.QRZ){
+                double i = (double)qslRecord.getBandFreq() / 1000000;
+                freq = String.valueOf(i);
+            }
+
             logStr.append(String.format("<freq:%d>%s "
-                    , String.valueOf(qslRecord.getBandFreq()).length()
-                    , String.valueOf(qslRecord.getBandFreq())));
+                    , freq.length()
+                    , freq));
         }
 
         if (qslRecord.getMyCallsign() != null) {
@@ -108,7 +120,8 @@ public class ThirdPartyService {
     }
     public static void UploadToCloudLog(QSLRecord qslRecord){
         // 转换为adif格式
-        String logStr = QSLRecordToADIF(qslRecord);
+        String logStr = QSLRecordToADIF(qslRecord,ServiceType.Cloudlog);
+        Log.d(TAG,logStr);
         String address = GeneralVariables.getCloudlogServerAddress();
         if (!address.endsWith("/")){
             address+="/";
@@ -123,7 +136,8 @@ public class ThirdPartyService {
         try {
             String result = js.object().key("key").value(GeneralVariables.getCloudlogServerApiKey()).key("station_profile_id").value(GeneralVariables.getCloudlogStationID())
                     .key("type").value("adif").key("string").value(logStr).endObject().toString();
-            sendPostRequest(address+"api/qso/",result);
+            String clRes = sendPostRequest(address+"api/qso/",result);
+            Log.d(TAG,"Updated to Cloudlog successfully. result:"+clRes);
         }catch (Exception k){
             Log.d(TAG, k.toString());
         }
@@ -175,7 +189,8 @@ public class ThirdPartyService {
 
     public static void UploadToQRZ(QSLRecord qslRecord){
         // 转换为adif格式
-        String logStr = QSLRecordToADIF(qslRecord);
+        String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
+        Log.d(TAG,logStr);
         String apikey = GeneralVariables.getQrzApiKey();
         HashMap<String,String> json = new HashMap<>();
 
@@ -183,7 +198,7 @@ public class ThirdPartyService {
 
         try {
             String result = sendGetRequest(url);
-            Log.d(TAG,result);
+            Log.d(TAG,"Updated to QRZ successfully. result:" + result);
         }catch (Exception k){
             Log.d(TAG, k.toString());
         }
@@ -209,7 +224,8 @@ public class ThirdPartyService {
 
             // 获取服务器的响应结果
             int responseCode = conn.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
+            // cloudlog使用HTTP_CREATED作为创建记录成功的响应
+            if (responseCode == HttpURLConnection.HTTP_OK || responseCode==HttpURLConnection.HTTP_CREATED) {
                 reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 StringBuilder response = new StringBuilder();
                 String line;
