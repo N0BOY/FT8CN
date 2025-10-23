@@ -27,7 +27,7 @@ public class InstructionSet {
     public static final int YAESU_847=21;//Ft-847
     public static final int ICOM_756=22;//Ft-847
 
-
+    public static final int ICOM_705=23;
 
 
 }

@@ -67,7 +67,8 @@ public class LoginIcomRadioDialog extends Dialog {
             public void onClick(View view) {
 
 
-                if (GeneralVariables.instructionSet == InstructionSet.ICOM) {//icom 电台
+                if (GeneralVariables.instructionSet == InstructionSet.ICOM
+                        || GeneralVariables.instructionSet == InstructionSet.ICOM_705) {//icom 电台
                     ToastMessage.show(String.format(
                             GeneralVariables.getStringFromResource(R.string.connect_icom_ip)
                             , inputIcomAddressEdit.getText()));
