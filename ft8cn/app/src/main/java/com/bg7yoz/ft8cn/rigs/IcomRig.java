@@ -33,22 +33,14 @@ public class IcomRig extends BaseRig {
     private boolean oldVersion = false;//针对老电台，可能不支持SWR查询
     //private boolean isPttOn = false;
 
+    private boolean ic705 = false; //设置电台连接模式当前仅支持IC705
+
     @Override
     public void setPTT(boolean on) {
         super.setPTT(on);
         //isPttOn = on;
         alcMaxAlert = false;
         swrAlert = false;
-        if (on) {
-            //修正连接方式0x03是wlan,01是usb，0x02是usb+mic，确保声音能发送到电台
-            if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
-                sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x03));
-            } else if (GeneralVariables.connectMode == ConnectMode.USB_CABLE) {
-                sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x01));
-            } else {
-                sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x02));
-            }
-        }
 
         if (getConnector() != null) {
             if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
@@ -275,10 +267,30 @@ public class IcomRig extends BaseRig {
     }
 
 
-    public IcomRig(int civAddress, boolean newRig) {
+    public IcomRig(int civAddress, boolean newRig, boolean ic705) {
         Log.d(TAG, "IcomRig: Create.");
         this.oldVersion = !newRig;//有的老电台不支持swr查询
+        this.ic705 = ic705; // 设置电台连接方式目前仅支持IC705
         setCivAddress(civAddress);
         startMeterTimer();
+    }
+
+    /**
+     * 修正连接方式连接方式，目前ICOM各个型号的指令不太一样，当前只支持IC-705
+     */
+    @Override
+    public void fixConnectorSettings() {
+        if(ic705) {
+            //修正连接方式0x03是wlan,01是usb，0x02是usb+mic，确保声音能发送到电台
+            if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
+                sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x03));
+            } else if (GeneralVariables.connectMode == ConnectMode.USB_CABLE) {
+                sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x01));
+            } else {
+                sendCivData(IcomRigConstant.setConnectorDataMode(ctrAddress, getCivAddress(), (byte) 0x02));
+            }
+        }else {
+            Log.d(TAG,"非IC-705电台, 不修正连接方式");
+        }
     }
 }

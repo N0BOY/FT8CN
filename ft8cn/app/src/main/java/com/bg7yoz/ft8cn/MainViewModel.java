@@ -641,6 +641,8 @@ public class MainViewModel extends ViewModel {
             public void run() {
                 baseRig.setFreq(GeneralVariables.band);//设置频率
                 baseRig.setFreqToRig();
+                // 修正电台连接方式
+                baseRig.fixConnectorSettings();
             }
         }, 800);
     }
@@ -859,10 +861,13 @@ public class MainViewModel extends ViewModel {
         //此处判断是用什么类型的电台，ICOM,YAESU 2,YAESU 3
         switch (GeneralVariables.instructionSet) {
             case InstructionSet.ICOM:
-                baseRig = new IcomRig(GeneralVariables.civAddress,true);
+                baseRig = new IcomRig(GeneralVariables.civAddress,true, false);
+                break;
+            case InstructionSet.ICOM_705:
+                baseRig = new IcomRig(GeneralVariables.civAddress,true, true);
                 break;
             case InstructionSet.ICOM_756:
-                baseRig = new IcomRig(GeneralVariables.civAddress,false);
+                baseRig = new IcomRig(GeneralVariables.civAddress,false, false);
                 break;
             case InstructionSet.YAESU_2:
                 baseRig = new Yaesu2Rig();

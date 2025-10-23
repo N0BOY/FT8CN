@@ -142,4 +142,11 @@ public abstract class BaseRig {
     public void onDisconnecting() {
     }
 
+    /**
+     * 修正电台连接方式
+     */
+    public void fixConnectorSettings(){
+
+    }
+
 }
