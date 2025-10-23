@@ -940,6 +940,7 @@ public class MainViewModel extends ViewModel {
 
         if ((GeneralVariables.instructionSet == InstructionSet.FLEX_NETWORK)
                 || ((GeneralVariables.instructionSet == InstructionSet.ICOM
+                || GeneralVariables.instructionSet == InstructionSet.ICOM_705
                 || GeneralVariables.instructionSet==InstructionSet.XIEGU_6100
                 || GeneralVariables.instructionSet==InstructionSet.XIEGU_6100_FT8CNS)
                 && GeneralVariables.connectMode == ConnectMode.NETWORK)) {

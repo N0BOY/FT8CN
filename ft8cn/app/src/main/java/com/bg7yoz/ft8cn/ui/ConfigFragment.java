@@ -1308,6 +1308,7 @@ public class ConfigFragment extends Fragment {
                         new SelectXieguRadioDialog(requireContext(), mainViewModel).show();
                     }
                     else if(GeneralVariables.instructionSet== InstructionSet.ICOM
+                            ||GeneralVariables.instructionSet== InstructionSet.ICOM_705
                             ||GeneralVariables.instructionSet== InstructionSet.XIEGU_6100
                             ||GeneralVariables.instructionSet== InstructionSet.XIEGUG90S) {
                         new LoginIcomRadioDialog(requireContext(), mainViewModel).show();
