@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 enum ServiceType{
@@ -166,9 +168,17 @@ public class ThirdPartyService {
 
     public static boolean CheckQRZConnection(){
         String apiKey = GeneralVariables.getQrzApiKey();
+        if (apiKey == null || apiKey.isEmpty()) {
+            Log.e(TAG, "QRZ API key is not set");
+            return false;
+        }
         try{
             String url = "https://logbook.qrz.com/api?KEY="+apiKey+"&ACTION=STATUS";
-            String result = sendGetRequest(url);
+            String result = sendGetRequestWithUserAgent(url);
+            if (result == null) {
+                Log.e(TAG, "QRZ connection check failed: No response");
+                return false;
+            }
             HashMap<String,String> status = new HashMap<>();
             for (String s : result.split("&")) {
                 String[] split = s.split("=");
@@ -176,13 +186,14 @@ public class ThirdPartyService {
                     status.put(split[0],split[1]);
                 }
             }
-            Log.d(TAG, status.toString());
-            if (!status.get("RESULT").equals("OK")){
+            Log.d(TAG, "QRZ status: " + status.toString());
+            if (status.get("RESULT") == null || !status.get("RESULT").equals("OK")){
+                Log.e(TAG, "QRZ connection check failed: RESULT=" + status.get("RESULT"));
                 return false;
             }
             return true;
         }catch (Exception e){
-            Log.d(TAG, e.toString());
+            Log.e(TAG, "QRZ connection check exception: " + e.toString(), e);
             return false;
         }
     }
@@ -190,17 +201,29 @@ public class ThirdPartyService {
     public static void UploadToQRZ(QSLRecord qslRecord){
         // 转换为adif格式
         String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
-        Log.d(TAG,logStr);
+        Log.d(TAG,"ADIF data: " + logStr);
         String apikey = GeneralVariables.getQrzApiKey();
-        HashMap<String,String> json = new HashMap<>();
-
-        String url = String.format("https://logbook.qrz.com/api/KEY=%s&ACTION=INSERT&ADIF=%s",apikey,logStr);
+        
+        if (apikey == null || apikey.isEmpty()) {
+            Log.e(TAG, "QRZ API key is not set");
+            return;
+        }
 
         try {
-            String result = sendGetRequest(url);
-            Log.d(TAG,"Updated to QRZ successfully. result:" + result);
+            // URL encode the ADIF data to handle special characters
+            String encodedAdif = URLEncoder.encode(logStr, StandardCharsets.UTF_8.toString());
+            // Fix URL format: use ? for query parameters, not / after /api
+            String url = String.format("https://logbook.qrz.com/api?KEY=%s&ACTION=INSERT&ADIF=%s", apikey, encodedAdif);
+            Log.d(TAG, "QRZ upload URL: " + url.replace(apikey, "***")); // Log URL with masked API key
+            
+            String result = sendGetRequestWithUserAgent(url);
+            if (result != null) {
+                Log.d(TAG, "Updated to QRZ successfully. result: " + result);
+            } else {
+                Log.e(TAG, "QRZ upload failed: No response or error response");
+            }
         }catch (Exception k){
-            Log.d(TAG, k.toString());
+            Log.e(TAG, "QRZ upload exception: " + k.toString(), k);
         }
     }
 
@@ -246,6 +269,19 @@ public class ThirdPartyService {
         return null;
     }
     public static String sendGetRequest(String url) throws IOException {
+        return sendGetRequestWithUserAgent(url, null);
+    }
+
+    private static String sendGetRequestWithUserAgent(String url) throws IOException {
+        // Build User-Agent: callsign + application name + version
+        String userAgent = "FT8CN/" + GeneralVariables.VERSION;
+        if (GeneralVariables.myCallsign != null && !GeneralVariables.myCallsign.isEmpty()) {
+            userAgent = GeneralVariables.myCallsign + " " + userAgent;
+        }
+        return sendGetRequestWithUserAgent(url, userAgent);
+    }
+
+    private static String sendGetRequestWithUserAgent(String url, String userAgent) throws IOException {
         HttpURLConnection conn = null;
         BufferedReader reader = null;
 
@@ -253,13 +289,20 @@ public class ThirdPartyService {
             URL urlObj = new URL(url);
             conn = (HttpURLConnection) urlObj.openConnection();
 
-            // 设置请求方法为POST
+            // 设置请求方法为GET
             conn.setRequestMethod("GET");
             // 设置请求的头部信息
             conn.setRequestProperty("Content-Type", "application/json");
+            
+            // Set User-Agent header (required by QRZ API)
+            if (userAgent != null && !userAgent.isEmpty()) {
+                conn.setRequestProperty("User-Agent", userAgent);
+            }
 
             // 获取服务器的响应结果
             int responseCode = conn.getResponseCode();
+            Log.d(TAG, "HTTP response code: " + responseCode);
+            
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                 StringBuilder response = new StringBuilder();
@@ -268,6 +311,19 @@ public class ThirdPartyService {
                     response.append(line);
                 }
                 return response.toString();
+            } else {
+                // Read error response body for better error messages
+                try {
+                    reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+                    StringBuilder errorResponse = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        errorResponse.append(line);
+                    }
+                    Log.e(TAG, "QRZ API error response (" + responseCode + "): " + errorResponse.toString());
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to read error response: " + e.toString());
+                }
             }
         } finally {
             if (conn != null) {
