@@ -564,7 +564,22 @@ public class ConfigFragment extends Fragment {
             }
         });
 
-
+        //设置总是显示SWR和ALC值当发射时
+        binding.alwaysShowSwrAlcSwitch.setOnCheckedChangeListener(null);
+        binding.alwaysShowSwrAlcSwitch.setChecked(GeneralVariables.always_show_swr_alc);
+        setAlwaysShowSwrAlcSwitchText();
+        binding.alwaysShowSwrAlcSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.always_show_swr_alc = binding.alwaysShowSwrAlcSwitch.isChecked();
+                if (binding.alwaysShowSwrAlcSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("alwaysShowSwrAlc", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("alwaysShowSwrAlc", "0", null);
+                }
+                setAlwaysShowSwrAlcSwitchText();
+            }
+        });
 
         //设置自动呼叫关注的呼号
         binding.autoCallfollowSwitch.setOnCheckedChangeListener(null);
@@ -898,6 +913,17 @@ public class ConfigFragment extends Fragment {
             binding.alcAlarmSwitch.setText(R.string.alc_switch_on);
         }else {
             binding.alcAlarmSwitch.setText(R.string.alc_switch_off);
+        }
+    }
+
+    /**
+     * 设置总是显示SWR和ALC值开关文本
+     */
+    private void setAlwaysShowSwrAlcSwitchText(){
+        if (binding.alwaysShowSwrAlcSwitch.isChecked()){
+            binding.alwaysShowSwrAlcSwitch.setText(R.string.always_show_swr_alc_switch_on);
+        }else {
+            binding.alwaysShowSwrAlcSwitch.setText(R.string.always_show_swr_alc_switch_off);
         }
     }
 

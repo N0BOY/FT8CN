@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Auto-generated version file (increments on each build)
+/app/version.properties

@@ -85,7 +85,7 @@
     <string name="bluetooth_headset_mode">Enter Bluetooth headset mode</string>>
     <string name="bluetooth_Headset_mode_cancelled">Exit Bluetooth headset mode</string>>
 
-    <string name="version_info">FT8CN Ver %s\nBG7YOZ\n%s</string>>
+    <string name="version_info">FT8CN Ver %1$s\nBG7YOZ\n%2$s</string>>
 
 
     <string name="exit">Exit</string>>
@@ -129,7 +129,7 @@
     <string name="message_count">Messages(%d)</string>
 
     <!--   日志导出栏栏-->
-    <string name="export_info">Please use the web browser of other devices to export from the background under the same LAN as this device.\nEnter the URL in the browser:\nhttp://%s:%d</string>
+    <string name="export_info">Please use the web browser of other devices to export from the background under the same LAN as this device.\nEnter the URL in the browser:\nhttp://%1$s:%2$d</string>
     <!--   发射监管-->
     <string name="minutes">%d Mins</string>
 
@@ -142,16 +142,16 @@
     <string name="do_not_call_the_following_callsign">No call tracked</string>
 
     <!--   解码栏-->
-    <string name="message_count_count">Messages(%d/%d)</string>
+    <string name="message_count_count">Messages(%1$d/%2$d)</string>
     <string name="average_offset_seconds">Offset Avg : %.2f Sec</string>
     <string name="my_grid">Grid : %s</string>
 
     <!--   解码列表-->
-    <string name="tracking_receiver">Tracking receiver %s(%s)</string>
-    <string name="calling_receiver">Call receiver %s(%s)</string>
-    <string name="reply_to">Reply %s(%s)</string>
-    <string name="tracking">Tracking %s(%s)</string>
-    <string name="calling">Call %s(%s)</string>
+    <string name="tracking_receiver">Tracking receiver %1$s(%2$s)</string>
+    <string name="calling_receiver">Call receiver %1$s(%2$s)</string>
+    <string name="reply_to">Reply %1$s(%2$s)</string>
+    <string name="tracking">Tracking %1$s(%2$s)</string>
+    <string name="calling">Call %1$s(%2$s)</string>
 
     <!--   网格距离计算-->
     <string name="distance">%.0f mi</string>
@@ -208,7 +208,7 @@
     <string name="html_return">Return</string>
 
 
-    <string name="html_import_count">There are %d records in the ADI file and %d imported records . The format of %d logs is incorrect .</string>
+    <string name="html_import_count">There are %1$d records in the ADI file and %2$d imported records . The format of %3$d logs is incorrect .</string>
     <string name="html_import_failed">Import failed! %s</string>
     <string name="html_illegal_command">Illegal command, upload failed!</string>
     <string name="html_callsign">Callsign</string>
@@ -306,18 +306,18 @@
     <string name="itu_completion_statistics">ITU completion statistics</string>
     <string name="count_incomplete">Incomplete</string>
     <string name="count_completed">Completed</string>
-    <string name="count_total_itu">Total ITU : %d\nCompleted %d(%.1f%%)</string>
+    <string name="count_total_itu">Total ITU : %1$d\nCompleted %2$d(%3$.1f%%)</string>
     <string name="count_itu_completed_scale">ITU statistics</string>
     <string name="count_cqzone_completed">CQ Zone Statistics</string>
-    <string name="count_total_cqzone">Total CQ Zone : %d \n Completed : %d(%.1f%%)</string>
+    <string name="count_total_cqzone">Total CQ Zone : %1$d \n Completed : %2$d(%3$.1f%%)</string>
     <string name="count_cqzone_proportion">CQ Zone Statistics</string>
     <string name="dxcc_completion_statistics">DXCC statistics</string>
-    <string name="count_total_dxcc">Total DXCC : %d \nCompleted : %d(%.1f%%)</string>
+    <string name="count_total_dxcc">Total DXCC : %1$d \nCompleted : %2$d(%3$.1f%%)</string>
     <string name="count_dxcc_proportion">DXCC statistics</string>
-    <string name="callsign_info">Callsign:%s\nLocation:%s\nCQ zone:%d\nITU zone:%d\nContinent:%s\nLongitude and latitude:%.2f,%.2f\nTime zone:%.0f\nDxcc prefix:%s</string>
+    <string name="callsign_info">Callsign:%1$s\nLocation:%2$s\nCQ zone:%3$d\nITU zone:%4$d\nContinent:%5$s\nLongitude and latitude:%6$.2f,%7$.2f\nTime zone:%8$.0f\nDxcc prefix:%9$s</string>
     <string name="maximum_distance">Maximum distance\n\n%s</string>
     <string name="minimum_distance">Nearest distance\n\n%s</string>
-    <string name="count_distance_info">Maximum distance:%.0f mi (%s)\nNearest distance:%.0f mi (%s)</string>
+    <string name="count_distance_info">Maximum distance:%1$.0f mi (%2$s)\nNearest distance:%3$.0f mi (%4$s)</string>
     <string name="distance_statistics">Distance statistics</string>
     <string name="dxcc_image">dxcc</string>
     <string name="cqzone">cq zone</string>
@@ -336,7 +336,7 @@
     <string name="xiegu_connect_failed">XieguRadio %s connect failed !</string>
     <string name="init_flex_operation">%s  is initializing the operation .</string>
     <string name="html_max_message_cache">Maximum number of cached messages</string>
-    <string name="instruction_failed">The instruction %s failed to execute . message : %s</string>
+    <string name="instruction_failed">The instruction %1$s failed to execute . message : %2$s</string>
     <string name="instruction_success">The instruction %s was executed successfully .</string>
     <string name="flex_ip_addr">Ip</string>
     <string name="pl_input_flex_ip">Please input ip address</string>
@@ -354,7 +354,7 @@
     <string name="show_password">Password is visibility</string>
     <string name="connect_icom_ip">Connect ICom Radio %s …</string>
     <string name="connect_xiegu_ip">Connect XIEGU Radio %s …</string>
-    <string name="network_exception">%s : Network transmission exception : %s</string>
+    <string name="network_exception">%1$s : Network transmission exception : %2$s</string>
     <string name="login_succeed">Login succeeded !</string>
     <string name="loging_failed">Login failed, invalid user name or password.</string>
     <string name="data_stream">Data stream</string>
@@ -508,8 +508,7 @@
     <string name="xiegu_atu_on">ATU On</string>
     <string name="xiegu_atu_off">ATU Off</string>
     <string name="xiegu_band_str">Band : %s</string>
-    <string name="alc_low_alert">Warning ! ALC is too low .</string>
-    <string name="xiegu_meter_info">S.Meter: %.1f dBm\nSWR: %s\nALC: %.1f\nVolt: %.1fV\nTX power: %.1f W\nMax tx power: %.1f\nTX volume:%d%%</string>
+    <string name="xiegu_meter_info">S.Meter: %1$.1f dBm\nSWR: %2$s\nALC: %3$.1f\nVolt: %4$.1fV\nTX power: %5$.1f W\nMax tx power: %6$.1f\nTX volume:%7$d%%</string>
     <string name="serial_connect_no_access">Unable to connect to the serial port, please confirm if you have access to the USB device!</string>
     <string name="serial_connect_failed">Serial port opening failed !</string>
     <string name="serial_no_driver">Unable to connect to serial port, serial port not found!</string>
@@ -556,5 +555,8 @@
     <string name="swr_switch_off" translatable="false">SWR Off</string>
     <string name="alc_switch_on" translatable="false">ALC On</string>
     <string name="alc_switch_off" translatable="false">ALC Off</string>
+    <string name="always_show_swr_alc">Always show SWR/ALC when transmitting</string>
+    <string name="always_show_swr_alc_switch_on" translatable="false">On</string>
+    <string name="always_show_swr_alc_switch_off" translatable="false">Off</string>
 
 </resources>

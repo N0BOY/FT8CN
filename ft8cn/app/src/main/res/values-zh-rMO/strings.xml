@@ -83,7 +83,7 @@
     <string name="bluetooth_headset_mode">進入到藍牙耳機模式</string>>
     <string name="bluetooth_Headset_mode_cancelled">離開藍牙耳機模式</string>>
 
-    <string name="version_info">FT8CN Ver %s\nBG7YOZ\n%s</string>>
+    <string name="version_info">FT8CN Ver %1$s\nBG7YOZ\n%2$s</string>>
 
 
     <string name="exit">退出</string>>
@@ -127,7 +127,7 @@
     <string name="message_count">訊息(%d)</string>
 
     <!--   日誌導出欄欄-->
-    <string name="export_info">請在與本機相同的局域網下，用其它設備的網頁瀏覽器從後台導出。\n在瀏覽器的地址欄中輸入如下內容：\nhttp://%s:%d</string>
+    <string name="export_info">請在與本機相同的局域網下，用其它設備的網頁瀏覽器從後台導出。\n在瀏覽器的地址欄中輸入如下內容：\nhttp://%1$s:%2$d</string>
     <!--   發射監管-->
     <string name="minutes">%d分鐘</string>
 
@@ -140,16 +140,16 @@
     <string name="do_not_call_the_following_callsign">不呼叫關注的呼號</string>
 
     <!--   解碼欄-->
-    <string name="message_count_count">訊息(%d/%d)</string>
+    <string name="message_count_count">訊息(%1$d/%2$d)</string>
     <string name="average_offset_seconds">平均偏移%.2f秒</string>
     <string name="my_grid">我的網格 : %s</string>
 
     <!--   解碼列表-->
-    <string name="tracking_receiver">關注接收方 %s(%s)</string>
-    <string name="calling_receiver">呼叫接收方 %s(%s)</string>
-    <string name="reply_to">回覆 %s(%s)</string>
-    <string name="tracking">關注 %s(%s)</string>
-    <string name="calling">呼叫 %s(%s)</string>
+    <string name="tracking_receiver">關注接收方 %1$s(%2$s)</string>
+    <string name="calling_receiver">呼叫接收方 %1$s(%2$s)</string>
+    <string name="reply_to">回覆 %1$s(%2$s)</string>
+    <string name="tracking">關注 %1$s(%2$s)</string>
+    <string name="calling">呼叫 %1$s(%2$s)</string>
 
     <!--   網格距離計算-->
     <string name="distance">%.0f 英里</string>
@@ -203,7 +203,7 @@
     <string name="html_return">返回</string>
 
 
-    <string name="html_import_count">adi檔案中有效記錄%d條，匯入%d條。格式不正確 %d 條。</string>
+    <string name="html_import_count">adi檔案中有效記錄%1$d條，匯入%2$d條。格式不正確 %3$d 條。</string>
     <string name="html_import_failed">匯入失敗！%s</string>
     <string name="html_illegal_command">非法指令，上傳失敗！</string>
     <string name="html_callsign">呼號</string>
@@ -291,18 +291,18 @@
     <string name="itu_completion_statistics">ITU完成統計</string>
     <string name="count_incomplete">未完成</string>
     <string name="count_completed">已完成</string>
-    <string name="count_total_itu">ITU分區總數:%d\n完成數:%d(%.1f%%)</string>
+    <string name="count_total_itu">ITU分區總數:%1$d\n完成數:%2$d(%3$.1f%%)</string>
     <string name="count_itu_completed_scale">ITU分區完成比例</string>
     <string name="count_cqzone_completed">CQ分區完成統計</string>
-    <string name="count_total_cqzone">CQ分區總數:%d\n完成數:%d(%.1f%%)</string>
+    <string name="count_total_cqzone">CQ分區總數:%1$d\n完成數:%2$d(%3$.1f%%)</string>
     <string name="count_cqzone_proportion">CQ分區完成比例</string>
     <string name="dxcc_completion_statistics">DXCC分區完成統計</string>
-    <string name="count_total_dxcc">DXCC分區總數:%d \n完成數:%d(%.1f%%)</string>
+    <string name="count_total_dxcc">DXCC分區總數:%1$d \n完成數:%2$d(%3$.1f%%)</string>
     <string name="count_dxcc_proportion">DXCC分區完成比例</string>
-    <string name="callsign_info">呼號:%s\n位置:%s\nCQ分區:%d\nITU分區:%d\n大陸:%s\n經緯度:%.2f,%.2f\n時區:%.0f\nDXCC前綴:%s</string>
+    <string name="callsign_info">呼號:%1$s\n位置:%2$s\nCQ分區:%3$d\nITU分區:%4$d\n大陸:%5$s\n經緯度:%6$.2f,%7$.2f\n時區:%8$.0f\nDXCC前綴:%9$s</string>
     <string name="maximum_distance">最遠\n\n%s</string>
     <string name="minimum_distance">最近\n\n%s</string>
-    <string name="count_distance_info">最遠距離：%.0f英里(%s)\n最近距離：%.0f英里(%s)</string>
+    <string name="count_distance_info">最遠距離：%1$.0f英里(%2$s)\n最近距離：%3$.0f英里(%4$s)</string>
     <string name="distance_statistics">距離統計</string>
     <string name="dxcc_image">dxcc</string>
     <string name="cqzone">cq zone</string>
@@ -330,7 +330,7 @@
     <string name="flex_connect_failed">連接FlexRadio %s 失敗！</string>
     <string name="init_flex_operation">%s 開始初始化操作…</string>
     <string name="html_max_message_cache">最大緩存消息數量</string>
-    <string name="instruction_failed">指令%s執行失敗！消息：%s</string>
+    <string name="instruction_failed">指令%1$s執行失敗！消息：%2$s</string>
     <string name="instruction_success">指令%s執行成功！</string>
     <string name="flex_ip_addr">Ip地址</string>
     <string name="pl_input_flex_ip">請輸入IP地址</string>
@@ -348,7 +348,7 @@
     <string name="show_password">顯示密碼</string>
     <string name="connect_icom_ip">連接到ICom電臺 %s …</string>
     <string name="connect_xiegu_ip">連接到XIEGU電臺 %s …</string>
-    <string name="network_exception">%s：網路傳輸異常：%s</string>
+    <string name="network_exception">%1$s：網路傳輸異常：%2$s</string>
     <string name="login_succeed">登錄成功！</string>
     <string name="loging_failed">登錄失敗，無效的用戶名或密碼。</string>
     <string name="data_stream">數據流</string>
@@ -504,8 +504,7 @@
     <string name="xiegu_atu_on">ATU On</string>
     <string name="xiegu_atu_off">ATU Off</string>
     <string name="xiegu_band_str">頻段：%s</string>
-    <string name="alc_low_alert">警告！ALC太低了。</string>
-    <string name="xiegu_meter_info">信號強度: %.1f dBm\n駐波: %s\nALC: %.1f\n電壓: %.1fV\n發射功率: %.1f W\n最大發射功率: %.1f\n發射音量:%d%%</string>
+    <string name="xiegu_meter_info">信號強度: %1$.1f dBm\n駐波: %2$s\nALC: %3$.1f\n電壓: %4$.1fV\n發射功率: %5$.1f W\n最大發射功率: %6$.1f\n發射音量:%7$d%%</string>
     <string name="serial_connect_no_access">無法連接串口，請確認是否有訪問USB設備的權限！</string>
     <string name="serial_connect_failed">串口打開失敗！</string>
     <string name="serial_no_driver">無法連接串口，沒有驅動或串口不存在！</string>

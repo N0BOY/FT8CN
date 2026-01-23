@@ -169,6 +169,7 @@ public class GeneralVariables {
 
     public static boolean swr_switch_on = true;//swr告警开关
     public static boolean alc_switch_on = true;//alc告警开关
+    public static boolean always_show_swr_alc = false;//总是显示SWR和ALC值当发射时
 
     public static MutableLiveData<Float> mutableBaseFrequency = new MutableLiveData<>();
     public static String cloudlogServerAddress = "";//cloudlog的服务器地址

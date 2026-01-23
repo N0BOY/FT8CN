@@ -74,8 +74,8 @@ public class ElecraftRig extends BaseRig {
             swrAlert = false;
         }
         
-        // Show values when transmitting, even if no warnings
-        if (isPttOn() && !hasSwrWarning) {
+        // Show values when transmitting, even if no warnings, or if always_show_swr_alc is enabled
+        if (isPttOn() && (GeneralVariables.always_show_swr_alc || !hasSwrWarning)) {
             ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.swr_value), actualSwr));
         }
     }

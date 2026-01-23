@@ -175,8 +175,8 @@ public class KenwoodTS590Rig extends BaseRig {
             alcMaxAlert = false;
         }
         
-        // Show values when transmitting, even if no warnings
-        if (isPttOn() && !hasSwrWarning && !hasAlcWarning) {
+        // Show values when transmitting, even if no warnings, or if always_show_swr_alc is enabled
+        if (isPttOn() && (GeneralVariables.always_show_swr_alc || (!hasSwrWarning && !hasAlcWarning))) {
             ToastMessage.show(String.format("%s  %s", 
                 String.format(GeneralVariables.getStringFromResource(R.string.swr_value), actualSwr),
                 String.format(GeneralVariables.getStringFromResource(R.string.alc_value), (float)alc)));

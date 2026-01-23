@@ -2223,6 +2223,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("alcSwitch")) {
                     GeneralVariables.alc_switch_on = result.equals("1");
                 }
+                if (name.equalsIgnoreCase("alwaysShowSwrAlc")) {
+                    GeneralVariables.always_show_swr_alc = result.equals("1");
+                }
 
             }
 
