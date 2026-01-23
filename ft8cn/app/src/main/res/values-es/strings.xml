@@ -150,7 +150,7 @@
     <string name="calling">Llamada %s(%s)</string>
 
     <!--   网格距离计算-->
-    <string name="distance">%.0f km</string>
+    <string name="distance">%.0f mi</string>
 
     <!--   日志列表-->
     <string name="confirmed">Confirmado</string>
@@ -313,7 +313,7 @@
     <string name="callsign_info">Callsign:%s\nLocation:%s\nCQ zone:%d\nITU zone:%d\nContinent:%s\nLongitude and latitude:%.2f,%.2f\nTime zone:%.0f\nDxcc prefix:%s</string>
     <string name="maximum_distance">Maximum distance\n\n%s</string>
     <string name="minimum_distance">Nearest distance\n\n%s</string>
-    <string name="count_distance_info">Maximum distance:%.0f km (%s)\nNearest distance:%.0f km (%s)</string>
+    <string name="count_distance_info">Maximum distance:%.0f mi (%s)\nNearest distance:%.0f mi (%s)</string>
     <string name="distance_statistics">Distance statistics</string>
     <string name="dxcc_image">dxcc</string>
     <string name="cqzone">cq zone</string>
@@ -355,8 +355,11 @@
     <string name="control_stream">Control stream</string>
     <string name="civ_stream">CI-V stream</string>
     <string name="audio_stream">Audio stream</string>
-    <string name="alc_high_alert">Warning ! ALC is too high .</string>
-    <string name="swr_high_alert">Warning ! SWR is too high .</string>
+    <string name="alc_high_alert">Warning ! ALC is too high: %.1f</string>
+    <string name="alc_low_alert">Warning ! ALC is too low: %.1f</string>
+    <string name="swr_high_alert">Warning ! SWR is too high: %.1f</string>
+    <string name="alc_value">ALC: %.1f</string>
+    <string name="swr_value">SWR: %.1f</string>
     <string name="volume_percent">Signal output strength %.0f %%</string>
     <string name="signal_strength">Signal output strength</string>
     <string name="html_distance">Distance</string>
@@ -544,6 +547,8 @@
     <string name="qrz_api_key">API KEY</string>
     <string name="config_enable_qrz">Enable QRZ sync</string>
     <string name="qrz_help">qrz_en.txt</string>
+    <string name="qrz_upload_success">Contacto registrado en QRZ: %s</string>
+    <string name="qrz_upload_failed">Error al subir a QRZ: %s</string>
     <string name="alram_switch">Interruptor de alarma</string>
     <!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->
 

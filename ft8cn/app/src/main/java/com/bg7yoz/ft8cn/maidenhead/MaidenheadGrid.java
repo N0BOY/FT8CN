@@ -260,7 +260,7 @@ public class MaidenheadGrid {
      *
      * @param latLng1 经纬度
      * @param latLng2 经纬度
-     * @return 距离，公里。
+     * @return 距离，英里。
      */
     public static double getDist(LatLng latLng1, LatLng latLng2) {
         double radiansAX = Math.toRadians(latLng1.longitude); // A经弧度
@@ -268,11 +268,12 @@ public class MaidenheadGrid {
         double radiansBX = Math.toRadians(latLng2.longitude); // B经弧度
         double radiansBY = Math.toRadians(latLng2.latitude); // B纬弧度
 
-        // 公式中“cosβ1cosβ2cos（α1-α2）+sinβ1sinβ2”的部分，得到∠AOB的cos值
+        // 公式中"cosβ1cosβ2cos（α1-α2）+sinβ1sinβ2"的部分，得到∠AOB的cos值
         double cos = Math.cos(radiansAY) * Math.cos(radiansBY) * Math.cos(radiansAX - radiansBX)
                 + Math.sin(radiansAY) * Math.sin(radiansBY);
         double acos = Math.acos(cos); // 反余弦值
-        return EARTH_RADIUS * acos / 1000; // 最终结果km
+        double km = EARTH_RADIUS * acos / 1000; // 先计算公里
+        return km * 0.621371; // 转换为英里 (1 km = 0.621371 miles)
     }
 
     /**
@@ -314,7 +315,7 @@ public class MaidenheadGrid {
     }
 
     /**
-     * 计算两个网格之间的距离，以英文显示公里数
+     * 计算两个网格之间的距离，以英文显示英里数
      *
      * @param mGrid1 网格
      * @param mGrid2 网格
@@ -326,7 +327,7 @@ public class MaidenheadGrid {
         if (dist == 0) {
             return "";
         } else {
-            return String.format("%.0f km", dist);
+            return String.format("%.0f mi", dist);
         }
     }
 

@@ -1973,8 +1973,8 @@ public class LogHttpServer extends NanoHTTPD {
 //
 //            String comment = cursor.getString(cursor.getColumnIndex("comment"));
 //
-//            //<comment:15>Distance: 99 km <eor>
-//            //在写库的时候，一定要加" km"
+//            //<comment:15>Distance: 99 mi <eor>
+//            //在写库的时候，一定要加" mi"
 //            logStr.append(String.format("<comment:%d>%s <eor>\n"
 //                    , comment.length()
 //                    , comment));

@@ -59,15 +59,25 @@ public class ElecraftRig extends BaseRig {
 
     private void showAlert() {
         if (!GeneralVariables.swr_switch_on) return;//告警开关是否关闭
+        boolean hasSwrWarning = false;
+        
+        // Convert SWR from internal value to actual SWR (30 = 3.0 for Elecraft)
+        float actualSwr = swr >= 30 ? 3.0f : (swr / 10.0f);
+        
         if (swr >= ElecraftRigConstant.swr_alert_max) {
             if (!swrAlert) {
                 swrAlert = true;
-                ToastMessage.show(GeneralVariables.getStringFromResource(R.string.swr_high_alert));
+                hasSwrWarning = true;
+                ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.swr_high_alert), actualSwr));
             }
         } else {
             swrAlert = false;
         }
-
+        
+        // Show values when transmitting, even if no warnings
+        if (isPttOn() && !hasSwrWarning) {
+            ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.swr_value), actualSwr));
+        }
     }
 
     /**

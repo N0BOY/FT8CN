@@ -194,10 +194,17 @@ public class IcomRig extends BaseRig {
     }
 
     private void showAlert() {
+        boolean hasSwrWarning = false;
+        boolean hasAlcWarning = false;
+        
+        // Convert SWR from internal value to actual SWR (120 = 3.0)
+        float actualSwr = swr >= 120 ? 3.0f : (swr / 40.0f);
+        
         if ((swr >= IcomRigConstant.swr_alert_max) && GeneralVariables.swr_switch_on) {
             if (!swrAlert) {
                 swrAlert = true;
-                ToastMessage.show(GeneralVariables.getStringFromResource(R.string.swr_high_alert));
+                hasSwrWarning = true;
+                ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.swr_high_alert), actualSwr));
             }
         } else {
             swrAlert = false;
@@ -205,12 +212,19 @@ public class IcomRig extends BaseRig {
         if ((alc > IcomRigConstant.alc_alert_max) && GeneralVariables.alc_switch_on) {//网络模式下不警告ALC
             if (!alcMaxAlert) {
                 alcMaxAlert = true;
-                ToastMessage.show(GeneralVariables.getStringFromResource(R.string.alc_high_alert));
+                hasAlcWarning = true;
+                ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.alc_high_alert), (float)alc));
             }
         } else {
             alcMaxAlert = false;
         }
-
+        
+        // Show values when transmitting, even if no warnings
+        if (isPttOn() && !hasSwrWarning && !hasAlcWarning) {
+            ToastMessage.show(String.format("%s  %s", 
+                String.format(GeneralVariables.getStringFromResource(R.string.swr_value), actualSwr),
+                String.format(GeneralVariables.getStringFromResource(R.string.alc_value), (float)alc)));
+        }
     }
 
     @Override

@@ -282,7 +282,7 @@
     <!-- グリッド距離 -->
 
 
-    <string name="distance">%.0f km</string>
+    <string name="distance">%.0f マイル</string>
 
     <!-- ログ　リスト -->
 
@@ -570,7 +570,7 @@
 
     <string name="minimum_distance">Min距離\n\n%s</string>
 
-    <string name="count_distance_info">Max距離：%.0f km (%s)\n　Min距離：%.0f km (%s)</string>
+    <string name="count_distance_info">Max距離：%.0f マイル (%s)\n　Min距離：%.0f マイル (%s)</string>
 
     <string name="distance_statistics">距離の統計</string>
 
@@ -638,8 +638,11 @@
     <string name="control_stream">コントロールストリーム</string>
     <string name="civ_stream">CI-Vストリーム</string>
     <string name="audio_stream">オーディオストリーム</string>
-    <string name="alc_high_alert">警告！ALCが高すぎます</string>
-    <string name="swr_high_alert">警告！SWRが高すぎます</string>
+    <string name="alc_high_alert">警告！ALCが高すぎます: %.1f</string>
+    <string name="alc_low_alert">警告！ALCが低すぎます: %.1f</string>
+    <string name="swr_high_alert">警告！SWRが高すぎます: %.1f</string>
+    <string name="alc_value">ALC: %.1f</string>
+    <string name="swr_value">SWR: %.1f</string>
     <string name="volume_percent">信号出力強度 %.0f %%</string>
     <string name="signal_strength">信号出力強度</string>
     <string name="html_distance">距離</string>
@@ -827,6 +830,8 @@
     <string name="qrz_api_key">API KEY</string>
     <string name="config_enable_qrz">Enable QRZ sync</string>
     <string name="qrz_help">qrz_en.txt</string>
+    <string name="qrz_upload_success">QRZに記録されました: %s</string>
+    <string name="qrz_upload_failed">QRZアップロード失敗: %s</string>
     <string name="alram_switch">アラームスイッチ</string>
 
 </resources>

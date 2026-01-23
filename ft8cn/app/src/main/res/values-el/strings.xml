@@ -150,7 +150,7 @@
     <string name="calling">Κλήση %s(%s)</string>
 
     <!--   网格距离计算-->
-    <string name="distance">%.0f km</string>
+    <string name="distance">%.0f mi</string>
 
     <!--   日志列表-->
     <string name="confirmed">Επιβεβαιώθηκε</string>
@@ -313,7 +313,7 @@
     <string name="callsign_info">Διακριτικό:%s\nΤοποθεσία:%s\nCQ ζώνη:%d\nITU ζώνη:%d\nΗπειρος:%s\nΓεωγραφικό μήκος και πλάτος:%.2f,%.2f\nΧρονική ζώνη:%.0f\nDxcc πρόθεμα:%s</string>
     <string name="maximum_distance">Μέγιστη απόσταση\n\n%s</string>
     <string name="minimum_distance">Μικρότερη απόσταση\n\n%s</string>
-    <string name="count_distance_info">Μέγιστη απόσταση:%.0f km (%s)\nΜικρότερη απόσταση:%.0f km (%s)</string>
+    <string name="count_distance_info">Μέγιστη απόσταση:%.0f mi (%s)\nΜικρότερη απόσταση:%.0f mi (%s)</string>
     <string name="distance_statistics">Στατιστικά απόστασης</string>
     <string name="dxcc_image">dxcc</string>
     <string name="cqzone">cq ζώνη</string>
@@ -355,8 +355,11 @@
     <string name="control_stream">Control stream</string>
     <string name="civ_stream">CI-V stream</string>
     <string name="audio_stream">Audio stream</string>
-    <string name="alc_high_alert">Warning ! ALC is too high .</string>
-    <string name="swr_high_alert">Warning ! SWR is too high .</string>
+    <string name="alc_high_alert">Warning ! ALC is too high: %.1f</string>
+    <string name="alc_low_alert">Warning ! ALC is too low: %.1f</string>
+    <string name="swr_high_alert">Warning ! SWR is too high: %.1f</string>
+    <string name="alc_value">ALC: %.1f</string>
+    <string name="swr_value">SWR: %.1f</string>
     <string name="volume_percent">Signal output strength %.0f %%</string>
     <string name="signal_strength">Signal output strength</string>
     <string name="html_distance">Distance</string>
@@ -544,6 +547,8 @@
     <string name="qrz_api_key">API KEY</string>
     <string name="config_enable_qrz">Enable QRZ sync</string>
     <string name="qrz_help">qrz_en.txt</string>
+    <string name="qrz_upload_success">Contact logged to QRZ: %s</string>
+    <string name="qrz_upload_failed">QRZ upload failed: %s</string>
     <string name="alram_switch">Διακόπτης συναγερμού</string>
 
     <!--    <string name="hello_blank_fragment">Hello blank fragment</string>-->

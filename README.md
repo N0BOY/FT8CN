@@ -5,6 +5,89 @@ Run FT8 natively on Android
 
 Check [Releases](https://github.com/N0BOY/FT8CN/releases) to download the latest apk file.
 
+## Building from Source
+
+### Prerequisites
+
+- **Java Development Kit (JDK) 17** - Required for building
+  - Download from [Adoptium](https://adoptium.net/temurin/releases/?version=17) or [Oracle](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+  - ⚠️ **Important**: JDK 17 is required. JDK 21 and JDK 25 are not compatible with the current build configuration (Android Gradle Plugin 7.4.1)
+
+- **Android SDK** - API Level 33
+  - Install via [Android Studio](https://developer.android.com/studio) or standalone SDK
+  - Ensure Android SDK Platform 33 is installed
+
+- **Gradle** - Automatically handled by Gradle Wrapper (version 8.5)
+
+### Environment Setup
+
+Set the following environment variables:
+
+**Windows (PowerShell):**
+```powershell
+[System.Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Java\jdk-17", [System.EnvironmentVariableTarget]::User)
+[System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", [System.EnvironmentVariableTarget]::User)
+```
+
+**Linux/macOS:**
+```bash
+export JAVA_HOME=/path/to/jdk-17
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+**Note**: Restart your terminal after setting environment variables.
+
+### Build Instructions
+
+1. Clone the repository:
+   ```bash
+   git clone THIS REPO
+   cd FT8CN/ft8cn
+   ```
+
+2. Build the debug APK:
+   ```bash
+   # Windows
+   .\gradlew.bat assembleDebug
+   
+   # Linux/macOS
+   ./gradlew assembleDebug
+   ```
+
+3. Build the release APK:
+   ```bash
+   # Windows
+   .\gradlew.bat assembleRelease
+   
+   # Linux/macOS
+   ./gradlew assembleRelease
+   ```
+
+4. Find the APK:
+   - Debug APK: `ft8cn/app/build/outputs/apk/debug/app-debug.apk`
+   - Release APK: `ft8cn/app/build/outputs/apk/release/app-release.apk`
+
+### Project Configuration
+
+- **compileSdk**: 33
+- **minSdk**: 23 (Android 6.0)
+- **targetSdk**: 33
+- **Android Gradle Plugin**: 7.4.1
+- **Gradle**: 8.5 (via wrapper)
+
+### Running Unit Tests
+
+```bash
+# Windows
+.\gradlew.bat test
+
+# Linux/macOS
+./gradlew test
+```
+
+Test results will be available at: `ft8cn/app/build/reports/tests/test/index.html`
+
 ```
 免责声明：
    FT8CN旨在研究的目的，学习如何对FT8信号进行解码、发射等操作，不对使用者操作本APP所产生的后果负责。

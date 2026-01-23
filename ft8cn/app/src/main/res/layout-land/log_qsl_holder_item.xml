@@ -158,7 +158,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/guideline12"
-        tools:text="Distance: 1044km, Powerd by FT8CN" />
+        tools:text="Distance: 1044mi, Powerd by FT8CN" />
 
 
     <TextView

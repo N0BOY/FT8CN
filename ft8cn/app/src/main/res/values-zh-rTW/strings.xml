@@ -152,7 +152,7 @@
     <string name="calling">呼叫 %s(%s)</string>
 
     <!--   網格距離計算-->
-    <string name="distance">%.0f km</string>
+    <string name="distance">%.0f 英里</string>
 
     <!--   日誌列表-->
     <string name="confirmed">已確認</string>
@@ -302,7 +302,7 @@
     <string name="callsign_info">呼號:%s\n位置:%s\nCQ分區:%d\nITU分區:%d\n大陸:%s\n經緯度:%.2f,%.2f\n時區:%.0f\nDXCC前綴:%s</string>
     <string name="maximum_distance">最遠\n\n%s</string>
     <string name="minimum_distance">最近\n\n%s</string>
-    <string name="count_distance_info">最遠距離：%.0f仟米(%s)\n最近距離：%.0f(%s)</string>
+    <string name="count_distance_info">最遠距離：%.0f英里(%s)\n最近距離：%.0f英里(%s)</string>
     <string name="distance_statistics">距離統計</string>
     <string name="dxcc_image">dxcc</string>
     <string name="cqzone">cq zone</string>
@@ -355,8 +355,11 @@
     <string name="control_stream">控製流</string>
     <string name="civ_stream">CI-V流</string>
     <string name="audio_stream">音頻流</string>
-    <string name="alc_high_alert">警告！ALC太高了。</string>
-    <string name="swr_high_alert">警告！駐波比太高了。</string>
+    <string name="alc_high_alert">警告！ALC太高了: %.1f</string>
+    <string name="alc_low_alert">警告！ALC太低了: %.1f</string>
+    <string name="swr_high_alert">警告！駐波比太高了: %.1f</string>
+    <string name="alc_value">ALC: %.1f</string>
+    <string name="swr_value">駐波比: %.1f</string>
     <string name="volume_percent">信號輸出強度 %0.f %%</string>
     <string name="signal_strength">信號輸出強度</string>
     <string name="html_distance">距離</string>
@@ -542,6 +545,8 @@
     <string name="qrz_api_key">API密钥</string>
     <string name="config_enable_qrz">自动上传至QRZ.com</string>
     <string name="qrz_help">qrz.txt</string>
+    <string name="qrz_upload_success">已記錄到QRZ: %s</string>
+    <string name="qrz_upload_failed">QRZ上傳失敗: %s</string>
     <string name="alram_switch">告警開關</string>
 
 </resources>

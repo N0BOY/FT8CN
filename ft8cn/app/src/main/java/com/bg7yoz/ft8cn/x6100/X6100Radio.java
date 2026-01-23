@@ -396,29 +396,45 @@ public class X6100Radio {
 
     private void showAlert() {
         Log.e(TAG, String.format("ALC:%f", meters.alc));
+        boolean hasSwrWarning = false;
+        boolean hasAlcWarning = false;
+        
+        // Check SWR warning
         if ((meters.swr >= 3) && GeneralVariables.swr_switch_on) {
             if (!swrAlert) {
                 swrAlert = true;
-                ToastMessage.show(GeneralVariables.getStringFromResource(R.string.swr_high_alert));
+                hasSwrWarning = true;
+                String swrStr = meters.swr > 8 ? "∞" : String.format("%.1f", meters.swr);
+                ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.swr_high_alert), meters.swr > 8 ? 99.9f : meters.swr));
             }
         } else {
             swrAlert = false;
         }
 
-
+        // Check ALC warning
         if ((meters.alc > IcomRigConstant.xiegu_alc_alert_max
                 || meters.alc < IcomRigConstant.xiegu_alc_alert_min)
                 && GeneralVariables.alc_switch_on) {
             if (!alcAlert) {
                 alcAlert = true;
+                hasAlcWarning = true;
                 if (meters.alc > IcomRigConstant.xiegu_alc_alert_max) {
-                    ToastMessage.show(GeneralVariables.getStringFromResource(R.string.alc_high_alert));
+                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.alc_high_alert), meters.alc));
                 } else {
-                    ToastMessage.show(GeneralVariables.getStringFromResource(R.string.alc_low_alert));
+                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.alc_low_alert), meters.alc));
                 }
             }
         } else {
             alcAlert = false;
+        }
+        
+        // Show values when transmitting, even if no warnings
+        if (isPttOn && !hasSwrWarning && !hasAlcWarning) {
+            String swrStr = meters.swr > 8 ? "∞" : String.format("%.1f", meters.swr);
+            String alcStr = String.format("%.1f", meters.alc);
+            ToastMessage.show(String.format("%s  %s", 
+                String.format(GeneralVariables.getStringFromResource(R.string.swr_value), meters.swr > 8 ? 99.9f : meters.swr),
+                String.format(GeneralVariables.getStringFromResource(R.string.alc_value), meters.alc)));
         }
     }
 

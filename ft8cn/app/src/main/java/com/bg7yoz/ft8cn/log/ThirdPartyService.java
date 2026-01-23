@@ -2,6 +2,8 @@ package com.bg7yoz.ft8cn.log;
 import android.util.Log;
 
 import com.bg7yoz.ft8cn.GeneralVariables;
+import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 
 import org.json.JSONObject;
 import org.json.JSONStringer;
@@ -15,6 +17,7 @@ import java.io.OutputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -113,8 +116,8 @@ public class ThirdPartyService {
 
         String comment = qslRecord.getComment();
 
-        //<comment:15>Distance: 99 km <eor>
-        //在写库的时候，一定要加" km"
+        //<comment:15>Distance: 99 mi <eor>
+        //在写库的时候，一定要加" mi"
         logStr.append(String.format("<comment:%d>%s <eor>\n"
                 , comment.length()
                 , comment));
@@ -218,12 +221,59 @@ public class ThirdPartyService {
             
             String result = sendGetRequestWithUserAgent(url);
             if (result != null) {
-                Log.d(TAG, "Updated to QRZ successfully. result: " + result);
+                Log.d(TAG, "QRZ API response: " + result);
+                
+                // Parse response to check if upload was successful
+                HashMap<String,String> response = new HashMap<>();
+                for (String s : result.split("&")) {
+                    String[] split = s.split("=");
+                    if (split.length > 1) {
+                        // URL decode the value
+                        try {
+                            String key = split[0];
+                            String value = java.net.URLDecoder.decode(split[1], StandardCharsets.UTF_8.toString());
+                            response.put(key, value);
+                        } catch (Exception e) {
+                            // If decoding fails, use raw value
+                            response.put(split[0], split[1]);
+                        }
+                    }
+                }
+                
+                // Check if upload was successful (RESULT=OK)
+                if (response.get("RESULT") != null && response.get("RESULT").equals("OK")) {
+                    // Show toast message with callsign
+                    String callsign = qslRecord.getToCallsign();
+                    if (callsign != null && !callsign.isEmpty()) {
+                        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_success), callsign));
+                    } else {
+                        ToastMessage.show(GeneralVariables.getStringFromResource(R.string.qrz_upload_success).replace(": %s", ""));
+                    }
+                } else {
+                    // Upload failed - extract error message
+                    String errorMsg = response.get("ERROR");
+                    if (errorMsg == null || errorMsg.isEmpty()) {
+                        errorMsg = response.get("RESULT");
+                    }
+                    if (errorMsg == null || errorMsg.isEmpty()) {
+                        errorMsg = "Unknown error";
+                    }
+                    Log.e(TAG, "QRZ upload failed: " + errorMsg);
+                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), errorMsg));
+                }
             } else {
-                Log.e(TAG, "QRZ upload failed: No response or error response");
+                // No response - network error or HTTP error
+                String errorMsg = "No response from server";
+                Log.e(TAG, "QRZ upload failed: " + errorMsg);
+                ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), errorMsg));
             }
         }catch (Exception k){
-            Log.e(TAG, "QRZ upload exception: " + k.toString(), k);
+            String errorMsg = k.getMessage();
+            if (errorMsg == null || errorMsg.isEmpty()) {
+                errorMsg = k.toString();
+            }
+            Log.e(TAG, "QRZ upload exception: " + errorMsg, k);
+            ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), errorMsg));
         }
     }
 

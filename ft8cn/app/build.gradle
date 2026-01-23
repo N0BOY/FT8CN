@@ -12,22 +12,56 @@ static def getCurrentTime() {
     return df.format(Calendar.getInstance(Locale.CHINA).getTime())
 }
 
+// Version management - auto-increment on build
+def versionPropsFile = file('version.properties')
+def versionProps = new Properties()
+
+if (versionPropsFile.exists() && versionPropsFile.length() > 0) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+}
+
+// Initialize defaults if file doesn't exist or is empty
+if (!versionProps.containsKey('VERSION_CODE') || versionProps['VERSION_CODE'] == null || versionProps['VERSION_CODE'].toString().trim().isEmpty()) {
+    versionProps['VERSION_CODE'] = '1'
+}
+if (!versionProps.containsKey('VERSION_NAME') || versionProps['VERSION_NAME'] == null || versionProps['VERSION_NAME'].toString().trim().isEmpty()) {
+    versionProps['VERSION_NAME'] = '0.93'
+}
+
+def versionCode = versionProps['VERSION_CODE'].toString().toInteger()
+def versionName = versionProps['VERSION_NAME'].toString()
+
+// Auto-increment version code on each build
+versionCode++
+versionProps['VERSION_CODE'] = versionCode.toString()
+
+// Increment version name patch version (0.93 -> 0.94, etc.)
+def versionParts = versionName.split('\\.')
+if (versionParts.length >= 3) {
+    def patchVersion = versionParts[2].toInteger() + 1
+    versionName = "${versionParts[0]}.${versionParts[1]}.${patchVersion}".toString()
+} else if (versionParts.length == 2) {
+    versionName = "${versionParts[0]}.${versionParts[1]}.1".toString()
+}
+versionProps['VERSION_NAME'] = versionName.toString()
+
+versionProps.store(new FileOutputStream(versionPropsFile), null)
 
 android {
 
     compileSdk 33
 
+    buildFeatures {
+        buildConfig true
+        dataBinding true
+    }
+
     defaultConfig {
         applicationId "com.bg7yoz.ft8cn"
         minSdk 23
         targetSdk 33
-        versionCode 1
-        versionName '0.93'
-
-
-        dataBinding{
-            enabled true
-        }
+        versionCode = versionCode
+        versionName = versionName
 
         externalNativeBuild {
             cmake {
@@ -39,15 +73,17 @@ android {
     }
 
     buildTypes {
-
-        debug{
+        debug {
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("int", "VERSION_CODE", "${versionCode}")
             buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
         }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
+            buildConfigField("int", "VERSION_CODE", "${versionCode}")
             buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
-
         }
     }
     compileOptions {
@@ -89,5 +125,14 @@ dependencies {
     implementation files('src/libs/commons-net-3.6.jar')////用于时间同步
     implementation files('src/libs/nanohttpd-2.2.0.jar')
     implementation files('src/libs/osmdroid-android-6.1.14.aar')//地图控件
+
+    // Unit test dependencies
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.1.1'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    
+    // Android test dependencies (for instrumented tests)
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
 }
