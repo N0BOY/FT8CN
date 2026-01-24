@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="transmitLayout_background">#B233007E</color>
+    <color name="purple_200">#FF90CAF9</color>
+    <color name="purple_500">#FF2196F3</color>
+    <color name="transmitLayout_background">#B22196F3</color>
 
 
     <color name="tracker_sample_qsl_color">#7fff0000</color>
@@ -17,13 +17,13 @@
 
 
 
-    <color name="purple_700">#FF3700B3</color>
+    <color name="purple_700">#FF1976D2</color>
     <color name="teal_200">#4DD0E1</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="bar_text_view_color">#ffffffff</color>
-    <color name="message_text_color">#3A3A3A</color>
+    <color name="message_text_color">#212121</color>
     <color name="message_in_my_call_text_color">#FF3A3A</color>
     <color name="fromcall_is_qso_text_color">#0E4EEF</color>
     <color name="tracker_select_line_color">#B58200</color>
@@ -34,29 +34,29 @@
 
     <color name="volume_progress_value">#FFFFFFFF</color>
     <color name="power_progress_value">#ff264A68</color>
-    <color name="power_progress_radar_value">#B552AEF8</color>
+    <color name="power_progress_radar_value">#B542A5F5</color>
 
 
     <color name="is_not_qsl_text_color">#FF3A3A</color>
     <color name="is_qsl_text_color">#106800</color>
     <color name="progresss_bar_back_color">#000000</color>
 
-    <color name="text_view_color">#636363</color>
+    <color name="text_view_color">#212121</color>
     <color name="text_view_error_color">#FB0000</color>
 
     <color name="transparent">#00000000</color>
     <color name="image_button_pressed">#ff53c1bd</color>
 
-    <color name="button_start_color">#6826FA</color>
-    <color name="button_end_color">#8F5FFA</color>
+    <color name="button_start_color">#2196F3</color>
+    <color name="button_end_color">#42A5F5</color>
 
-    <color name="button_tracker_button_color">#6826FA</color>
+    <color name="button_tracker_button_color">#2196F3</color>
 
-    <color name="button_stroke_color">#CB0649BB</color>
-    <color name="flex_meter_ruler_end_color">#CB0649BB</color>
+    <color name="button_stroke_color">#CB2196F3</color>
+    <color name="flex_meter_ruler_end_color">#CB2196F3</color>
     <color name="flex_meter_ruler_start_color">#FF000000</color>
 
-    <color name="button_disable_strocke_color">#000649BB</color>
+    <color name="button_disable_strocke_color">#802196F3</color>
     <color name="button_press_solid_color">#777788</color>
     <color name="image_button_ground_color">#BEF1F1F1</color>
     <color name="black_half">#77000000</color>
@@ -66,8 +66,8 @@
     <color name="textview_none_color">#00FFFFFF</color>
     <color name="calling_list_isMyCall_color">#FF0202</color>
 
-    <color name="calling_list_item_color">#B552AEF8</color>
-    <color name="calling_follow_list_item_color">#851D3B53</color>
+    <color name="calling_list_item_color">#B542A5F5</color>
+    <color name="calling_follow_list_item_color">#853A9BC3</color>
     <color name="transmitting_color">#E91E63</color>
     <color name="follow_call_text_color">#AC2626</color>
     <color name="waterfall_text_color">#E91E63</color>
@@ -82,10 +82,10 @@
     <color name="calling_list2_end_color">#BCA8A7A7</color>
 
     <color name="tracker_tips_start_color">#74FFFFFF</color>
-    <color name="tracker_tips_win_end_color">#7ED0D6F8</color>
+    <color name="tracker_tips_win_end_color">#7EE3F2FD</color>
 
     <color name="tracker_config_bar_start_color">#C1FFFFFF</color>
-    <color name="tracker_config_bar_end_color">#BAD0D6F8</color>
+    <color name="tracker_config_bar_end_color">#BAE3F2FD</color>
     <color name="tracker_gray_line_color">#2FFFFFFF</color>
 
     <color name="tracker_sample_cq_bar_start_color">#C1A2A2A2</color>
@@ -93,17 +93,17 @@
     <color name="tracker_sample_cq_bar_text_color">#7EFBFBFB</color>
 
     <color name="tracker_info_win_start_color">#AEFFFFFF</color>
-    <color name="tracker_info_win_end_color">#D7D0D6F8</color>
+    <color name="tracker_info_win_end_color">#D7E3F2FD</color>
     <color name="tracker_new_cq_win_end_color">#D7FB9B9B</color>
 
-    <color name="calling_list1_start_color">#8D4CA8FB</color>
-    <color name="calling_list1_end_color">#8D89C7FF</color>
+    <color name="calling_list1_start_color">#8D42A5F5</color>
+    <color name="calling_list1_end_color">#8D64B5F6</color>
 
-    <color name="count_detail_item_1_start_color">#8D78BFFF</color>
-    <color name="count_detail_item_1_end_color">#8DA2D0FA</color>
+    <color name="count_detail_item_1_start_color">#8D5CBBF6</color>
+    <color name="count_detail_item_1_end_color">#8D81C7F7</color>
 
 
-    <color name="calling_list3_start_color">#8D4CA8FB</color>
+    <color name="calling_list3_start_color">#8D42A5F5</color>
     <color name="calling_list3_end_color">#A68F979E</color>
 
 
@@ -135,8 +135,8 @@
 
 
 
-    <color name="help_dialog_background_color">#CD3C018F</color>
-    <color name="help_dialog_text_color">#E1BEE7</color>
+    <color name="help_dialog_background_color">#CD2196F3</color>
+    <color name="help_dialog_text_color">#E1E3F2</color>
 
 
 <!--    编辑框外部窗体-->
@@ -145,16 +145,16 @@
     <color name="edit_layout_background_gradient_end">#FFFFFFFF</color>
 
 <!--    选择串口背景色-->
-    <color name="select_serial_port_layout_background_gradient_start">#DC414141</color>
-    <color name="select_serial_port_layout_background_gradient_end">#DC414141</color>
+    <color name="select_serial_port_layout_background_gradient_start">#DCE0E0E0</color>
+    <color name="select_serial_port_layout_background_gradient_end">#DCE0E0E0</color>
 
     <!--    选择串口值背景色-->
-    <color name="select_serial_port_item_gradient_start">#DC414141</color>
-    <color name="select_serial_port_item_background_gradient_end">#DC414141</color>
+    <color name="select_serial_port_item_gradient_start">#DCE0E0E0</color>
+    <color name="select_serial_port_item_background_gradient_end">#DCE0E0E0</color>
 <!--   欢迎界面的背景色 -->
     <color name="welcome_layout_ground_color">#EDEDED</color>
     <color name="welcome_layout_text_color">#535353</color>
-    <color name="welcome_logo_text_color">#FF6200EE</color>
+    <color name="welcome_logo_text_color">#FF2196F3</color>
     <color name="osm_grid_out_line_color">#7FFFFFFF</color>
 
 
@@ -167,13 +167,13 @@
     <color name="char_bar_7">#1E42F6</color>
     <color name="char_bar_8">#0D24F1</color>
     <color name="char_bar_9">#0216BF</color>
-    <color name="char_bar_10">#B479F8</color>
-    <color name="char_bar_11">#8846D3</color>
-    <color name="char_bar_12">#6F33B5</color>
-    <color name="char_bar_13">#470495</color>
-    <color name="char_bar_14">#C53FE3</color>
-    <color name="char_bar_15">#770A8F</color>
-    <color name="char_bar_16">#61024D</color>
+    <color name="char_bar_10">#42A5F5</color>
+    <color name="char_bar_11">#2196F3</color>
+    <color name="char_bar_12">#1E88E5</color>
+    <color name="char_bar_13">#1976D2</color>
+    <color name="char_bar_14">#1565C0</color>
+    <color name="char_bar_15">#0D47A1</color>
+    <color name="char_bar_16">#0277BD</color>
 
 
 </resources>

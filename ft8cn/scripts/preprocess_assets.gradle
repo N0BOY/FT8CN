@@ -1,0 +1,272 @@
+// Script to pre-process JSON assets to SQLite databases
+// This reduces APK size and improves app startup time
+
+import groovy.json.JsonSlurper
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.Statement
+
+task preprocessAssets {
+    description = 'Pre-process JSON files to SQLite databases for faster loading'
+    group = 'build'
+    
+    doLast {
+        def assetsDir = file("${projectDir}/app/src/main/assets")
+        def outputDir = file("${projectDir}/app/src/main/assets")
+        
+        println "Starting asset preprocessing..."
+        
+        // Process ITU zone JSON
+        if (file("${assetsDir}/ituzone.json").exists()) {
+            println "Processing ituzone.json..."
+            def sqliteFile = new File(outputDir, "ituzone.db")
+            processItuZoneJson("${assetsDir}/ituzone.json", sqliteFile.absolutePath)
+            println "Created: ${sqliteFile.name} (${sqliteFile.length() / 1024} KB)"
+        }
+        
+        // Process CQ zone JSON
+        if (file("${assetsDir}/cqzone.json").exists()) {
+            println "Processing cqzone.json..."
+            def sqliteFile = new File(outputDir, "cqzone.db")
+            processCqZoneJson("${assetsDir}/cqzone.json", sqliteFile.absolutePath)
+            println "Created: ${sqliteFile.name} (${sqliteFile.length() / 1024} KB)"
+        }
+        
+        // Process DXCC JSON
+        if (file("${assetsDir}/dxcc_list.json").exists()) {
+            println "Processing dxcc_list.json..."
+            def sqliteFile = new File(outputDir, "dxcc_list.db")
+            processDxccJson("${assetsDir}/dxcc_list.json", sqliteFile.absolutePath)
+            println "Created: ${sqliteFile.name} (${sqliteFile.length() / 1024} KB)"
+        }
+        
+        println "Asset preprocessing complete!"
+    }
+}
+
+def processItuZoneJson(String jsonPath, String dbPath) {
+    def jsonFile = new File(jsonPath)
+    def json = new JsonSlurper().parse(jsonFile)
+    
+    // Delete existing database
+    def dbFile = new File(dbPath)
+    if (dbFile.exists()) {
+        dbFile.delete()
+    }
+    
+    // Create SQLite database
+    Class.forName("org.sqlite.JDBC")
+    def connection = DriverManager.getConnection("jdbc:sqlite:${dbPath}")
+    def statement = connection.createStatement()
+    
+    try {
+        // Create table
+        statement.execute("""
+            CREATE TABLE ituList (
+                itu TEXT,
+                grid TEXT
+            )
+        """)
+        
+        // Insert data
+        def insertStmt = connection.prepareStatement("INSERT INTO ituList (itu, grid) VALUES (?, ?)")
+        
+        json.each { key, value ->
+            def itu = key.toString()
+            def mhArray = value.mh
+            if (mhArray) {
+                mhArray.each { grid ->
+                    insertStmt.setString(1, itu)
+                    insertStmt.setString(2, grid.toString())
+                    insertStmt.executeUpdate()
+                }
+            }
+        }
+        
+        insertStmt.close()
+        connection.commit()
+    } finally {
+        statement.close()
+        connection.close()
+    }
+}
+
+def processCqZoneJson(String jsonPath, String dbPath) {
+    def jsonFile = new File(jsonPath)
+    def json = new JsonSlurper().parse(jsonFile)
+    
+    // Delete existing database
+    def dbFile = new File(dbPath)
+    if (dbFile.exists()) {
+        dbFile.delete()
+    }
+    
+    // Create SQLite database
+    Class.forName("org.sqlite.JDBC")
+    def connection = DriverManager.getConnection("jdbc:sqlite:${dbPath}")
+    def statement = connection.createStatement()
+    
+    try {
+        // Create table
+        statement.execute("""
+            CREATE TABLE cqzoneList (
+                cqzone TEXT,
+                grid TEXT
+            )
+        """)
+        
+        // Insert data
+        def insertStmt = connection.prepareStatement("INSERT INTO cqzoneList (cqzone, grid) VALUES (?, ?)")
+        
+        json.each { key, value ->
+            def cqzone = key.toString()
+            def mhArray = value.mh
+            if (mhArray) {
+                mhArray.each { grid ->
+                    insertStmt.setString(1, cqzone)
+                    insertStmt.setString(2, grid.toString())
+                    insertStmt.executeUpdate()
+                }
+            }
+        }
+        
+        insertStmt.close()
+        connection.commit()
+    } finally {
+        statement.close()
+        connection.close()
+    }
+}
+
+def processDxccJson(String jsonPath, String dbPath) {
+    def jsonFile = new File(jsonPath)
+    def json = new JsonSlurper().parse(jsonFile)
+    
+    // Delete existing database
+    def dbFile = new File(dbPath)
+    if (dbFile.exists()) {
+        dbFile.delete()
+    }
+    
+    // Create SQLite database
+    Class.forName("org.sqlite.JDBC")
+    def connection = DriverManager.getConnection("jdbc:sqlite:${dbPath}")
+    def statement = connection.createStatement()
+    
+    try {
+        // Create tables
+        statement.execute("""
+            CREATE TABLE dxccList (
+                id INTEGER,
+                dxcc INTEGER,
+                cc TEXT,
+                ccc TEXT,
+                name TEXT,
+                continent TEXT,
+                ituzone TEXT,
+                cqzone TEXT,
+                timezone INTEGER,
+                ccode INTEGER,
+                aname TEXT,
+                pp TEXT,
+                lat REAL,
+                lon REAL
+            )
+        """)
+        
+        statement.execute("""
+            CREATE TABLE dxcc_prefix (
+                dxcc INTEGER,
+                prefix TEXT
+            )
+        """)
+        
+        statement.execute("""
+            CREATE TABLE dxcc_grid (
+                dxcc INTEGER,
+                grid TEXT
+            )
+        """)
+        
+        // Insert data
+        def insertDxccStmt = connection.prepareStatement("""
+            INSERT INTO dxccList (id, dxcc, cc, ccc, name, continent, ituzone, cqzone, 
+                                  timezone, ccode, aname, pp, lat, lon) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """)
+        
+        def insertPrefixStmt = connection.prepareStatement("""
+            INSERT INTO dxcc_prefix (dxcc, prefix) VALUES (?, ?)
+        """)
+        
+        def insertGridStmt = connection.prepareStatement("""
+            INSERT INTO dxcc_grid (dxcc, grid) VALUES (?, ?)
+        """)
+        
+        json.each { key, value ->
+            if (key == "-1") return
+            
+            def id = Integer.parseInt(key.toString())
+            def dxcc = value.dxcc as Integer
+            
+            // Insert main DXCC record
+            insertDxccStmt.setInt(1, id)
+            insertDxccStmt.setInt(2, dxcc)
+            insertDxccStmt.setString(3, value.cc?.toString())
+            insertDxccStmt.setString(4, value.ccc?.toString())
+            insertDxccStmt.setString(5, value.name?.toString())
+            insertDxccStmt.setString(6, value.continent?.toString())
+            
+            // Process ITU zone array
+            def ituZone = value.ituzone
+            if (ituZone instanceof List) {
+                insertDxccStmt.setString(7, ituZone.join(","))
+            } else {
+                insertDxccStmt.setString(7, ituZone?.toString()?.replaceAll(/[\[\]"]/, ""))
+            }
+            
+            // Process CQ zone array
+            def cqZone = value.cqzone
+            if (cqZone instanceof List) {
+                insertDxccStmt.setString(8, cqZone.join(","))
+            } else {
+                insertDxccStmt.setString(8, cqZone?.toString()?.replaceAll(/[\[\]"]/, ""))
+            }
+            
+            insertDxccStmt.setInt(9, value.timezone as Integer ?: 0)
+            insertDxccStmt.setInt(10, value.ccode as Integer ?: 0)
+            insertDxccStmt.setString(11, value.aname?.toString())
+            insertDxccStmt.setString(12, value.pp?.toString())
+            insertDxccStmt.setDouble(13, value.lat as Double ?: 0.0)
+            insertDxccStmt.setDouble(14, value.lon as Double ?: 0.0)
+            insertDxccStmt.executeUpdate()
+            
+            // Insert prefixes
+            if (value.pp) {
+                def prefixes = value.pp.toString().split(",")
+                prefixes.each { prefix ->
+                    insertPrefixStmt.setInt(1, dxcc)
+                    insertPrefixStmt.setString(2, prefix.trim())
+                    insertPrefixStmt.executeUpdate()
+                }
+            }
+            
+            // Insert grids
+            if (value.mh instanceof List) {
+                value.mh.each { grid ->
+                    insertGridStmt.setInt(1, dxcc)
+                    insertGridStmt.setString(2, grid.toString())
+                    insertGridStmt.executeUpdate()
+                }
+            }
+        }
+        
+        insertDxccStmt.close()
+        insertPrefixStmt.close()
+        insertGridStmt.close()
+        connection.commit()
+    } finally {
+        statement.close()
+        connection.close()
+    }
+}

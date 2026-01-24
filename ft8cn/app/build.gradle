@@ -103,6 +103,13 @@ android {
         }
     }
     namespace 'com.bg7yoz.ft8cn'
+    
+    // Rename output APK files
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "ft8cn-${variant.name}-${versionName}.apk"
+        }
+    }
 }
 
 dependencies {

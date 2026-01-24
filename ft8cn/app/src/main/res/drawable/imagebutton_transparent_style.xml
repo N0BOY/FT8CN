@@ -49,7 +49,7 @@
             <!-- 填充的颜色 -->
             <stroke
                 android:width="0.5dp"
-                android:color="#000649BB" />
+                android:color="#802196F3" />
 
             <gradient
                 android:angle="90"
