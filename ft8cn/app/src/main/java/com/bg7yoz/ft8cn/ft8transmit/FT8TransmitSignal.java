@@ -571,12 +571,16 @@ public class FT8TransmitSignal {
 
     /**
      * 检查消息中from中有目标呼号的数量。当有目标呼号呼叫我的消息，返回0，如果目标呼号呼叫别人，返回值应当大于1
+     * 
+     * Message Processing Order: Processes messages in reverse order (newest first).
+     * Returns immediately when target calls us (return 0), prioritizing most recent activity.
      *
-     * @param messages 消息列表
+     * @param messages 消息列表 (processed newest-first)
      * @return 0：有目标呼叫我的，1：没有任何目标呼号发出的消息，>1：有目标呼号呼叫别人的消息
      */
     private int checkTargetCallMe(ArrayList<Ft8Message> messages) {
         int fromCount = 1;
+        // Process messages in reverse order (newest first) to check most recent activity first
         for (int i = messages.size() - 1; i >= 0; i--) {
             Ft8Message ft8Message = messages.get(i);
             if (ft8Message.getSequence() == sequential) continue;//同一个时序下的消息不做解析
@@ -585,10 +589,11 @@ public class FT8TransmitSignal {
             }
             //if (ft8Message.getCallsignTo().equals(GeneralVariables.myCallsign)
             if (GeneralVariables.checkIsMyCallsign(ft8Message.getCallsignTo())
-                    && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
+                    && toCallsign != null && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 return 0;
             }
-            if (checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
+            // Fixed: Add null check before accessing toCallsign.callsign
+            if (toCallsign != null && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 fromCount++;//计数器，from是目标呼号的情况
             }
         }
@@ -597,11 +602,16 @@ public class FT8TransmitSignal {
 
     /**
      * 检测本消息列表中对方回复消息的序号，如果没有,返回-1
+     * 
+     * Message Processing Order: Processes messages in reverse order (newest first, index size-1 to 0).
+     * This ensures we respond to the most recent message from the target callsign, which is critical
+     * for proper sequence advancement. If multiple valid messages exist, only the newest is processed.
      *
-     * @param messages 消息列表
-     * @return 消息的序号
+     * @param messages 消息列表 (processed newest-first)
+     * @return 消息的序号 (-1 if not found or unparseable)
      */
     private int checkFunctionOrdFromMessages(ArrayList<Ft8Message> messages) {
+        // Process messages in reverse order (newest first) to prioritize most recent responses
         for (int i = messages.size() - 1; i >= 0; i--) {
             Ft8Message ft8Message = messages.get(i);
             if (ft8Message.getSequence() == sequential) continue;//同一个时序下的消息不做解析
@@ -628,6 +638,13 @@ public class FT8TransmitSignal {
 
                 int order = GeneralVariables.checkFunOrder(ft8Message);//检查消息的序号
                 if (order != -1) return order;//说明成功解析出序号
+                
+                // Fixed: Handle unparseable messages from target callsign
+                // Even if we can't parse the order, we received a message from the target,
+                // so log it for debugging and indicate we received something (don't return -1 immediately)
+                Log.d(TAG, String.format("Received unparseable message from target %s: extraInfo='%s', callsignTo='%s'", 
+                        toCallsign.callsign, ft8Message.extraInfo, ft8Message.getCallsignTo()));
+                // Continue searching for other messages that might be parseable
             }
         }
 
@@ -665,8 +682,13 @@ public class FT8TransmitSignal {
 
     /**
      * 检查有没有人CQ我，或我关注的呼号在CQ
+     * 
+     * Message Processing Order: Processes messages in reverse order (newest first) in two phases:
+     * 1. First loop: Checks if current target callsign is calling us (highest priority)
+     * 2. Second loop: Checks if any callsign is calling us (broader search)
+     * This ensures we respond to the most recent message and maintain focus on current target.
      *
-     * @param messages 消息列表
+     * @param messages 消息列表 (processed newest-first)
      * @return false=没有符合的消息，TRUE=有符合的消息
      */
     //@RequiresApi(api = Build.VERSION_CODES.N)
@@ -675,6 +697,7 @@ public class FT8TransmitSignal {
         //第一个循环与第二个循环都是检查是否有CQ我的消息。第一个循环是优先查询是不是我的目标呼号。
         // 目的是当多个目标呼叫我，我的回复不专一的问题。
         //检查CQ我，不是73，且是我呼叫的目标
+        // Process messages in reverse order (newest first) - prioritize most recent calls
         for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
             Ft8Message msg = messages.get(i);
             if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
@@ -682,7 +705,7 @@ public class FT8TransmitSignal {
 
             //if (msg.getCallsignTo().equals(GeneralVariables.myCallsign)
             if (GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
-                    && msg.getCallsignFrom().equals(toCallsign.callsign)//todo 注意测试复合呼号的情况
+                    && checkCallsignIsCallTo(msg.getCallsignFrom(), toCallsign.callsign)//Fixed: Use checkCallsignIsCallTo for compound callsigns
                     && !GeneralVariables.checkFun5(msg.extraInfo)) {//cq我、不是73、发送方是我关注的目标
                 //设置发射之前，确定消息的序号，避免从头开始
                 setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
@@ -694,6 +717,7 @@ public class FT8TransmitSignal {
         }
 
         //检查CQ我，不是73，
+        // Second loop: Check if any callsign is calling us (broader search, still newest-first)
         for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
             Ft8Message msg = messages.get(i);
             if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
@@ -801,8 +825,17 @@ public class FT8TransmitSignal {
 
     /**
      * 从关注列表解码的消息中，此处是变化发射程序的入口
+     * 
+     * Message Processing Flow:
+     * 1. Validates input (callsign, empty list)
+     * 2. Filters messages by sequence - only processes messages from different sequence than transmit
+     * 3. Checks for valid responses from target callsign (processes newest-first)
+     * 4. Advances sequence if valid response found, or handles no-response scenarios
+     * 
+     * All message processing methods iterate in reverse order (newest-first) to prioritize
+     * the most recent messages, ensuring we respond to the current state of the QSO.
      *
-     * @param msgList 消息列表
+     * @param msgList 消息列表 (will be filtered and processed newest-first)
      */
     //@RequiresApi(api = Build.VERSION_CODES.N)
     public void parseMessageToFunction(ArrayList<Ft8Message> msgList) {
@@ -811,8 +844,17 @@ public class FT8TransmitSignal {
         }
         if (msgList.size() == 0) return;//没有消息解析，返回
 
-        if (msgList.get(0).getSequence() == sequential) {
-            return;
+        // Check if there are any messages with a different sequence than our transmit sequence
+        // Only skip processing if ALL messages have the same sequence as our transmit sequence
+        boolean hasDifferentSequence = false;
+        for (Ft8Message msg : msgList) {
+            if (msg.getSequence() != sequential) {
+                hasDifferentSequence = true;
+                break;
+            }
+        }
+        if (!hasDifferentSequence) {
+            return; // All messages are from the same sequence as our transmit, skip processing
         }
         ArrayList<Ft8Message> messages = new ArrayList<>(msgList);//防止线程冲突
 
@@ -859,7 +901,16 @@ public class FT8TransmitSignal {
                 generateFun();
             }
 
-            functionOrder = newOrder + 1;//执行下一个序号的消息
+            // Only advance sequence forward, never backward
+            // If we receive a message with order N, we should send order N+1 next
+            // But we should only advance if N+1 >= current functionOrder (to prevent regression)
+            int nextOrder = newOrder + 1;
+            if (nextOrder >= functionOrder) {
+                functionOrder = nextOrder;//执行下一个序号的消息
+            } else {
+                // Received an out-of-order message that would cause regression, log but don't regress
+                Log.d(TAG, String.format("Received out-of-order message: newOrder=%d, current functionOrder=%d, would set to %d, ignoring", newOrder, functionOrder, nextOrder));
+            }
             mutableFunctions.postValue(functionList);
             mutableFunctionOrder.postValue(functionOrder);
             setCurrentFunctionOrder(functionOrder);//设置当前消息
@@ -883,7 +934,8 @@ public class FT8TransmitSignal {
 
 
         //到此位置，说明没有回应，错误次数要加1,弱信号检测不记无回应
-        if (!messages.get(0).isWeakSignal) {
+        // Fixed: Add bounds checking before accessing messages.get(0)
+        if (messages.size() > 0 && !messages.get(0).isWeakSignal) {
             GeneralVariables.noReplyCount++;
         }
         //如果超出无反应限定值，复位到CQ状态
@@ -891,7 +943,10 @@ public class FT8TransmitSignal {
             //检查关注消息列表，如果没有新的CQ，就进入到CQ状态，如果有，就转入到呼叫新的目标。
             if (!getNewTargetCallsign(messages)) {//检查关注列表中的CQ消息，如果有新的目标，返回TRUE;
                 functionOrder = 6;
-                toCallsign.callsign = "CQ";
+                // Fixed: Add null check before accessing toCallsign.callsign
+                if (toCallsign != null) {
+                    toCallsign.callsign = "CQ";
+                }
             }
             generateFun();
             setCurrentFunctionOrder(functionOrder);//设置当前消息

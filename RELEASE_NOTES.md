@@ -1,12 +1,22 @@
 # FT8CN Release Notes
 
+## Pre-release
+
+### Bug Fixes
+- **Improved decoding**: Enhanced auto sequencing reliability and message processing
+  - **Fixed sequence filtering bug**: Previously, if the first decoded message had the same sequence as the current transmit sequence, all subsequent messages (even those with different sequences) would be ignored. Now the system checks all messages and only skips processing when ALL messages have the same sequence as the transmit sequence, ensuring valid messages are not dropped
+  - **Prevented sequence regression**: Fixed issue where receiving delayed or out-of-order messages could cause the auto sequencing to regress backward in the message sequence. The system now only advances forward, preventing sequence state corruption
+  - **Improved message processing**: Auto sequencing now correctly processes messages from different time slots even when mixed with messages from the same time slot, resulting in more reliable QSO progression
+  - **Enhanced robustness**: Added safeguards to handle edge cases with mixed sequence messages, ensuring the auto sequencing system maintains proper state throughout the QSO
+
+
 ## Version 0.93.47 (January 24, 2026)
 
 ### 🔧 Improvements
 - **Rig list sorting**: Rig list is now sorted by make then model for easier navigation
 - **Bold text for transmitting messages**: Decoded messages that match currently transmitting messages are displayed in bold text
 - **Highlight messages calling your callsign**: Messages where someone is calling your callsign now have a bright green background for easy identification
-- **Improved decoding**: Messages were dropped in the decoding, now more reliable decoding sequence.
+- **Improved decoding**: Messages were dropped in the decoding, now more reliable decoding sequence. See `DECODE_IMPROVEMENTS.md`
 
 ### 🗑️ Removed Features
 - **SWR/ALC toggles removed**: Removed SWR and ALC toggle switches from settings UI
