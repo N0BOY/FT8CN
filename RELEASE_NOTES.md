@@ -1,5 +1,18 @@
 # FT8CN Release Notes
 
+## Version 0.93.47 (January 24, 2026)
+
+### 🔧 Improvements
+- **Rig list sorting**: Rig list is now sorted by make then model for easier navigation
+- **Bold text for transmitting messages**: Decoded messages that match currently transmitting messages are displayed in bold text
+- **Highlight messages calling your callsign**: Messages where someone is calling your callsign now have a bright green background for easy identification
+
+### 🗑️ Removed Features
+- **SWR/ALC toggles removed**: Removed SWR and ALC toggle switches from settings UI
+- **SWR/ALC toast messages removed**: Removed informational toast messages showing SWR/ALC values during transmission
+  - Warning messages for high SWR/ALC are still active (safety feature)
+  - Removed "Always show SWR/ALC" toggle option
+
 ## Version 0.93.35 (January 24, 2026)
 
 ### 🎉 New Features
