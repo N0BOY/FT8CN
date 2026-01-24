@@ -428,16 +428,7 @@ public class X6100Radio {
             alcAlert = false;
         }
         
-        // Show values when transmitting, even if no warnings
-        // Only show if at least one switch is on or always_show_swr_alc is enabled
-        if (isPttOn && (GeneralVariables.always_show_swr_alc || 
-                ((GeneralVariables.swr_switch_on || GeneralVariables.alc_switch_on) && !hasSwrWarning && !hasAlcWarning))) {
-            String swrStr = meters.swr > 8 ? "∞" : String.format("%.1f", meters.swr);
-            String alcStr = String.format("%.1f", meters.alc);
-            ToastMessage.show(String.format("%s  %s", 
-                String.format(GeneralVariables.getStringFromResource(R.string.swr_value), meters.swr > 8 ? 99.9f : meters.swr),
-                String.format(GeneralVariables.getStringFromResource(R.string.alc_value), meters.alc)));
-        }
+        // Toast messages for SWR/ALC values have been removed
     }
 
     /**

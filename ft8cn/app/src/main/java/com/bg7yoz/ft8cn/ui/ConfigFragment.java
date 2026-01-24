@@ -530,40 +530,6 @@ public class ConfigFragment extends Fragment {
             }
         });
 
-        //设置swr告警开关
-        binding.swrAlarmSwitch.setOnCheckedChangeListener(null);
-        binding.swrAlarmSwitch.setChecked(GeneralVariables.swr_switch_on);
-        setSwrAlarmSwitchText();
-        binding.swrAlarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                GeneralVariables.swr_switch_on = binding.swrAlarmSwitch.isChecked();
-                if (binding.swrAlarmSwitch.isChecked()) {
-                    mainViewModel.databaseOpr.writeConfig("swrSwitch", "1", null);
-                } else {
-                    mainViewModel.databaseOpr.writeConfig("swrSwitch", "0", null);
-                }
-                setSwrAlarmSwitchText();
-            }
-        });
-
-        //设置alc告警开关
-        binding.alcAlarmSwitch.setOnCheckedChangeListener(null);
-        binding.alcAlarmSwitch.setChecked(GeneralVariables.alc_switch_on);
-        setAlcAlarmSwitchText();
-        binding.alcAlarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                GeneralVariables.alc_switch_on = binding.alcAlarmSwitch.isChecked();
-                if (binding.alcAlarmSwitch.isChecked()) {
-                    mainViewModel.databaseOpr.writeConfig("alcSwitch", "1", null);
-                } else {
-                    mainViewModel.databaseOpr.writeConfig("alcSwitch", "0", null);
-                }
-                setAlcAlarmSwitchText();
-            }
-        });
-
         //设置解码超时提示开关
         binding.decodeOverrunSwitch.setOnCheckedChangeListener(null);
         binding.decodeOverrunSwitch.setChecked(GeneralVariables.decode_overrun_toast);
@@ -595,23 +561,6 @@ public class ConfigFragment extends Fragment {
                     mainViewModel.databaseOpr.writeConfig("liveDecodeUpdates", "0", null);
                 }
                 setLiveDecodeSwitchText();
-            }
-        });
-
-        //设置总是显示SWR和ALC值当发射时
-        binding.alwaysShowSwrAlcSwitch.setOnCheckedChangeListener(null);
-        binding.alwaysShowSwrAlcSwitch.setChecked(GeneralVariables.always_show_swr_alc);
-        setAlwaysShowSwrAlcSwitchText();
-        binding.alwaysShowSwrAlcSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                GeneralVariables.always_show_swr_alc = binding.alwaysShowSwrAlcSwitch.isChecked();
-                if (binding.alwaysShowSwrAlcSwitch.isChecked()) {
-                    mainViewModel.databaseOpr.writeConfig("alwaysShowSwrAlc", "1", null);
-                } else {
-                    mainViewModel.databaseOpr.writeConfig("alwaysShowSwrAlc", "0", null);
-                }
-                setAlwaysShowSwrAlcSwitchText();
             }
         });
 
@@ -928,27 +877,6 @@ public class ConfigFragment extends Fragment {
         }
     }
 
-    /**
-     * 设置swr告警开关文本
-     */
-    private void setSwrAlarmSwitchText(){
-        if (binding.swrAlarmSwitch.isChecked()){
-            binding.swrAlarmSwitch.setText(R.string.swr_switch_on);
-        }else {
-            binding.swrAlarmSwitch.setText(R.string.swr_switch_off);
-        }
-    }
-
-    /**
-     * 设置alc告警开关文本
-     */
-    private void setAlcAlarmSwitchText(){
-        if (binding.alcAlarmSwitch.isChecked()){
-            binding.alcAlarmSwitch.setText(R.string.alc_switch_on);
-        }else {
-            binding.alcAlarmSwitch.setText(R.string.alc_switch_off);
-        }
-    }
 
     private void setDecodeOverrunSwitchText() {
         if (binding.decodeOverrunSwitch.isChecked()) {
@@ -966,16 +894,6 @@ public class ConfigFragment extends Fragment {
         }
     }
 
-    /**
-     * 设置总是显示SWR和ALC值开关文本
-     */
-    private void setAlwaysShowSwrAlcSwitchText(){
-        if (binding.alwaysShowSwrAlcSwitch.isChecked()){
-            binding.alwaysShowSwrAlcSwitch.setText(R.string.always_show_swr_alc_switch_on);
-        }else {
-            binding.alwaysShowSwrAlcSwitch.setText(R.string.always_show_swr_alc_switch_off);
-        }
-    }
 
     //设置自动呼叫关注的呼号
     private void setAutoCallFollow() {

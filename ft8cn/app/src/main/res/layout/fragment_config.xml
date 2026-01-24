@@ -1632,9 +1632,8 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/alarmSwitchLayout"
+                        android:id="@+id/decodeOverrunLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
@@ -1644,45 +1643,27 @@
                         app:layout_constraintTop_toBottomOf="@+id/liveDecodeLayout">
 
                         <TextView
-                            android:id="@+id/alarmSwitchText"
-                            android:layout_width="wrap_content"
+                            android:id="@+id/decodeOverrunText"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
-                            android:text="@string/alram_switch"
+                            android:layout_marginEnd="8dp"
+                            android:text="@string/decode_overrun_toast"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-
-                        <Switch
-                            android:id="@+id/swrAlarmSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-
-                            android:layout_marginStart="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="4dp"
-                            android:checked="true"
-                            android:text="@string/swr_switch_on"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toStartOf="@+id/decodeOverrunSwitch"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toEndOf="@+id/alarmSwitchText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
 
                         <Switch
                             android:id="@+id/decodeOverrunSwitch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="24dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"
                             android:checked="false"
                             android:text="@string/decode_overrun_toast_on"
                             android:textColor="@color/text_view_color"
@@ -1690,92 +1671,9 @@
                             android:thumbTint="?attr/colorPrimary"
                             android:thumbTintMode="multiply"
                             android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="@+id/swrAlarmSwitch"
-                            app:layout_constraintEnd_toStartOf="@+id/alcAlarmSwitch"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toEndOf="@+id/swrAlarmSwitch"
-                            app:layout_constraintTop_toTopOf="@+id/swrAlarmSwitch"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-
-                        <Switch
-                            android:id="@+id/alcAlarmSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-
-                            android:layout_marginStart="24dp"
-                            android:checked="true"
-                            android:text="@string/alc_switch_on"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="@+id/swrAlarmSwitch"
-                            app:layout_constraintEnd_toStartOf="@+id/alarmSwitchHelpButton"
-                            app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toEndOf="@+id/decodeOverrunSwitch"
-                            app:layout_constraintTop_toTopOf="@+id/swrAlarmSwitch"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-
-
-                        <ImageButton
-                            android:id="@+id/alarmSwitchHelpButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/alwaysShowSwrAlcLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/alarmSwitchLayout">
-
-                        <TextView
-                            android:id="@+id/alwaysShowSwrAlcText"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:text="@string/always_show_swr_alc"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/alwaysShowSwrAlcSwitch"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <Switch
-                            android:id="@+id/alwaysShowSwrAlcSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="4dp"
-                            android:checked="false"
-                            android:text="@string/always_show_swr_alc_switch_on"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toEndOf="@+id/alwaysShowSwrAlcText"
+                            app:layout_constraintStart_toEndOf="@+id/decodeOverrunText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
 
@@ -1789,7 +1687,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/alwaysShowSwrAlcLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/decodeOverrunLayout">
 
                         <TextView
                             android:id="@+id/launchSupervisionText"
