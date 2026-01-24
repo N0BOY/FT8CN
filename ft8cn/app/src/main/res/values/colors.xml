@@ -175,5 +175,9 @@
     <color name="char_bar_15">#0D47A1</color>
     <color name="char_bar_16">#0277BD</color>
 
+    <color name="calling_my_callsign_background_color">#00FF00</color>
+    <color name="calling_my_callsign_background_start_color">#80FF00</color>
+    <color name="calling_my_callsign_background_end_color">#00FF00</color>
+
 
 </resources>

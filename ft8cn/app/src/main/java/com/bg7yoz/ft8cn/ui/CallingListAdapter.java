@@ -192,20 +192,25 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             holder.callingListSequenceTextView.setTextColor(context.getColor(R.color.follow_call_text_color));
         }
 
-        //根据1分钟内的4个时序区分颜色
-        switch (holder.ft8Message.getSequence4()) {
-            case 0:
-                holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_0_style);
-                break;
-            case 1:
-                holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_1_style);
-                break;
-            case 2:
-                holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_2_style);
-                break;
-            case 3:
-                holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_3_style);
-                break;
+        // Check if someone is calling the user's callsign - use bright green background
+        if (GeneralVariables.checkIsMyCallsign(holder.ft8Message.getCallsignTo())) {
+            holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_my_callsign_style);
+        } else {
+            //根据1分钟内的4个时序区分颜色
+            switch (holder.ft8Message.getSequence4()) {
+                case 0:
+                    holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_0_style);
+                    break;
+                case 1:
+                    holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_1_style);
+                    break;
+                case 2:
+                    holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_2_style);
+                    break;
+                case 3:
+                    holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_3_style);
+                    break;
+            }
         }
 
         holder.callingListIdBTextView.setText(holder.ft8Message.getdB());
@@ -240,6 +245,28 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
 
 
         holder.callListMessageTextView.setText(holder.ft8Message.getMessageText(true));
+        
+        // Make text bold when transmitting (freq_hz <= 0.01 indicates transmit message)
+        // or when the decoded message matches what we're currently transmitting
+        boolean isTransmitMessage = holder.ft8Message.freq_hz <= 0.01f;
+        boolean matchesTransmitting = false;
+        if (!isTransmitMessage && mainViewModel.ft8TransmitSignal.isTransmitting()) {
+            String transmittingMessage = mainViewModel.ft8TransmitSignal.mutableTransmittingMessage.getValue();
+            if (transmittingMessage != null) {
+                // Extract message text from transmitting message (format: " (freqHz) messageText")
+                String transmittingText = transmittingMessage.contains(") ") 
+                    ? transmittingMessage.substring(transmittingMessage.indexOf(") ") + 2)
+                    : transmittingMessage;
+                String currentMessageText = holder.ft8Message.getMessageText(true);
+                matchesTransmitting = currentMessageText.equals(transmittingText.trim());
+            }
+        }
+        
+        if (isTransmitMessage || matchesTransmitting) {
+            holder.callListMessageTextView.setTypeface(holder.callListMessageTextView.getTypeface(), android.graphics.Typeface.BOLD);
+        } else {
+            holder.callListMessageTextView.setTypeface(holder.callListMessageTextView.getTypeface(), android.graphics.Typeface.NORMAL);
+        }
 
         //载波频率
         holder.bandItemTextView.setText(BaseRigOperation.getFrequencyStr(holder.ft8Message.band));

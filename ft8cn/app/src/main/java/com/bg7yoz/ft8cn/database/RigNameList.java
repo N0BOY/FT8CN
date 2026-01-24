@@ -15,6 +15,8 @@ import com.bg7yoz.ft8cn.R;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class RigNameList {
     private static final String TAG="RigNameList";
@@ -66,11 +68,58 @@ public class RigNameList {
                 }
                rigList.add(new RigName(st[i]));
             }
+            // Sort rigs by make then model (keep first empty entry at index 0)
+            sortRigsByMakeAndModel();
             inputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(TAG, "从地址列表文件提取数据出错："+e.getMessage() );
         }
+    }
+
+    /**
+     * Sort rigs by make then model. Keeps the first empty entry at index 0.
+     */
+    private void sortRigsByMakeAndModel() {
+        if (rigList.size() <= 1) {
+            return; // Nothing to sort
+        }
+        
+        // Get the first entry (empty placeholder) and the rest
+        RigName firstEntry = rigList.get(0);
+        ArrayList<RigName> rigsToSort = new ArrayList<>(rigList.subList(1, rigList.size()));
+        
+        // Sort by make then model
+        Collections.sort(rigsToSort, new Comparator<RigName>() {
+            @Override
+            public int compare(RigName r1, RigName r2) {
+                String name1 = r1.modelName.trim();
+                String name2 = r2.modelName.trim();
+                
+                // Extract make (first word) and model (rest)
+                String[] parts1 = name1.split("\\s+", 2);
+                String[] parts2 = name2.split("\\s+", 2);
+                
+                String make1 = parts1.length > 0 ? parts1[0] : "";
+                String make2 = parts2.length > 0 ? parts2[0] : "";
+                String model1 = parts1.length > 1 ? parts1[1] : "";
+                String model2 = parts2.length > 1 ? parts2[1] : "";
+                
+                // Compare by make first
+                int makeCompare = make1.compareToIgnoreCase(make2);
+                if (makeCompare != 0) {
+                    return makeCompare;
+                }
+                
+                // If makes are equal, compare by model
+                return model1.compareToIgnoreCase(model2);
+            }
+        });
+        
+        // Rebuild the list with first entry followed by sorted rigs
+        rigList.clear();
+        rigList.add(firstEntry);
+        rigList.addAll(rigsToSort);
     }
     public String getRigNameInfo(int index){
         return rigList.get(index).getName();
