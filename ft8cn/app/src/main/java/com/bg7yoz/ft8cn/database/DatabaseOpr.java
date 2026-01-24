@@ -1,8 +1,8 @@
 package com.bg7yoz.ft8cn.database;
 /**
- * 用于数据库操作的类。绝大多数的操作都是采用异步方式（于HTTP有关的除外）。
- * 数据库已经经历的多个版本，所以有onUpgrade方法。
- * 配置信息也保存在数据库中
+ * Database operations class. Most operations are asynchronous (except HTTP-related).
+ * The database has gone through multiple versions, so there is an onUpgrade method.
+ * Configuration information is also stored in the database.
  *
  * @author BGY70Z
  * @date 2023-03-20

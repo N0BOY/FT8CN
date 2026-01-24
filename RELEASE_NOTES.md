@@ -1,5 +1,21 @@
 # FT8CN Release Notes
 
+## Unreleased
+
+### 🎉 New Features
+- **Manual frequency entry**: Added a manual frequency input to the band selection dialog (accepts MHz or Hz).
+- **Editable band list**: Long-press a band to edit or delete it (default bands are locked).
+
+### 🔧 Improvements
+- **Band dialog styling**: Aligned band selection dialog colors with the rest of the app UI.
+- **Release APK naming**: Release builds output `ft8cn-release-<version>.apk`.
+
+### 📝 Documentation
+- **User guide**: Added `USER_GUIDE.md` with setup, operation, and troubleshooting guidance.
+
+### 🐛 Bug Fixes
+- **Japanese string formatting**: Fixed non-positional placeholder in `values-ja/strings.xml`.
+
 ## Version 0.93.11 (January 22, 2026)
 
 ### 🎉 New Features

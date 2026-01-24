@@ -1,12 +1,12 @@
 package com.bg7yoz.ft8cn;
 /**
- * FT8CN程序的主Activity。本APP采用Fragment框架实现，每个Fragment实现不同的功能。
+ * Main Activity for FT8CN application. This APP uses Fragment framework, each Fragment implements different functionality.
  * ----2022.5.6-----
- * 主要完成以下功能：
- * 1.生成MainViewModel实例。MainViewModel是用于整个生存周期，用于录音、解析等功能。
- * 2.录音、存储的权限申请。
- * 3.实现Fragment的导航管理。
- * 4.USB串口连接后的提示
+ * Main functions:
+ * 1. Create MainViewModel instance. MainViewModel is used throughout the lifecycle for recording, parsing, etc.
+ * 2. Request recording and storage permissions.
+ * 3. Implement Fragment navigation management.
+ * 4. USB serial port connection notifications
  *
  * @author BG7YOZ
  * @date 2022.5.6
@@ -123,17 +123,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         GeneralVariables.getInstance().setMainContext(getApplicationContext());
 
-        //判断是不是简体中文
+        // Check if Traditional Chinese
         GeneralVariables.isTraditionalChinese =
                 getResources().getConfiguration().locale.getDisplayCountry().equals("中國");
 
-        //确定是不是中国、香港、澳门、台湾
+        // Determine if China, Hong Kong, Macau, Taiwan
         GeneralVariables.isChina = (getResources().getConfiguration().locale
                 .getLanguage().toUpperCase().startsWith("ZH"));
 
         mainViewModel = MainViewModel.getInstance(this);
         binding = MainActivityBinding.inflate(getLayoutInflater());
-        binding.initDataLayout.setVisibility(View.VISIBLE);//显示LOG页面
+        binding.initDataLayout.setVisibility(View.VISIBLE);// Show LOG page
         setContentView(binding.getRoot());
 
 

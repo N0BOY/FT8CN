@@ -1,8 +1,15 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    dependencies {
+        classpath 'org.xerial:sqlite-jdbc:3.42.0.0'
+    }
+}
+
 plugins {
     id 'com.android.application' version '7.4.1' apply false
     id 'com.android.library' version '7.4.1' apply false
 }
+
 ext {
     var3 = 'G:\\coding\\ft8CN\\ft8CN.jks'
     var = var3

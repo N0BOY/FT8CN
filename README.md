@@ -1,6 +1,8 @@
 # FT8CN
 Developed by BG7YOZ and hosted by N0BOY
 
+Further modified by KK4BHI
+
 Run FT8 natively on Android
 
 Check [Releases](https://github.com/N0BOY/FT8CN/releases) to download the latest apk file.

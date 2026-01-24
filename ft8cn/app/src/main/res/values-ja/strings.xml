@@ -277,7 +277,7 @@
 
     <string name="tracking">追跡 %1$s(%2$s)</string>
 
-    <string name="calling">コール %s(%s)</string>
+    <string name="calling">コール %1$s(%2$s)</string>
 
     <!-- グリッド距離 -->
 

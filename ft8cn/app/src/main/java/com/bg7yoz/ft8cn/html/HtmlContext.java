@@ -34,11 +34,11 @@ public class HtmlContext {
             "  TD {\tCOLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif; FONT-SIZE: 8pt}\n" +
             "  TR {\tBACKGROUND-COLOR: WHITE;COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
             "  TR.bbb {\tBACKGROUND-COLOR: #DDF0FE; COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif }\n" +
-            "  TH {\tBACKGROUND-COLOR: #BBDEFB;COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif;FONT-SIZE: 8pt; }\n" +
+            "  TH {\tBACKGROUND-COLOR: C8C2FF;COLOR: #333333; FONT-FAMILY: tahoma,helvetica,sans-serif;FONT-SIZE: 8pt; }\n" +
             "  FONT.title {\tBACKGROUND-COLOR: white; COLOR: #363636; FONT-FAMILY:tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt; FONT-WEIGHT: bold }\n" +
             "  FONT.sub {\tBACKGROUND-COLOR: white; COLOR: #000000; FONT-FAMILY:tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt }\n" +
             "  FONT.layer {\tCOLOR: #ff0000; FONT-FAMILY: courrier,sans-serif,arial,helvetica; FONT-SIZE: 8pt; TEXT-ALIGN: left }\n" +
-            "  TD.title {\tBACKGROUND-COLOR: #2196F3; COLOR: #FFFFFF; FONT-FAMILY:tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt; FONT-WEIGHT: bold; HEIGHT: 20px; TEXT-ALIGN: left}\n" +
+            "  TD.title {\tBACKGROUND-COLOR: #6200EE; COLOR: #FFFFFF; FONT-FAMILY:tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt; FONT-WEIGHT: bold; HEIGHT: 20px; TEXT-ALIGN: left}\n" +
             "  TD.sub {\tBACKGROUND-COLOR: #DCDCDC; COLOR: #555555; FONT-FAMILY: tahoma,helvetica,verdana,lucida console,utopia; FONT-SIZE: 10pt; FONT-WEIGHT: bold; HEIGHT: 18px; TEXT-ALIGN: left }\n" +
             "  TD.content {\tBACKGROUND-COLOR: white; COLOR: #000000; FONT-FAMILY:tahoma,arial,helvetica,verdana,lucida console,utopia; FONT-SIZE: 8pt; TEXT-ALIGN: left; VERTICAL-ALIGN: middle }\n" +
             "  TD.default {\t COLOR: #000000; FONT-FAMILY:tahoma,arial,helvetica,verdana,lucida console,utopia; FONT-SIZE: 8pt; }\n" +

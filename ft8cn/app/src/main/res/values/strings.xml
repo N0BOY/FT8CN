@@ -44,6 +44,15 @@
     <string name="VOX">VOX</string>
     <string name="CAT">CAT</string>
     <string name="operationBand">Frequency</string>
+    <string name="manual_frequency">Manual frequency</string>
+    <string name="manual_frequency_hint">MHz or Hz</string>
+    <string name="frequency_required">Frequency required</string>
+    <string name="invalid_frequency">Invalid frequency</string>
+    <string name="edit_frequency">Edit frequency</string>
+    <string name="delete_frequency">Delete frequency</string>
+    <string name="confirm_delete_frequency">Delete this frequency?</string>
+    <string name="default_band_locked">Default bands cannot be modified.</string>
+    <string name="delete_frequency_minimum">At least one band must remain.</string>
     <string name="civ_address">CI-V</string>
     <string name="pl_civ_address">CI-V address of the rig</string>
     <string name="serial_port">Serial port</string>

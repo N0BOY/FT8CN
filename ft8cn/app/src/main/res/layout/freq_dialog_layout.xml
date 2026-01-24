@@ -4,7 +4,7 @@
     android:id="@+id/linearLayout2"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/help_dialog_style"
+    android:background="@drawable/select_bluetooth_dialog_style"
     android:minWidth="300dp"
     android:minHeight="200dp">
 
@@ -32,6 +32,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/image" />
 
+    <Button
+        android:id="@+id/manualFreqButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/manual_frequency"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/freqDialogTextView" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/freqDialogRecyclerView"
         android:layout_width="0dp"
@@ -43,7 +53,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/freqDialogTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/manualFreqButton" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
