@@ -2229,6 +2229,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("decodeOverrunToast")) {
                     GeneralVariables.decode_overrun_toast = result.equals("1");
                 }
+                if (name.equalsIgnoreCase("liveDecodeUpdates")) {
+                    GeneralVariables.live_decode_updates = result.equals("1");
+                }
 
             }
 

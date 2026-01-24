@@ -151,6 +151,8 @@ public class FT8SignalListener {
 
 
                 if (GeneralVariables.deepDecodeMode) {//进入深度解码模式
+                    boolean liveUpdates = GeneralVariables.live_decode_updates;
+                    ArrayList<Ft8Message> deepAll = liveUpdates ? null : new ArrayList<>();
                     long nextRxDeadline = utc
                             + (long) FT8Common.FT8_SLOT_TIME_MILLISECOND * 2
                             - 1000L; // leave 1s margin before next RX
@@ -162,9 +164,12 @@ public class FT8SignalListener {
                     //float[] newSignal=tempData;
                     msgs = runDecode(ft8Decoder, utc, true);
                     addMsgToList(allMsg, msgs);
+                    if (!liveUpdates) {
+                        addMsgToList(deepAll, msgs);
+                    }
                     timeSec = System.currentTimeMillis() - time;
                     decodeTimeSec.postValue(timeSec);//解码耗时
-                    if (onFt8Listen != null) {
+                    if (onFt8Listen != null && liveUpdates) {
                         onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
                     }
 
@@ -178,14 +183,20 @@ public class FT8SignalListener {
                         //再做一次解码
                         msgs = runDecode(ft8Decoder, utc, true);
                         addMsgToList(allMsg, msgs);
+                        if (!liveUpdates) {
+                            addMsgToList(deepAll, msgs);
+                        }
                         timeSec = System.currentTimeMillis() - time;
                         decodeTimeSec.postValue(timeSec);//解码耗时
-                        if (onFt8Listen != null) {
+                        if (onFt8Listen != null && liveUpdates) {
                             onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
                         }
 
                     } while (msgs.size() > 0);
 
+                    if (!liveUpdates && deepAll.size() > 0 && onFt8Listen != null) {
+                        onFt8Listen.afterDecode(utc, averageOffset(deepAll), UtcTimer.sequential(utc), deepAll, true);
+                    }
                 }
                 //移到finalize() 方法中调用了
                 DeleteDecoder(ft8Decoder);

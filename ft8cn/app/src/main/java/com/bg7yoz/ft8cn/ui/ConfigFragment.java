@@ -581,6 +581,23 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //设置实时解码更新开关
+        binding.liveDecodeSwitch.setOnCheckedChangeListener(null);
+        binding.liveDecodeSwitch.setChecked(GeneralVariables.live_decode_updates);
+        setLiveDecodeSwitchText();
+        binding.liveDecodeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.live_decode_updates = binding.liveDecodeSwitch.isChecked();
+                if (binding.liveDecodeSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("liveDecodeUpdates", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("liveDecodeUpdates", "0", null);
+                }
+                setLiveDecodeSwitchText();
+            }
+        });
+
         //设置总是显示SWR和ALC值当发射时
         binding.alwaysShowSwrAlcSwitch.setOnCheckedChangeListener(null);
         binding.alwaysShowSwrAlcSwitch.setChecked(GeneralVariables.always_show_swr_alc);
@@ -938,6 +955,14 @@ public class ConfigFragment extends Fragment {
             binding.decodeOverrunSwitch.setText(R.string.decode_overrun_toast_on);
         } else {
             binding.decodeOverrunSwitch.setText(R.string.decode_overrun_toast_off);
+        }
+    }
+
+    private void setLiveDecodeSwitchText() {
+        if (binding.liveDecodeSwitch.isChecked()) {
+            binding.liveDecodeSwitch.setText(R.string.live_decode_updates_on);
+        } else {
+            binding.liveDecodeSwitch.setText(R.string.live_decode_updates_off);
         }
     }
 

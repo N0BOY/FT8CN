@@ -144,6 +144,53 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/liveDecodeLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/decodeModeLayout">
+
+                        <TextView
+                            android:id="@+id/liveDecodeText"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:text="@string/live_decode_updates"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/liveDecodeSwitch"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Switch
+                            android:id="@+id/liveDecodeSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"
+                            android:checked="false"
+                            android:text="@string/live_decode_updates_on"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/liveDecodeText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/freqConstraintLayout4"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -1594,7 +1641,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/decodeModeLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/liveDecodeLayout">
 
                         <TextView
                             android:id="@+id/alarmSwitchText"

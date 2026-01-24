@@ -569,5 +569,8 @@
     <string name="always_show_swr_alc">Always show SWR/ALC when transmitting</string>
     <string name="always_show_swr_alc_switch_on" translatable="false">On</string>
     <string name="always_show_swr_alc_switch_off" translatable="false">Off</string>
+    <string name="live_decode_updates">Live decode updates</string>
+    <string name="live_decode_updates_on" translatable="false">On</string>
+    <string name="live_decode_updates_off" translatable="false">Off</string>
 
 </resources>

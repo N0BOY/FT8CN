@@ -12,6 +12,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 /**
  * 录音类。通过AudioRecord对象来实现录音。
  * HamRecorder录音的数据通过监听类GetVoiceData来实现。HamRecorder实例中有一个监听器列表onGetVoiceList。
@@ -111,6 +113,9 @@ public class HamRecorder {
      * @param monitor 数据监听器
      */
     public void deleteVoiceDataMonitor(VoiceDataMonitor monitor) {
+        if (monitor != null) {
+            monitor.stopTimer();
+        }
         voiceDataMonitorList.remove(monitor);
         doDataMonitorChanged();
     }
@@ -182,6 +187,11 @@ public class HamRecorder {
         private long startTimeMs;
         private float[] pendingData;
         private int pendingOffset;
+        private final boolean afterDoneRemove;
+        private final OnGetVoiceDataDone onGetVoiceDataDone;
+        private final HamRecorder hamRecorder;
+        private Timer timer;
+        private boolean cycleClosed;
 
         //onHamRecord是当录音对象有数据时触发的回调，通过该回调填充voiceData缓冲区，当缓冲区满时，触发OnGetVoiceDataDone回调。
         public OnHamRecord onHamRecord;
@@ -204,16 +214,21 @@ public class HamRecorder {
             //时长，毫秒
             //宿主对象，方便用词对象调用删除数据获取动作列表中的本实例
 
+            this.afterDoneRemove = afterDoneRemove;
+            this.onGetVoiceDataDone = onGetVoiceDataDone;
+            this.hamRecorder = hamRecorder;
             dataCount = 0;//当前的数据获取量
             durationMs = duration;
             expectedSamples = duration * HamRecorder.sampleRateInHz / 1000;
             startTimeMs = System.currentTimeMillis();
             pendingData = null;
             pendingOffset = 0;
+            cycleClosed = false;
             //生成预期大小中的数据缓冲区。
             //因为是16Bit采样，所以byte*2。
             //voiceData = new byte[duration * HamRecorder.sampleRateInHz * 2 / 1000];
             voiceData = new float[expectedSamples];
+            scheduleTimeout();
 
             //当有录音数据时触发的回调函数。
             onHamRecord = new OnHamRecord() {
@@ -222,32 +237,20 @@ public class HamRecorder {
                     if (size <= 0) {
                         return;
                     }
-
-                    if (pendingData != null && pendingOffset < pendingData.length) {
-                        int pendingLen = pendingData.length - pendingOffset;
-                        appendData(pendingData, pendingOffset, pendingLen);
-                        pendingData = null;
-                        pendingOffset = 0;
-                    }
-
-                    appendData(data, 0, size);
-
-                    if (isTimeReached()) {
-                        float[] output = new float[expectedSamples];
-                        int copyCount = Math.min(dataCount, expectedSamples);
-                        System.arraycopy(voiceData, 0, output, 0, copyCount);
-
-                        if (!afterDoneRemove && dataCount > expectedSamples) {
-                            int remaining = dataCount - expectedSamples;
-                            pendingData = new float[remaining];
-                            System.arraycopy(voiceData, expectedSamples, pendingData, 0, remaining);
+                    synchronized (VoiceDataMonitor.this) {
+                        if (cycleClosed) {
+                            return;
+                        }
+                        if (pendingData != null && pendingOffset < pendingData.length) {
+                            int pendingLen = pendingData.length - pendingOffset;
+                            appendData(pendingData, pendingOffset, pendingLen);
+                            pendingData = null;
+                            pendingOffset = 0;
                         }
 
-                        onGetVoiceDataDone.onGetDone(output);
-                        if (afterDoneRemove) {//如果是一次性的获取数据，则在录音对象中的监听列表中删除此监听回调。
-                            hamRecorder.deleteVoiceDataMonitor(voiceDataMonitor);
-                        } else {
-                            resetCycle();
+                        appendData(data, 0, size);
+                        if (dataCount >= expectedSamples) {
+                            finalizeCycle();
                         }
                     }
                 }
@@ -271,16 +274,61 @@ public class HamRecorder {
             voiceData = newBuffer;
         }
 
-        private boolean isTimeReached() {
-            return System.currentTimeMillis() - startTimeMs >= durationMs;
+        private void scheduleTimeout() {
+            cancelTimer();
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    synchronized (VoiceDataMonitor.this) {
+                        finalizeCycle();
+                    }
+                }
+            }, durationMs);
+        }
+
+        private void finalizeCycle() {
+            if (cycleClosed) {
+                return;
+            }
+            cycleClosed = true;
+            float[] output = new float[expectedSamples];
+            int copyCount = Math.min(dataCount, expectedSamples);
+            System.arraycopy(voiceData, 0, output, 0, copyCount);
+
+            if (!afterDoneRemove && dataCount > expectedSamples) {
+                int remaining = dataCount - expectedSamples;
+                pendingData = new float[remaining];
+                System.arraycopy(voiceData, expectedSamples, pendingData, 0, remaining);
+            }
+
+            onGetVoiceDataDone.onGetDone(output);
+            if (afterDoneRemove) {
+                hamRecorder.deleteVoiceDataMonitor(voiceDataMonitor);
+            } else {
+                resetCycle();
+            }
         }
 
         private void resetCycle() {
             dataCount = 0;
             startTimeMs = System.currentTimeMillis();
+            cycleClosed = false;
             if (voiceData.length != expectedSamples) {
                 voiceData = new float[expectedSamples];
             }
+            scheduleTimeout();
+        }
+
+        private void cancelTimer() {
+            if (timer != null) {
+                timer.cancel();
+                timer = null;
+            }
+        }
+
+        private void stopTimer() {
+            cancelTimer();
         }
 
     }
