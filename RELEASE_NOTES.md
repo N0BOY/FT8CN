@@ -6,6 +6,7 @@
 - **Rig list sorting**: Rig list is now sorted by make then model for easier navigation
 - **Bold text for transmitting messages**: Decoded messages that match currently transmitting messages are displayed in bold text
 - **Highlight messages calling your callsign**: Messages where someone is calling your callsign now have a bright green background for easy identification
+- **Improved decoding**: Messages were dropped in the decoding, now more reliable decoding sequence.
 
 ### 🗑️ Removed Features
 - **SWR/ALC toggles removed**: Removed SWR and ALC toggle switches from settings UI
