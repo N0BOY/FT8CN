@@ -193,7 +193,7 @@ public class FT8SignalListener {
                 long totalDecodeMs = System.currentTimeMillis() - time;
                 Log.d(TAG, String.format("解码耗时:%d毫秒", totalDecodeMs));
                 long overrunMs = totalDecodeMs - FT8Common.FT8_SLOT_TIME_MILLISECOND;
-                if (overrunMs > 0) {
+                if (overrunMs > 0 && GeneralVariables.decode_overrun_toast) {
                     ToastMessage.show(String.format("Decode overrun: %d ms", overrunMs));
                 }
 

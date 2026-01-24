@@ -175,8 +175,13 @@ public class HamRecorder {
      */
     static class VoiceDataMonitor {
         private final String TAG = "GetVoiceData";
-        private final float[] voiceData;//录音数据。大小由时长、采样率、采样位决定的。
+        private float[] voiceData;//录音数据缓冲区，会按需扩容
         private int dataCount;//计数器，当前数据的获取量
+        private final long durationMs;
+        private final int expectedSamples;
+        private long startTimeMs;
+        private float[] pendingData;
+        private int pendingOffset;
 
         //onHamRecord是当录音对象有数据时触发的回调，通过该回调填充voiceData缓冲区，当缓冲区满时，触发OnGetVoiceDataDone回调。
         public OnHamRecord onHamRecord;
@@ -200,38 +205,82 @@ public class HamRecorder {
             //宿主对象，方便用词对象调用删除数据获取动作列表中的本实例
 
             dataCount = 0;//当前的数据获取量
+            durationMs = duration;
+            expectedSamples = duration * HamRecorder.sampleRateInHz / 1000;
+            startTimeMs = System.currentTimeMillis();
+            pendingData = null;
+            pendingOffset = 0;
             //生成预期大小中的数据缓冲区。
             //因为是16Bit采样，所以byte*2。
             //voiceData = new byte[duration * HamRecorder.sampleRateInHz * 2 / 1000];
-            voiceData = new float[duration * HamRecorder.sampleRateInHz  / 1000];
+            voiceData = new float[expectedSamples];
 
             //当有录音数据时触发的回调函数。
             onHamRecord = new OnHamRecord() {
                 @Override
                 public void OnReceiveData(float[] data, int size) {
-                    int remainingSize = size+dataCount-voiceData.length;//如果大于0,就是剩余的数据量，
-
-                    for (int i = 0; (i < size) && (dataCount < voiceData.length); i++) {
-                            voiceData[dataCount] = data[i];//把录音缓冲区的数据搬运到本监听器中来
-                            dataCount++;
+                    if (size <= 0) {
+                        return;
                     }
 
-                    if (dataCount >= (voiceData.length)) {//当数据量达到所需要的。发起回调。
-                        onGetVoiceDataDone.onGetDone(voiceData);
+                    if (pendingData != null && pendingOffset < pendingData.length) {
+                        int pendingLen = pendingData.length - pendingOffset;
+                        appendData(pendingData, pendingOffset, pendingLen);
+                        pendingData = null;
+                        pendingOffset = 0;
+                    }
+
+                    appendData(data, 0, size);
+
+                    if (isTimeReached()) {
+                        float[] output = new float[expectedSamples];
+                        int copyCount = Math.min(dataCount, expectedSamples);
+                        System.arraycopy(voiceData, 0, output, 0, copyCount);
+
+                        if (!afterDoneRemove && dataCount > expectedSamples) {
+                            int remaining = dataCount - expectedSamples;
+                            pendingData = new float[remaining];
+                            System.arraycopy(voiceData, expectedSamples, pendingData, 0, remaining);
+                        }
+
+                        onGetVoiceDataDone.onGetDone(output);
                         if (afterDoneRemove) {//如果是一次性的获取数据，则在录音对象中的监听列表中删除此监听回调。
                             hamRecorder.deleteVoiceDataMonitor(voiceDataMonitor);
                         } else {
-                            dataCount = 0;//如果是循环录音，则复位计数器。
-                            if (remainingSize>0) {//把剩余的数据补发到后续事件上
-                                float[] remainingData = new float[remainingSize];
-                                System.arraycopy(data, size - remainingSize, remainingData, 0, remainingSize);
-                                OnReceiveData(remainingData,remainingSize);
-                            }
+                            resetCycle();
                         }
                     }
                 }
             };
 
+        }
+
+        private void appendData(float[] data, int offset, int length) {
+            ensureCapacity(dataCount + length);
+            System.arraycopy(data, offset, voiceData, dataCount, length);
+            dataCount += length;
+        }
+
+        private void ensureCapacity(int requiredSize) {
+            if (requiredSize <= voiceData.length) {
+                return;
+            }
+            int newSize = Math.max(requiredSize, voiceData.length * 2);
+            float[] newBuffer = new float[newSize];
+            System.arraycopy(voiceData, 0, newBuffer, 0, dataCount);
+            voiceData = newBuffer;
+        }
+
+        private boolean isTimeReached() {
+            return System.currentTimeMillis() - startTimeMs >= durationMs;
+        }
+
+        private void resetCycle() {
+            dataCount = 0;
+            startTimeMs = System.currentTimeMillis();
+            if (voiceData.length != expectedSamples) {
+                voiceData = new float[expectedSamples];
+            }
         }
 
     }

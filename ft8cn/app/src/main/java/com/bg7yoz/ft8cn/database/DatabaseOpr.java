@@ -2226,6 +2226,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("alwaysShowSwrAlc")) {
                     GeneralVariables.always_show_swr_alc = result.equals("1");
                 }
+                if (name.equalsIgnoreCase("decodeOverrunToast")) {
+                    GeneralVariables.decode_overrun_toast = result.equals("1");
+                }
 
             }
 

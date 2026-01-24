@@ -1625,10 +1625,29 @@
                             android:thumbTintMode="multiply"
                             android:trackTint="@color/button_start_color"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/alcAlarmSwitch"
+                            app:layout_constraintEnd_toStartOf="@+id/decodeOverrunSwitch"
                             app:layout_constraintHorizontal_bias="0.5"
                             app:layout_constraintStart_toEndOf="@+id/alarmSwitchText"
                             app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <Switch
+                            android:id="@+id/decodeOverrunSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="24dp"
+                            android:checked="false"
+                            android:text="@string/decode_overrun_toast_on"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            android:trackTint="@color/button_start_color"
+                            app:layout_constraintBottom_toBottomOf="@+id/swrAlarmSwitch"
+                            app:layout_constraintEnd_toStartOf="@+id/alcAlarmSwitch"
+                            app:layout_constraintHorizontal_bias="0.5"
+                            app:layout_constraintStart_toEndOf="@+id/swrAlarmSwitch"
+                            app:layout_constraintTop_toTopOf="@+id/swrAlarmSwitch"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
 
                         <Switch
@@ -1636,7 +1655,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
 
-                            android:layout_marginStart="32dp"
+                            android:layout_marginStart="24dp"
                             android:checked="true"
                             android:text="@string/alc_switch_on"
                             android:textColor="@color/text_view_color"
@@ -1648,7 +1667,7 @@
                             app:layout_constraintBottom_toBottomOf="@+id/swrAlarmSwitch"
                             app:layout_constraintEnd_toStartOf="@+id/alarmSwitchHelpButton"
                             app:layout_constraintHorizontal_bias="0.5"
-                            app:layout_constraintStart_toEndOf="@+id/swrAlarmSwitch"
+                            app:layout_constraintStart_toEndOf="@+id/decodeOverrunSwitch"
                             app:layout_constraintTop_toTopOf="@+id/swrAlarmSwitch"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
 

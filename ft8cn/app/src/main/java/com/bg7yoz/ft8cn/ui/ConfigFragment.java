@@ -564,6 +564,23 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //设置解码超时提示开关
+        binding.decodeOverrunSwitch.setOnCheckedChangeListener(null);
+        binding.decodeOverrunSwitch.setChecked(GeneralVariables.decode_overrun_toast);
+        setDecodeOverrunSwitchText();
+        binding.decodeOverrunSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.decode_overrun_toast = binding.decodeOverrunSwitch.isChecked();
+                if (binding.decodeOverrunSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("decodeOverrunToast", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("decodeOverrunToast", "0", null);
+                }
+                setDecodeOverrunSwitchText();
+            }
+        });
+
         //设置总是显示SWR和ALC值当发射时
         binding.alwaysShowSwrAlcSwitch.setOnCheckedChangeListener(null);
         binding.alwaysShowSwrAlcSwitch.setChecked(GeneralVariables.always_show_swr_alc);
@@ -913,6 +930,14 @@ public class ConfigFragment extends Fragment {
             binding.alcAlarmSwitch.setText(R.string.alc_switch_on);
         }else {
             binding.alcAlarmSwitch.setText(R.string.alc_switch_off);
+        }
+    }
+
+    private void setDecodeOverrunSwitchText() {
+        if (binding.decodeOverrunSwitch.isChecked()) {
+            binding.decodeOverrunSwitch.setText(R.string.decode_overrun_toast_on);
+        } else {
+            binding.decodeOverrunSwitch.setText(R.string.decode_overrun_toast_off);
         }
     }
 

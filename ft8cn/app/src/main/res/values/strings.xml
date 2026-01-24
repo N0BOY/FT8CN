@@ -564,6 +564,8 @@
     <string name="swr_switch_off" translatable="false">SWR Off</string>
     <string name="alc_switch_on" translatable="false">ALC On</string>
     <string name="alc_switch_off" translatable="false">ALC Off</string>
+    <string name="decode_overrun_toast_on" translatable="false">Decode Toast On</string>
+    <string name="decode_overrun_toast_off" translatable="false">Decode Toast Off</string>
     <string name="always_show_swr_alc">Always show SWR/ALC when transmitting</string>
     <string name="always_show_swr_alc_switch_on" translatable="false">On</string>
     <string name="always_show_swr_alc_switch_off" translatable="false">Off</string>
