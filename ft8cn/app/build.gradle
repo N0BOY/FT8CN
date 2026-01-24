@@ -113,6 +113,16 @@ android.applicationVariants.all { variant ->
     }
 }
 
+tasks.named("build") {
+    dependsOn("testDebugUnitTest")
+}
+
+afterEvaluate {
+    tasks.matching { it.name in ["assembleDebug", "assembleRelease"] }.configureEach {
+        dependsOn("testDebugUnitTest")
+    }
+}
+
 dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
