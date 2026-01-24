@@ -17,6 +17,7 @@ import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.ft8transmit.GenerateFT8;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.wave.OnGetVoiceDataDone;
 import com.bg7yoz.ft8cn.wave.WaveFileReader;
 import com.bg7yoz.ft8cn.wave.WaveFileWriter;
@@ -150,6 +151,14 @@ public class FT8SignalListener {
 
 
                 if (GeneralVariables.deepDecodeMode) {//进入深度解码模式
+                    long nextRxDeadline = utc
+                            + (long) FT8Common.FT8_SLOT_TIME_MILLISECOND * 2
+                            - 1000L; // leave 1s margin before next RX
+                    if (System.currentTimeMillis() >= nextRxDeadline) {
+                        DeleteDecoder(ft8Decoder);
+                        Log.d(TAG, String.format("深度解码跳过，接近下一次接收(UTC=%d)", utc));
+                        return;
+                    }
                     //float[] newSignal=tempData;
                     msgs = runDecode(ft8Decoder, utc, true);
                     addMsgToList(allMsg, msgs);
@@ -160,7 +169,9 @@ public class FT8SignalListener {
                     }
 
                     do {
-                        if (timeSec > FT8Common.DEEP_DECODE_TIMEOUT) break;//此处做超时检测，超过一定时间(7秒)，就不做减码操作了
+                        if (System.currentTimeMillis() >= nextRxDeadline) {
+                            break;// leave 1s margin before next RX cycle
+                        }
                         //减去解码的信号
                         ReBuildSignal.subtractSignal(ft8Decoder, a91List);
 
@@ -173,13 +184,18 @@ public class FT8SignalListener {
                             onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
                         }
 
-                    } while (msgs.size() > 0 );
+                    } while (msgs.size() > 0);
 
                 }
                 //移到finalize() 方法中调用了
                 DeleteDecoder(ft8Decoder);
 
-                Log.d(TAG, String.format("解码耗时:%d毫秒", System.currentTimeMillis() - time));
+                long totalDecodeMs = System.currentTimeMillis() - time;
+                Log.d(TAG, String.format("解码耗时:%d毫秒", totalDecodeMs));
+                long overrunMs = totalDecodeMs - FT8Common.FT8_SLOT_TIME_MILLISECOND;
+                if (overrunMs > 0) {
+                    ToastMessage.show(String.format("Decode overrun: %d ms", overrunMs));
+                }
 
             }
         }).start();
@@ -267,15 +283,7 @@ public class FT8SignalListener {
      * @return boolean
      */
     private boolean checkMessageSame(ArrayList<Ft8Message> ft8Messages, Ft8Message ft8Message) {
-        for (Ft8Message msg : ft8Messages) {
-            if (msg.getMessageText().equals(ft8Message.getMessageText())) {
-                if (msg.snr < ft8Message.snr) {
-                    msg.snr = ft8Message.snr;
-                }
-                return true;
-            }
-        }
-        return false;
+        return DecodeDuplicateFilter.isDuplicate(ft8Messages, ft8Message);
     }
 
     @Override
