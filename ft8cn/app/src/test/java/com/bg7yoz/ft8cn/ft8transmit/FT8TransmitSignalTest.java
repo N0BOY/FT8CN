@@ -32,7 +32,7 @@ public class FT8TransmitSignalTest {
     public void setUp() {
         // Initialize GeneralVariables for testing
         GeneralVariables.myCallsign = "TEST";
-        GeneralVariables.myMaidenheadGrid = "OL50";
+        GeneralVariables.setMyMaidenheadGrid("OL50");
         GeneralVariables.band = 14074000;
         GeneralVariables.noReplyCount = 0;
         GeneralVariables.noReplyLimit = 3;
@@ -82,7 +82,7 @@ public class FT8TransmitSignalTest {
         messages.add(msg2);
 
         // Store initial function order
-        int initialOrder = transmitSignal.functionOrder.intValue();
+        int initialOrder = getFunctionOrder(transmitSignal);
 
         // Process messages
         transmitSignal.parseMessageToFunction(messages);
