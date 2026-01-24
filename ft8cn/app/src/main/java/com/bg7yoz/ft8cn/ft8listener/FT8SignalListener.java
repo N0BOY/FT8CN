@@ -162,7 +162,8 @@ public class FT8SignalListener {
                         return;
                     }
                     //float[] newSignal=tempData;
-                    msgs = runDecode(ft8Decoder, utc, true);
+                    // First deep decode pass - clear a91List to start fresh for deep decode
+                    msgs = runDecode(ft8Decoder, utc, true, nextRxDeadline, true);
                     addMsgToList(allMsg, msgs);
                     if (!liveUpdates) {
                         addMsgToList(deepAll, msgs);
@@ -177,11 +178,16 @@ public class FT8SignalListener {
                         if (System.currentTimeMillis() >= nextRxDeadline) {
                             break;// leave 1s margin before next RX cycle
                         }
-                        //减去解码的信号
-                        ReBuildSignal.subtractSignal(ft8Decoder, a91List);
+                        //减去解码的信号（从之前的解码中累积的）
+                        try {
+                            ReBuildSignal.subtractSignal(ft8Decoder, a91List);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Deep decode: signal subtraction failed: " + e.getMessage());
+                            break; // If subtraction fails, stop deep decode to avoid infinite loop
+                        }
 
-                        //再做一次解码
-                        msgs = runDecode(ft8Decoder, utc, true);
+                        //再做一次解码 - don't clear a91List, accumulate for next subtraction
+                        msgs = runDecode(ft8Decoder, utc, true, nextRxDeadline, false);
                         addMsgToList(allMsg, msgs);
                         if (!liveUpdates) {
                             addMsgToList(deepAll, msgs);
@@ -214,44 +220,123 @@ public class FT8SignalListener {
 
 
     private ArrayList<Ft8Message> runDecode(long ft8Decoder, long utc, boolean isDeep) {
+        return runDecode(ft8Decoder, utc, isDeep, null, true);
+    }
+
+    private ArrayList<Ft8Message> runDecode(long ft8Decoder, long utc, boolean isDeep, Long deadlineMs, boolean clearA91List) {
         ArrayList<Ft8Message> ft8Messages = new ArrayList<>();
         Ft8Message ft8Message = new Ft8Message(FT8Common.FT8_MODE);
 
         ft8Message.utcTime = utc;
         ft8Message.band = GeneralVariables.band;
-        a91List.clear();
+        // Clear a91List only if requested (for initial decode and first deep decode)
+        // Deep decode iterations should accumulate signals for subtraction
+        if (clearA91List) {
+            a91List.clear();
+        }
 
         setDecodeMode(ft8Decoder, isDeep);//设置迭代次数,isDeep==true，迭代次数增加
 
-        int num_candidates = DecoderFt8FindSync(ft8Decoder);//最多120个
-        //long startTime = System.currentTimeMillis();
-        for (int idx = 0; idx < num_candidates; ++idx) {
-            //todo 应当做一下超时计算
-            try {//做一下解码失败保护
-                if (DecoderFt8Analysis(idx, ft8Decoder, ft8Message)) {
+        final int MAX_CANDIDATES_PER_BATCH = 120;
+        final int MAX_BATCH_ITERATIONS = 10; // Prevent infinite loops on very busy bands
+        int batchIteration = 0;
 
-                    if (ft8Message.isValid) {
-                        Ft8Message msg = new Ft8Message(ft8Message);//此处使用msg，是因为有的哈希呼号会把<...>替换掉
-                        byte[] a91 = DecoderGetA91(ft8Decoder);
-                        a91List.add(a91, ft8Message.freq_hz, ft8Message.time_sec);
-
-                        if (checkMessageSame(ft8Messages, msg)) {
-                            continue;
-                        }
-
-                        msg.isWeakSignal = isDeep;//是不是弱信号
-                        ft8Messages.add(msg);
-
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "run: " + e.getMessage());
+        // Process candidates in batches to handle busy bands with >120 signals
+        while (batchIteration < MAX_BATCH_ITERATIONS) {
+            // Check time budget if provided
+            if (deadlineMs != null && System.currentTimeMillis() >= deadlineMs) {
+                Log.d(TAG, String.format("Batch decode stopped: time budget exceeded (iteration %d)", batchIteration));
+                break;
             }
 
+            int num_candidates = DecoderFt8FindSync(ft8Decoder);//最多120个
+            if (num_candidates == 0) {
+                break; // No more candidates found
+            }
+
+            // Track a91 data for this batch to subtract after processing
+            A91List batchA91List = new A91List();
+
+            // Process candidates in this batch
+            int candidatesToProcess = Math.min(num_candidates, MAX_CANDIDATES_PER_BATCH);
+            for (int idx = 0; idx < candidatesToProcess; ++idx) {
+                // Check time budget during candidate processing
+                if (deadlineMs != null && System.currentTimeMillis() >= deadlineMs) {
+                    Log.d(TAG, String.format("Batch decode stopped: time budget exceeded during candidate processing (idx %d/%d)", idx, candidatesToProcess));
+                    break;
+                }
+
+                try {//做一下解码失败保护
+                    if (DecoderFt8Analysis(idx, ft8Decoder, ft8Message)) {
+
+                        if (ft8Message.isValid) {
+                            Ft8Message msg = new Ft8Message(ft8Message);//此处使用msg，是因为有的哈希呼号会把<...>替换掉
+                            byte[] a91 = DecoderGetA91(ft8Decoder);
+                            batchA91List.add(a91, ft8Message.freq_hz, ft8Message.time_sec);
+                            a91List.add(a91, ft8Message.freq_hz, ft8Message.time_sec);
+
+                            if (checkMessageSame(ft8Messages, msg)) {
+                                continue;
+                            }
+
+                            msg.isWeakSignal = isDeep;//是不是弱信号
+                            ft8Messages.add(msg);
+
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "runDecode: " + e.getMessage());
+                }
+            }
+
+            // Subtract decoded signals to avoid re-processing them
+            // If we processed a full batch (120 candidates), continue searching for more
+            if (batchA91List.list.size() > 0) {
+                try {
+                    ReBuildSignal.subtractSignal(ft8Decoder, batchA91List);
+                } catch (Exception e) {
+                    Log.e(TAG, "runDecode: signal subtraction failed: " + e.getMessage());
+                    // Continue processing even if subtraction fails
+                }
+            }
+            
+            // If we processed a full batch (120 candidates), search again for more candidates
+            // This allows us to find additional candidates that were beyond the initial 120 limit
+            if (num_candidates >= MAX_CANDIDATES_PER_BATCH) {
+                batchIteration++;
+            } else {
+                // Fewer than 120 candidates, we're done
+                break;
+            }
         }
 
+        //尝试解析剩余的哈希呼号（使用本解码过程中添加的哈希）
+        resolveHashCallsigns(ft8Messages);
 
         return ft8Messages;
+    }
+
+    /**
+     * 尝试解析消息列表中剩余的哈希呼号
+     * 使用本解码过程中添加到哈希列表的呼号来解析
+     *
+     * @param messages 消息列表
+     */
+    private void resolveHashCallsigns(ArrayList<Ft8Message> messages) {
+        for (Ft8Message msg : messages) {
+            if (msg.callsignFrom != null && msg.callsignFrom.equals("<...>")) {
+                String resolved = Ft8Message.hashList.getCallsign(new long[]{msg.callFromHash10, msg.callFromHash12, msg.callFromHash22});
+                if (!resolved.equals("<...>")) {
+                    msg.callsignFrom = resolved;
+                }
+            }
+            if (msg.callsignTo != null && msg.callsignTo.equals("<...>")) {
+                String resolved = Ft8Message.hashList.getCallsign(new long[]{msg.callToHash10, msg.callToHash12, msg.callToHash22});
+                if (!resolved.equals("<...>")) {
+                    msg.callsignTo = resolved;
+                }
+            }
+        }
     }
 
     /**

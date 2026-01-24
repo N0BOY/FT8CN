@@ -155,10 +155,12 @@ public class Ft8Message {
             } else {
                 callsignTo = message.callsignTo;
             }
-            if (message.i3 == 4) {
-                hashList.addHash(FT8Package.getHash22(message.callsignFrom), message.callsignFrom);
-                hashList.addHash(FT8Package.getHash12(message.callsignFrom), message.callsignFrom);
-                hashList.addHash(FT8Package.getHash10(message.callsignFrom), message.callsignFrom);
+            
+            //对于i3=4的非标准呼号，如果呼号成功解析，添加哈希到列表
+            if (message.i3 == 4 && callsignFrom != null && !callsignFrom.equals("<...>") && !callsignFrom.startsWith("<")) {
+                hashList.addHash(FT8Package.getHash22(callsignFrom), callsignFrom);
+                hashList.addHash(FT8Package.getHash12(callsignFrom), callsignFrom);
+                hashList.addHash(FT8Package.getHash10(callsignFrom), callsignFrom);
             }
 
             extraInfo = message.extraInfo;
@@ -175,13 +177,17 @@ public class Ft8Message {
             i3 = message.i3;
             n3 = message.n3;
 
-            //把哈希和呼号对应关系保存到列表里
-            hashList.addHash(callToHash10, callsignTo);
-            hashList.addHash(callToHash12, callsignTo);
-            hashList.addHash(callToHash22, callsignTo);
-            hashList.addHash(callFromHash10, callsignFrom);
-            hashList.addHash(callFromHash12, callsignFrom);
-            hashList.addHash(callFromHash22, callsignFrom);
+            //把哈希和呼号对应关系保存到列表里（只有当呼号成功解析时才添加）
+            if (callsignTo != null && !callsignTo.equals("<...>") && !callsignTo.startsWith("<")) {
+                hashList.addHash(callToHash10, callsignTo);
+                hashList.addHash(callToHash12, callsignTo);
+                hashList.addHash(callToHash22, callsignTo);
+            }
+            if (callsignFrom != null && !callsignFrom.equals("<...>") && !callsignFrom.startsWith("<")) {
+                hashList.addHash(callFromHash10, callsignFrom);
+                hashList.addHash(callFromHash12, callsignFrom);
+                hashList.addHash(callFromHash22, callsignFrom);
+            }
 
             //rtty ru(i3=3)消息新增的
             rtty_tu = message.rtty_tu;

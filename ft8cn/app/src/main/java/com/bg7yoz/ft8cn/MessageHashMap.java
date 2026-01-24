@@ -20,8 +20,9 @@ public class MessageHashMap extends HashMap<Long,String> {
      * @return false说明已经存在了
      */
     public synchronized void addHash(long hashCode, String callsign) {
-        //if (callsign.length()<2){return;}
-        //if (){return;}
+        if (callsign == null || callsign.isEmpty()) {
+            return;
+        }
         if (callsign.equals("CQ")||callsign.equals("QRZ")||callsign.equals("DE")){
             return;
         }
@@ -47,7 +48,7 @@ public class MessageHashMap extends HashMap<Long,String> {
     public synchronized String getCallsign(long[] hashCode) {
         for (long l : hashCode) {
             if (checkHash(l)) {
-                return String.format("<%s>", get(l));
+                return get(l);
             }
         }
         return "<...>";
