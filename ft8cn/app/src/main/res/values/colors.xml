@@ -179,5 +179,7 @@
     <color name="calling_my_callsign_background_start_color">#80FF00</color>
     <color name="calling_my_callsign_background_end_color">#00FF00</color>
 
+    <color name="tx_message_background_color">#FFE66F6A</color>
+
 
 </resources>

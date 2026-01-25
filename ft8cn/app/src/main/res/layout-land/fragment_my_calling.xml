@@ -136,16 +136,55 @@
             app:layout_constraintStart_toStartOf="@+id/guideline22">
 
             <ImageButton
-                android:id="@+id/resetToCQImageView"
-                android:layout_width="48dp"
-                android:layout_height="30dp"
+                android:id="@+id/pauseTransmittingImageButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/send"
-                android:src="@drawable/cq"
+                android:contentDescription="@string/launch"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/sequenceLabelTextView"
+                app:srcCompat="@drawable/ic_baseline_pause_circle_outline_24"
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+            <TextView
+                android:id="@+id/sequenceLabelTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginBottom="2dp"
+                android:text="Sequence"
+                android:textSize="12sp"
+                android:textColor="@color/bar_text_view_color"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@+id/functionOrderSpinner"
+                app:layout_constraintStart_toEndOf="@+id/pauseTransmittingImageButton"
                 app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="TouchTargetSizeCheck" />
+                tools:visibility="visible" />
+
+            <Spinner
+                android:id="@+id/functionOrderSpinner"
+                android:layout_width="0dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/editor_style"
+                android:dropDownWidth="match_parent"
+                android:popupBackground="@drawable/spinner_style"
+                android:prompt="@string/timeOffset"
+                android:spinnerMode="dropdown"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/resetToCQImageView"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toEndOf="@+id/pauseTransmittingImageButton"
+                app:layout_constraintTop_toBottomOf="@+id/sequenceLabelTextView"
+                app:layout_constraintVertical_bias="0.0"
+                tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck"
+                tools:listitem="@layout/function_order_spinner_item" />
+
             <EditText
                 android:id="@+id/transFreeTextEdit"
                 android:layout_width="0dp"
@@ -158,22 +197,24 @@
                 android:ems="10"
                 android:hint="@string/transmit_freeText"
                 android:inputType="text"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/resetToCQImageView"
                 app:layout_constraintStart_toEndOf="@+id/pauseTransmittingImageButton"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="TextContrastCheck" />
+
             <ImageButton
-                android:id="@+id/pauseTransmittingImageButton"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:id="@+id/resetToCQImageView"
+                android:layout_width="48dp"
+                android:layout_height="32dp"
                 android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/launch"
+                android:contentDescription="@string/send"
+                android:src="@drawable/cq"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_baseline_pause_circle_outline_24"
-                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/sequenceLabelTextView"
+                tools:ignore="TouchTargetSizeCheck" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -306,13 +347,14 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/sequenceDetailsLayout"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_marginStart="1dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="1dp"
             android:background="@drawable/calling_list_cell_style"
             android:padding="8dp"
             android:visibility="gone"
+            android:minHeight="120dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/guideline22"
             app:layout_constraintStart_toStartOf="parent"
@@ -430,6 +472,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:maxHeight="200dp"
+                    android:nestedScrollingEnabled="true"
+                    android:scrollbars="vertical"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/queueTitle" />
@@ -444,6 +488,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.5" />
+
+        <!-- Resizable divider between spectrum and right side content -->
+        <View
+            android:id="@+id/spectrumDivider"
+            android:layout_width="6dp"
+            android:layout_height="0dp"
+            android:background="@color/purple_500"
+            android:clickable="true"
+            android:focusable="true"
+            android:backgroundTint="@color/purple_500"
+            android:minWidth="6dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/guideline22"
+            app:layout_constraintStart_toStartOf="@+id/guideline22"
+            app:layout_constraintTop_toTopOf="@+id/mycall_tools_bar" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

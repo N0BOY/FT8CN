@@ -50,10 +50,15 @@ public class TransmitCallsign {
 
     @SuppressLint("DefaultLocale")
     public String getSnr(){
-        if (snr>0){
-            return String.format("+%02d",snr);
-        }else {
-            return String.format("%02d",snr);
+        if (snr > 0){
+            return String.format("+%02d", snr);
+        } else if (snr < 0){
+            // For negative numbers, format absolute value and prepend minus sign
+            // This ensures we get "-05" instead of "-5"
+            return String.format("-%02d", Math.abs(snr));
+        } else {
+            // For zero, return "+00"
+            return "+00";
         }
     }
 }

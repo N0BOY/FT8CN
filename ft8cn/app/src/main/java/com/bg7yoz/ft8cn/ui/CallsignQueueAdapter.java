@@ -44,13 +44,23 @@ public class CallsignQueueAdapter extends RecyclerView.Adapter<CallsignQueueAdap
     @Override
     public void onBindViewHolder(@NonNull QueueViewHolder holder, int position) {
         if (position < 0 || position >= queue.size()) {
+            android.util.Log.w("CallsignQueueAdapter", "Invalid position: " + position + ", queue size: " + queue.size());
             return;
         }
         CallsignQueue.QueuedCallsign item = queue.get(position);
+        if (item == null) {
+            android.util.Log.w("CallsignQueueAdapter", "Item is null at position: " + position);
+            return;
+        }
         holder.callsignText.setText(item.callsign);
         
-        // Show position in queue (1-based)
-        holder.positionText.setText(String.valueOf(position + 1));
+        // Show position in queue (1-based), but hide position for "( Empty )" placeholder
+        if (item.callsign != null && item.callsign.equals("( Empty )")) {
+            holder.positionText.setText("");
+        } else {
+            holder.positionText.setText(String.valueOf(position + 1));
+        }
+        android.util.Log.d("CallsignQueueAdapter", "Bound item at position " + position + ": " + item.callsign);
     }
 
     @Override
@@ -60,6 +70,7 @@ public class CallsignQueueAdapter extends RecyclerView.Adapter<CallsignQueueAdap
 
     public void updateQueue(List<CallsignQueue.QueuedCallsign> newQueue) {
         this.queue = newQueue != null ? new ArrayList<>(newQueue) : new ArrayList<>();
+        android.util.Log.d("CallsignQueueAdapter", "updateQueue called with " + this.queue.size() + " items");
         notifyDataSetChanged();
     }
 

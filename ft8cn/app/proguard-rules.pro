@@ -19,3 +19,18 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Keep native methods and classes that use native libraries
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Keep the native library loader class
+-keep class com.bg7yoz.ft8cn.NativeLibrary { *; }
+
+# Keep classes that use native methods
+-keep class com.bg7yoz.ft8cn.ft8listener.** { *; }
+-keep class com.bg7yoz.ft8cn.ft8transmit.** { *; }
+-keep class com.bg7yoz.ft8cn.ft8signal.** { *; }
+-keep class com.bg7yoz.ft8cn.wave.** { *; }
+-keep class com.bg7yoz.ft8cn.ui.** { *; }

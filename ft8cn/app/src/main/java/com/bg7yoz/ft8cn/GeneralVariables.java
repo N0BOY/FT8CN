@@ -276,7 +276,17 @@ public class GeneralVariables {
      * @return 是否存在
      */
     public static boolean checkQSLCallsign(String callsign) {
-        return QSL_Callsign_list.contains(callsign);
+        if (callsign == null || callsign.trim().isEmpty()) {
+            return false;
+        }
+        // Normalize callsign for comparison (trim whitespace, uppercase)
+        String normalizedCallsign = callsign.trim().toUpperCase();
+        for (String qslCallsign : QSL_Callsign_list) {
+            if (qslCallsign != null && qslCallsign.trim().toUpperCase().equals(normalizedCallsign)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -286,7 +296,17 @@ public class GeneralVariables {
      * @return 是否存在
      */
     public static boolean checkQSLCallsign_OtherBand(String callsign) {
-        return QSL_Callsign_list_other_band.contains(callsign);
+        if (callsign == null || callsign.trim().isEmpty()) {
+            return false;
+        }
+        // Normalize callsign for comparison (trim whitespace, uppercase)
+        String normalizedCallsign = callsign.trim().toUpperCase();
+        for (String qslCallsign : QSL_Callsign_list_other_band) {
+            if (qslCallsign != null && qslCallsign.trim().toUpperCase().equals(normalizedCallsign)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

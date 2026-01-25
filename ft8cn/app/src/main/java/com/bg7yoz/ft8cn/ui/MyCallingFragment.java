@@ -6,6 +6,8 @@ package com.bg7yoz.ft8cn.ui;
  */
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -31,6 +33,8 @@ import androidx.lifecycle.Observer;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -43,6 +47,7 @@ import com.bg7yoz.ft8cn.databinding.FragmentMyCallingBinding;
 import com.bg7yoz.ft8cn.ft8transmit.CallsignQueue;
 import com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit;
 import com.bg7yoz.ft8cn.ft8transmit.TransmitCallsign;
+import com.bg7yoz.ft8cn.ui.FunctionOrderSpinnerAdapter;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.util.ArrayList;
@@ -60,6 +65,7 @@ public class MyCallingFragment extends Fragment {
     
     private RecyclerView callsignQueueRecyclerView;
     private CallsignQueueAdapter callsignQueueAdapter;
+    private FunctionOrderSpinnerAdapter functionOrderSpinnerAdapter;
 
 
     static {
@@ -193,7 +199,15 @@ public class MyCallingFragment extends Fragment {
             binding.messageSpectrumView.run(mainViewModel, this);
             // Show sequence details in landscape mode (below spectrum)
             binding.sequenceDetailsLayout.setVisibility(View.VISIBLE);
+            // Set up resizable divider for spectrum/sequence split
+            setupResizableDivider();
         }
+
+
+        //发射消息的列表
+        functionOrderSpinnerAdapter = new FunctionOrderSpinnerAdapter(requireContext(), mainViewModel);
+        binding.functionOrderSpinner.setAdapter(functionOrderSpinnerAdapter);
+        functionOrderSpinnerAdapter.notifyDataSetChanged();
 
 
         //关注的消息列表
@@ -208,9 +222,54 @@ public class MyCallingFragment extends Fragment {
 
         // Initialize callsign queue RecyclerView
         callsignQueueRecyclerView = binding.callsignQueueRecyclerView;
-        callsignQueueAdapter = new CallsignQueueAdapter();
-        callsignQueueRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        callsignQueueRecyclerView.setAdapter(callsignQueueAdapter);
+        if (callsignQueueRecyclerView != null) {
+            callsignQueueAdapter = new CallsignQueueAdapter();
+            LinearLayoutManager layoutManager = new LinearLayoutManager(requireContext());
+            layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            callsignQueueRecyclerView.setLayoutManager(layoutManager);
+            callsignQueueRecyclerView.setAdapter(callsignQueueAdapter);
+            // Ensure RecyclerView is visible
+            callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+            // Enable item animations
+            callsignQueueRecyclerView.setItemAnimator(new androidx.recyclerview.widget.DefaultItemAnimator());
+            android.util.Log.d(TAG, "Initialized callsign queue RecyclerView");
+            
+            // In landscape mode, ensure queue is visible and updated after initialization
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                // Ensure queue RecyclerView is visible in landscape
+                callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+                // Update queue display when layout becomes visible in landscape
+                // Use a delayed post to ensure the layout is fully laid out
+                binding.sequenceDetailsLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Ensure RecyclerView is visible
+                        if (callsignQueueRecyclerView != null) {
+                            callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+                            android.util.Log.d(TAG, "Landscape: RecyclerView visibility set to VISIBLE");
+                        }
+                        // Update the queue display
+                        updateQueueDisplay();
+                        // Force a layout pass to ensure the RecyclerView displays items
+                        if (callsignQueueRecyclerView != null) {
+                            callsignQueueRecyclerView.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    callsignQueueRecyclerView.requestLayout();
+                                    callsignQueueRecyclerView.invalidate();
+                                    // Log the state after layout
+                                    android.util.Log.d(TAG, "Landscape: After layout - RecyclerView height: " + 
+                                            callsignQueueRecyclerView.getHeight() + 
+                                            ", adapter count: " + callsignQueueAdapter.getItemCount());
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        } else {
+            android.util.Log.e(TAG, "callsignQueueRecyclerView is null in binding!");
+        }
         
         // Set up queue item action listener for delete and reorder
         callsignQueueAdapter.setOnQueueItemActionListener(new CallsignQueueAdapter.OnQueueItemActionListener() {
@@ -237,20 +296,51 @@ public class MyCallingFragment extends Fragment {
         // Set up drag and swipe gestures for queue
         setupQueueItemTouchHelper();
         
-        // Observe callsign queue changes
+        // Observe callsign queue changes and current target callsign
+        // Combine current target with queue so it's always visible
         mainViewModel.ft8TransmitSignal.mutableCallsignQueue.observe(getViewLifecycleOwner(), new Observer<ArrayList<CallsignQueue.QueuedCallsign>>() {
             @Override
             public void onChanged(ArrayList<CallsignQueue.QueuedCallsign> queuedCallsigns) {
-                if (queuedCallsigns != null) {
-                    callsignQueueAdapter.updateQueue(queuedCallsigns);
-                } else {
-                    callsignQueueAdapter.updateQueue(new ArrayList<>());
+                if (getView() != null) {
+                    updateQueueDisplay();
+                }
+            }
+        });
+        
+        mainViewModel.ft8TransmitSignal.mutableToCallsign.observe(getViewLifecycleOwner(), new Observer<TransmitCallsign>() {
+            @Override
+            public void onChanged(TransmitCallsign transmitCallsign) {
+                if (getView() != null) {
+                    updateQueueDisplay();
                 }
             }
         });
         
         // Initialize queue display with current queue state
         mainViewModel.ft8TransmitSignal.mutableCallsignQueue.postValue(mainViewModel.ft8TransmitSignal.callsignQueue.getAll());
+        // Also update display to include current target - use post to ensure view is ready
+        binding.getRoot().post(new Runnable() {
+            @Override
+            public void run() {
+                // Force an immediate update to test if adapter is working
+                if (callsignQueueAdapter != null && callsignQueueRecyclerView != null) {
+                    // Test with empty queue first to show "( Empty )"
+                    ArrayList<CallsignQueue.QueuedCallsign> testQueue = new ArrayList<>();
+                    try {
+                        Ft8Message emptyMessage = new Ft8Message(1, 0, "( Empty )", 
+                                GeneralVariables.myCallsign, "");
+                        CallsignQueue.QueuedCallsign emptyEntry = new CallsignQueue.QueuedCallsign(
+                                "( Empty )", 0, emptyMessage);
+                        testQueue.add(emptyEntry);
+                        callsignQueueAdapter.updateQueue(testQueue);
+                        android.util.Log.d(TAG, "Test update: Added empty placeholder to queue");
+                    } catch (Exception e) {
+                        android.util.Log.e(TAG, "Error in test update: " + e.getMessage(), e);
+                    }
+                }
+                updateQueueDisplay();
+            }
+        });
 
         //设置消息列表滑动，用于快速呼叫
         initRecyclerViewAction();
@@ -312,6 +402,46 @@ public class MyCallingFragment extends Fragment {
             public void onClick(View view) {
                 mainViewModel.ft8TransmitSignal.setTransmitting(false);
                 GeneralVariables.resetLaunchSupervision();//复位自动监管
+            }
+        });
+
+        //监视命令程序
+        mainViewModel.ft8TransmitSignal.mutableFunctions.observe(getViewLifecycleOwner()
+                , new Observer<ArrayList<FunctionOfTransmit>>() {
+                    @Override
+                    public void onChanged(ArrayList<FunctionOfTransmit> functionOfTransmits) {
+                        functionOrderSpinnerAdapter.notifyDataSetChanged();
+                    }
+                });
+
+        //观察指令序号的变化
+        mainViewModel.ft8TransmitSignal.mutableFunctionOrder.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                if (mainViewModel.ft8TransmitSignal.functionList.size() < 6) {
+                    binding.functionOrderSpinner.setSelection(0);
+                } else {
+                    binding.functionOrderSpinner.setSelection(integer - 1);
+                }
+                // Update queue display when function order changes (might affect target visibility)
+                if (getView() != null) {
+                    updateQueueDisplay();
+                }
+            }
+        });
+
+        //设置当指令序号被选择的事件
+        binding.functionOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (mainViewModel.ft8TransmitSignal.functionList.size() > 1) {
+                    mainViewModel.ft8TransmitSignal.setCurrentFunctionOrder(i + 1);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
             }
         });
 
@@ -454,6 +584,13 @@ public class MyCallingFragment extends Fragment {
         if (mainViewModel.ft8TransmitSignal.isActivated() 
                 || getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             updateSequenceDetails();
+            // Also update queue display
+            binding.getRoot().post(new Runnable() {
+                @Override
+                public void run() {
+                    updateQueueDisplay();
+                }
+            });
         }
         
         return binding.getRoot();
@@ -475,7 +612,32 @@ public class MyCallingFragment extends Fragment {
             public void onChanged(Boolean activated) {
                 if (activated || finalIsLandscape) {
                     binding.sequenceDetailsLayout.setVisibility(View.VISIBLE);
+                    // Ensure queue RecyclerView is visible
+                    if (callsignQueueRecyclerView != null) {
+                        callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+                    }
                     updateSequenceDetails();
+                    // Update queue when layout becomes visible - use post to ensure view is ready
+                    binding.sequenceDetailsLayout.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Ensure RecyclerView is visible
+                            if (callsignQueueRecyclerView != null) {
+                                callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+                            }
+                            updateQueueDisplay();
+                            // Force a layout pass to ensure the RecyclerView displays items
+                            if (callsignQueueRecyclerView != null) {
+                                callsignQueueRecyclerView.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        callsignQueueRecyclerView.requestLayout();
+                                        callsignQueueRecyclerView.invalidate();
+                                    }
+                                });
+                            }
+                        }
+                    });
                 } else {
                     binding.sequenceDetailsLayout.setVisibility(View.GONE);
                 }
@@ -576,8 +738,114 @@ public class MyCallingFragment extends Fragment {
     private void showFreeTextEdit() {
         if (mainViewModel.getTransitIsFreeText()) {
             binding.transFreeTextEdit.setVisibility(View.VISIBLE);
+            binding.functionOrderSpinner.setVisibility(View.GONE);
+            binding.sequenceLabelTextView.setVisibility(View.GONE);
         } else {
             binding.transFreeTextEdit.setVisibility(View.GONE);
+            binding.functionOrderSpinner.setVisibility(View.VISIBLE);
+            binding.sequenceLabelTextView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    /**
+     * Update the queue display to include the current target callsign
+     */
+    private void updateQueueDisplay() {
+        if (callsignQueueAdapter == null || getView() == null) {
+            return; // Adapter not initialized yet or view not available
+        }
+        
+        ArrayList<CallsignQueue.QueuedCallsign> displayQueue = new ArrayList<>();
+        
+        // Get current target callsign from LiveData
+        TransmitCallsign currentTarget = mainViewModel.ft8TransmitSignal.mutableToCallsign.getValue();
+        
+        // Add current target to display if it exists and is not CQ
+        // Show the target callsign we're responding/intending to respond to
+        if (currentTarget != null && currentTarget.callsign != null && !currentTarget.callsign.equals("CQ")) {
+            try {
+                // Create a QueuedCallsign entry for the current target
+                // Use a very old timestamp so it appears first
+                Ft8Message dummyMessage = new Ft8Message(1, 0, currentTarget.callsign, 
+                        GeneralVariables.myCallsign, "");
+                CallsignQueue.QueuedCallsign currentTargetEntry = new CallsignQueue.QueuedCallsign(
+                        currentTarget.callsign, 0, dummyMessage); // timestamp 0 = oldest/active
+                displayQueue.add(currentTargetEntry);
+            } catch (Exception e) {
+                // If creating entry fails, log and continue
+                android.util.Log.e(TAG, "Error creating queue entry for current target: " + e.getMessage());
+            }
+        }
+        
+        // Add queued callsigns (excluding the current target if it's in the queue)
+        ArrayList<CallsignQueue.QueuedCallsign> queuedCallsigns = mainViewModel.ft8TransmitSignal.mutableCallsignQueue.getValue();
+        if (queuedCallsigns != null) {
+            String currentTargetCallsign = (currentTarget != null && currentTarget.callsign != null) 
+                    ? currentTarget.callsign : null;
+            for (CallsignQueue.QueuedCallsign queued : queuedCallsigns) {
+                // Don't add if it's the same as current target (already added above)
+                if (currentTargetCallsign == null || !queued.callsign.equals(currentTargetCallsign)) {
+                    displayQueue.add(queued);
+                }
+            }
+        }
+        
+        // If queue is empty, show "( Empty )" placeholder
+        if (displayQueue.isEmpty()) {
+            try {
+                Ft8Message emptyMessage = new Ft8Message(1, 0, "( Empty )", 
+                        GeneralVariables.myCallsign, "");
+                CallsignQueue.QueuedCallsign emptyEntry = new CallsignQueue.QueuedCallsign(
+                        "( Empty )", 0, emptyMessage);
+                displayQueue.add(emptyEntry);
+                android.util.Log.d(TAG, "Added empty placeholder to display queue");
+            } catch (Exception e) {
+                android.util.Log.e(TAG, "Error creating empty queue entry: " + e.getMessage(), e);
+            }
+        }
+        
+        // Always update the adapter on UI thread
+        if (callsignQueueAdapter != null && callsignQueueRecyclerView != null) {
+            // Ensure RecyclerView is visible, especially in landscape mode
+            boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+            if (isLandscape) {
+                callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+            }
+            
+            // Ensure we're on the UI thread
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        android.util.Log.d(TAG, "Updating queue display with " + displayQueue.size() + " items, isLandscape=" + isLandscape);
+                        if (displayQueue.size() > 0) {
+                            android.util.Log.d(TAG, "First item: " + displayQueue.get(0).callsign);
+                        }
+                        callsignQueueAdapter.updateQueue(displayQueue);
+                        // Ensure RecyclerView is visible after update
+                        if (isLandscape) {
+                            callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+                        }
+                        // Force RecyclerView to refresh
+                        callsignQueueRecyclerView.invalidate();
+                        callsignQueueRecyclerView.requestLayout();
+                        // Log RecyclerView state
+                        android.util.Log.d(TAG, "RecyclerView visibility: " + callsignQueueRecyclerView.getVisibility() + 
+                                ", height: " + callsignQueueRecyclerView.getHeight() + 
+                                ", adapter count: " + callsignQueueAdapter.getItemCount());
+                    }
+                });
+            } else {
+                // Fallback if activity is null
+                callsignQueueAdapter.updateQueue(displayQueue);
+                android.util.Log.d(TAG, "Updated queue display with " + displayQueue.size() + " items (no activity)");
+                if (isLandscape) {
+                    callsignQueueRecyclerView.setVisibility(View.VISIBLE);
+                }
+            }
+        } else {
+            android.util.Log.e(TAG, "callsignQueueAdapter or callsignQueueRecyclerView is null! adapter=" + 
+                    (callsignQueueAdapter != null) + ", recyclerView=" + (callsignQueueRecyclerView != null));
         }
     }
 
@@ -722,17 +990,33 @@ public class MyCallingFragment extends Fragment {
                 ItemTouchHelper.START | ItemTouchHelper.END) { // Swipe directions
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
-                // Handle drag to reorder
+                // Prevent moving the "( Empty )" placeholder
                 int fromPosition = viewHolder.getAdapterPosition();
                 int toPosition = target.getAdapterPosition();
+                CallsignQueue.QueuedCallsign fromItem = callsignQueueAdapter.getItem(fromPosition);
+                CallsignQueue.QueuedCallsign toItem = callsignQueueAdapter.getItem(toPosition);
+                if (fromItem != null && fromItem.callsign.equals("( Empty )")) {
+                    return false; // Can't move empty placeholder
+                }
+                if (toItem != null && toItem.callsign.equals("( Empty )")) {
+                    return false; // Can't move to empty placeholder position
+                }
+                // Handle drag to reorder
                 callsignQueueAdapter.moveItem(fromPosition, toPosition);
                 return true;
             }
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                // Handle swipe to delete (both directions)
+                // Prevent deleting the "( Empty )" placeholder
                 int position = viewHolder.getAdapterPosition();
+                CallsignQueue.QueuedCallsign item = callsignQueueAdapter.getItem(position);
+                if (item != null && item.callsign.equals("( Empty )")) {
+                    // Don't allow deletion of empty placeholder - just refresh the view
+                    callsignQueueAdapter.notifyItemChanged(position);
+                    return;
+                }
+                // Handle swipe to delete (both directions)
                 callsignQueueAdapter.removeItem(position);
             }
 
@@ -740,6 +1024,148 @@ public class MyCallingFragment extends Fragment {
             public boolean isItemViewSwipeEnabled() {
                 return true; // Enable swipe to delete
             }
+
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                
+                // Only show delete icon when swiping (not dragging)
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    // Get delete icon
+                    Drawable delIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.log_item_delete_icon);
+                    Drawable background = new ColorDrawable(Color.LTGRAY);
+                    
+                    CallsignQueue.QueuedCallsign item = callsignQueueAdapter.getItem(viewHolder.getAdapterPosition());
+                    if (item == null || item.callsign.equals("( Empty )")) {
+                        // Don't show icon for empty placeholder
+                        return;
+                    }
+                    
+                    View itemView = viewHolder.itemView;
+                    int iconMargin = (itemView.getHeight() - delIcon.getIntrinsicHeight()) / 2;
+                    int iconLeft, iconRight, iconTop, iconBottom;
+                    int backTop, backBottom, backLeft, backRight;
+                    
+                    backTop = itemView.getTop();
+                    backBottom = itemView.getBottom();
+                    iconTop = itemView.getTop() + (itemView.getHeight() - delIcon.getIntrinsicHeight()) / 2;
+                    iconBottom = iconTop + delIcon.getIntrinsicHeight();
+                    
+                    if (dX > 0) {
+                        // Swiping right - show icon on left
+                        backLeft = itemView.getLeft();
+                        backRight = itemView.getLeft() + (int) dX;
+                        background.setBounds(backLeft, backTop, backRight, backBottom);
+                        iconLeft = itemView.getLeft() + iconMargin;
+                        iconRight = iconLeft + delIcon.getIntrinsicWidth();
+                        delIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                    } else if (dX < 0) {
+                        // Swiping left - show icon on right
+                        backRight = itemView.getRight();
+                        backLeft = itemView.getRight() + (int) dX;
+                        background.setBounds(backLeft, backTop, backRight, backBottom);
+                        iconRight = itemView.getRight() - iconMargin;
+                        iconLeft = iconRight - delIcon.getIntrinsicWidth();
+                        delIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                    } else {
+                        // No swipe - hide icon
+                        background.setBounds(0, 0, 0, 0);
+                        delIcon.setBounds(0, 0, 0, 0);
+                    }
+                    
+                    background.draw(c);
+                    delIcon.draw(c);
+                }
+            }
         }).attachToRecyclerView(callsignQueueRecyclerView);
+    }
+
+    private float dividerPosition = 0.5f;
+
+    /**
+     * Set up the resizable divider between spectrum and sequence/queue views in landscape mode
+     */
+    private void setupResizableDivider() {
+        View divider = binding.spectrumDivider;
+        if (divider == null) {
+            return;
+        }
+
+        // Load saved divider position from SharedPreferences (default to 0.5 = 50%)
+        SharedPreferences prefs = requireContext().getSharedPreferences("ft8cn_prefs", Context.MODE_PRIVATE);
+        dividerPosition = prefs.getFloat("spectrumDividerPosition", 0.5f);
+        
+        // Clamp between 0.3 and 0.7 (30% to 70%) to prevent too small views
+        dividerPosition = Math.max(0.3f, Math.min(0.7f, dividerPosition));
+        
+        // Set initial guideline position
+        updateDividerPosition(dividerPosition);
+
+        // Set up drag handling
+        divider.setOnTouchListener(new View.OnTouchListener() {
+            private float startX;
+            private float startPosition;
+            private boolean isDragging = false;
+
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        startX = event.getRawX();
+                        startPosition = dividerPosition;
+                        isDragging = true;
+                        v.setBackgroundColor(Color.parseColor("#FF6B00")); // Orange when dragging
+                        return true;
+
+                    case android.view.MotionEvent.ACTION_MOVE:
+                        if (isDragging) {
+                            ConstraintLayout parent = (ConstraintLayout) v.getParent();
+                            float deltaX = event.getRawX() - startX;
+                            float parentWidth = parent.getWidth();
+                            
+                            if (parentWidth > 0) {
+                                float deltaPercent = deltaX / parentWidth;
+                                float newPosition = startPosition + deltaPercent;
+                                
+                                // Clamp between 0.3 and 0.7
+                                newPosition = Math.max(0.3f, Math.min(0.7f, newPosition));
+                                
+                                updateDividerPosition(newPosition);
+                            }
+                        }
+                        return true;
+
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        if (isDragging) {
+                            isDragging = false;
+                            v.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.purple_500));
+                            
+                            // Save position to SharedPreferences
+                            SharedPreferences prefs = requireContext().getSharedPreferences("ft8cn_prefs", Context.MODE_PRIVATE);
+                            prefs.edit().putFloat("spectrumDividerPosition", dividerPosition).apply();
+                        }
+                        return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Update the divider position by updating the guideline
+     */
+    private void updateDividerPosition(float position) {
+        dividerPosition = position;
+        
+        ConstraintLayout parent = (ConstraintLayout) binding.getRoot();
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(parent);
+        
+        // Update guideline position
+        constraintSet.setGuidelinePercent(R.id.guideline22, position);
+        
+        // Apply constraints
+        constraintSet.applyTo(parent);
     }
 }
