@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backup rules for FT8CN app.
+    This restricts what data can be backed up to prevent unauthorized access.
+    Google Play Protect flags apps that allow full backup without restrictions.
+    We exclude sensitive data (databases, shared preferences with credentials, etc.)
+    but allow non-sensitive configuration files.
+-->
+<full-backup-content>
+    <!-- Exclude sensitive data from backup -->
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="credentials.xml" />
+    <exclude domain="sharedpref" path="api_keys.xml" />
+    <exclude domain="file" path="sensitive/" />
+    <exclude domain="external" path="." />
+</full-backup-content>

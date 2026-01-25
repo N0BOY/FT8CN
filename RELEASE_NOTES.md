@@ -1,12 +1,93 @@
 # FT8CN Release Notes
 
+## Version 0.93.67 (January 25, 2026)
+
+### 🔧 Auto Sequencing Improvements
+
+This release includes comprehensive improvements to the auto sequencing system to enhance reliability and prevent sequencing failures. See [`AUTO_SEQUENCING_IMPROVEMENTS.md`](AUTO_SEQUENCING_IMPROVEMENTS.md) for detailed documentation of all fixes and improvements.
+
+#### Core Fixes
+- **Fixed compound callsign matching**: Replaced `.equals()` with `checkCallsignIsCallTo()` to properly handle compound callsigns (e.g., "K1ABC/P", "W1ABC/MM")
+- **Fixed no-reply retry calculation**: Corrected off-by-one error in retry limit logic
+  - Previously: Setting retry limit to 2 required 3 no-replies before moving on
+  - Now: Setting retry limit to 2 correctly moves on after 2 no-replies
+  - Changed comparison from `>` to `>=` for proper limit enforcement
+- **Improved unparseable message handling**: Added logging for debugging when valid messages from target callsigns cannot be parsed
+- **Enhanced null safety**: Added defensive null checks to prevent potential crashes in edge cases
+- **Added bounds checking**: Prevented potential IndexOutOfBoundsException when accessing message lists
+
+#### Sequence Progression Improvements
+- **Fixed sequence evaluation during TX**: Sequence now advances even when decoded messages arrive after transmission has started
+  - Previously, decodes received during active transmission were ignored
+  - Now evaluates all decodes (regular and deep decode) regardless of transmission state
+  - Sequence can advance based on responses received mid-transmission cycle
+- **Deep decode messages can advance sequence**: Removed restriction that prevented deep decode messages from triggering sequence advancement
+  - Weak signals detected by deep decode can now properly advance the QSO sequence
+  - Both regular and deep decode messages are evaluated equally
+
+#### Documentation
+- **Comprehensive sequencing documentation**: Added detailed documentation in `AUTO_SEQUENCING_IMPROVEMENTS.md`
+  - Documents all identified and fixed issues
+  - Explains message processing order (newest-first)
+  - Documents transmission cycle behavior
+  - Explains why messages don't switch mid-transmission (by design)
+
+### 🎨 UI Improvements
+
+#### Settings Labels
+- **Updated auto track CQ label**: Changed to "Show CQs in calling window" for clarity
+- **Updated auto call tracked label**: Changed to "Auto Reply to anyone calling CQ" for clarity
+- Labels now remain static (don't change when toggles are selected/unselected)
+
+#### Default Settings
+- **Auto track CQ disabled by default**: Changed default value from `true` to `false`
+- **Auto call tracked disabled by default**: Changed default value from `true` to `false`
+- Users must explicitly enable these features if desired
+
+### 🔒 Security & Compliance
+
+#### Google Play Protect Compliance
+- **Added backup rules**: Created `backup_rules.xml` to restrict what data can be backed up
+  - Excludes sensitive data (databases, credentials, API keys) from backup
+  - Addresses Google Play Protect warning about unrestricted backup access
+- **Added network security configuration**: Created `network_security_config.xml` to restrict cleartext traffic
+  - Allows cleartext only for local networks (needed for radio control)
+  - Requires HTTPS for external connections
+  - Addresses Google Play Protect warning about unrestricted cleartext traffic
+- **Updated AndroidManifest**: Added references to security configuration files
+  - `android:dataExtractionRules="@xml/backup_rules"`
+  - `android:fullBackupContent="@xml/backup_rules"`
+  - `android:networkSecurityConfig="@xml/network_security_config"`
+
+
+### 🐛 Bug Fixes
+- **Auto sequencing reliability fixes**: Multiple bugs fixed in the auto sequencing system
+  - Fixed compound callsign matching bug
+  - Fixed no-reply retry limit off-by-one error
+  - Fixed sequence progression during active transmission
+  - Fixed deep decode sequence advancement
+  - Added defensive programming improvements (null checks, bounds checking)
+  - See [`AUTO_SEQUENCING_IMPROVEMENTS.md`](AUTO_SEQUENCING_IMPROVEMENTS.md) for complete list of fixes
+
+---
+
+## Pre-release
+
+### Bug Fixes
+- **Improved decoding**: Enhanced auto sequencing reliability and message processing
+  - **Fixed sequence filtering bug**: Previously, if the first decoded message had the same sequence as the current transmit sequence, all subsequent messages (even those with different sequences) would be ignored. Now the system checks all messages and only skips processing when ALL messages have the same sequence as the transmit sequence, ensuring valid messages are not dropped
+  - **Prevented sequence regression**: Fixed issue where receiving delayed or out-of-order messages could cause the auto sequencing to regress backward in the message sequence. The system now only advances forward, preventing sequence state corruption
+  - **Improved message processing**: Auto sequencing now correctly processes messages from different time slots even when mixed with messages from the same time slot, resulting in more reliable QSO progression
+  - **Enhanced robustness**: Added safeguards to handle edge cases with mixed sequence messages, ensuring the auto sequencing system maintains proper state throughout the QSO
+
+
 ## Version 0.93.47 (January 24, 2026)
 
 ### 🔧 Improvements
 - **Rig list sorting**: Rig list is now sorted by make then model for easier navigation
 - **Bold text for transmitting messages**: Decoded messages that match currently transmitting messages are displayed in bold text
 - **Highlight messages calling your callsign**: Messages where someone is calling your callsign now have a bright green background for easy identification
-- **Improved decoding**: Messages were dropped in the decoding, now more reliable decoding sequence.
+- **Improved decoding**: Messages were dropped in the decoding, now more reliable decoding sequence. See `DECODE_IMPROVEMENTS.md`
 
 ### 🗑️ Removed Features
 - **SWR/ALC toggles removed**: Removed SWR and ALC toggle switches from settings UI

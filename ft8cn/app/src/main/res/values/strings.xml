@@ -136,6 +136,16 @@
     <string name="target_callsign">Target : %s</string>
     <string name="transmission_sequence">Sequential : %d</string>
     <string name="message_count">Messages(%d)</string>
+    <string name="call_sequence_details">Call Sequence Details</string>
+    <string name="current_order">Current Order: %d</string>
+    <string name="next_message">Next: Message %d</string>
+    <string name="sequence_status">Status: %s</string>
+    <string name="qso_progress">Progress: %d/6</string>
+    <string name="last_received_order">Last Received: Order %d</string>
+    <string name="status_waiting">Waiting for response</string>
+    <string name="status_transmitting">Transmitting</string>
+    <string name="status_cq">CQ Mode</string>
+    <string name="status_complete">QSO Complete</string>
 
     <!--   日志导出栏栏-->
     <string name="export_info">Please use the web browser of other devices to export from the background under the same LAN as this device.\nEnter the URL in the browser:\nhttp://%1$s:%2$d</string>
@@ -145,10 +155,10 @@
     <!--   发射监管-->
     <string name="freq_syn">Lockd TX=RX</string>
     <string name="freq_asyn">Tx/Rx Split</string>
-    <string name="auto_follow_cq">Auto track CQ</string>
-    <string name="not_concerned_about_CQ">No track CQ</string>
-    <string name="automatic_call_following">Auto call tracked</string>
-    <string name="do_not_call_the_following_callsign">No call tracked</string>
+    <string name="auto_follow_cq">Show CQs in calling window</string>
+    <string name="not_concerned_about_CQ">Don\'t show CQs in calling window</string>
+    <string name="automatic_call_following">Auto Reply to anyone calling CQ</string>
+    <string name="do_not_call_the_following_callsign">Don\'t auto reply to CQ</string>
 
     <!--   解码栏-->
     <string name="message_count_count">Messages(%1$d/%2$d)</string>

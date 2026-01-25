@@ -2138,10 +2138,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.noReplyLimit = result.equals("") ? 0 : Integer.parseInt(result);
                 }
                 if (name.equalsIgnoreCase("autoFollowCQ")) {//自动关注CQ
-                    GeneralVariables.autoFollowCQ = (result.equals("") || result.equals("1"));
+                    GeneralVariables.autoFollowCQ = result.equals("1");
                 }
                 if (name.equalsIgnoreCase("autoCallFollow")) {//自动呼叫关注
-                    GeneralVariables.autoCallFollow = (result.equals("") || result.equals("1"));
+                    GeneralVariables.autoCallFollow = result.equals("1");
                 }
                 if (name.equalsIgnoreCase("pttDelay")) {//ptt延时设置
                     GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);

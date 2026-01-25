@@ -21,6 +21,8 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 enum ServiceType{
     Cloudlog,
@@ -29,6 +31,12 @@ enum ServiceType{
 
 public class ThirdPartyService {
     public static String TAG = "ThirdPartyService";
+    
+    // Track recently uploaded QSOs to prevent duplicate uploads
+    // Key format: "callsign|freq" (e.g., "W1ABC|14074000")
+    // Tracks upload timestamp to allow re-upload after 1 hour
+    private static final HashMap<String, Long> uploadedQSOs = new HashMap<>(); // Key -> upload timestamp (milliseconds)
+    private static final long DUPLICATE_UPLOAD_INTERVAL_MS = 3600000; // 1 hour - minimum time between uploads of same callsign+freq
 
     private static String QSLRecordToADIF(QSLRecord qslRecord, ServiceType serv){
         StringBuilder logStr = new StringBuilder();
@@ -201,10 +209,59 @@ public class ThirdPartyService {
         }
     }
 
+    /**
+     * Generate a unique key for a QSO to track duplicate uploads
+     * Format: "callsign|freq"
+     * Uses only callsign and frequency to identify duplicates
+     */
+    private static String generateQSOKey(QSLRecord qslRecord) {
+        String callsign = qslRecord.getToCallsign() != null ? qslRecord.getToCallsign() : "";
+        String freq = String.valueOf(qslRecord.getBandFreq());
+        return String.format("%s|%s", callsign, freq);
+    }
+    
+    /**
+     * Check if a QSO should be uploaded
+     * Allows re-upload only if more than 1 hour has passed since last upload
+     * @param qsoKey The unique key for the QSO (callsign|freq)
+     * @return true if should skip upload (duplicate within 1 hour), false if should upload
+     */
+    private static synchronized boolean shouldSkipUpload(String qsoKey) {
+        long currentTime = System.currentTimeMillis();
+        
+        Long lastUploadTime = uploadedQSOs.get(qsoKey);
+        if (lastUploadTime == null) {
+            // Not uploaded before, allow upload
+            return false;
+        }
+        
+        // Check if more than 1 hour has passed since last upload
+        long timeSinceLastUpload = currentTime - lastUploadTime;
+        if (timeSinceLastUpload > DUPLICATE_UPLOAD_INTERVAL_MS) {
+            // More than 1 hour has passed, allow re-upload
+            Log.d(TAG, String.format("QSO upload allowed after %d ms (>1 hour): %s", timeSinceLastUpload, qsoKey));
+            return false;
+        }
+        
+        // Less than 1 hour since last upload, skip (duplicate)
+        Log.d(TAG, String.format("QSO already uploaded %d ms ago (<1 hour), skipping: %s", timeSinceLastUpload, qsoKey));
+        return true;
+    }
+    
+    /**
+     * Mark a QSO as uploaded with current timestamp
+     * @param qsoKey The unique key for the QSO (callsign|freq)
+     */
+    private static synchronized void markAsUploaded(String qsoKey) {
+        uploadedQSOs.put(qsoKey, System.currentTimeMillis());
+    }
+    
+    /**
+     * Upload QSO to QRZ with retry logic and exponential backoff
+     * Retries up to 3 times with backoff delays: 3s, 6s, 12s
+     * Prevents duplicate uploads of the same QSO
+     */
     public static void UploadToQRZ(QSLRecord qslRecord){
-        // 转换为adif格式
-        String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
-        Log.d(TAG,"ADIF data: " + logStr);
         String apikey = GeneralVariables.getQrzApiKey();
         
         if (apikey == null || apikey.isEmpty()) {
@@ -212,6 +269,113 @@ public class ThirdPartyService {
             return;
         }
 
+        // Check for duplicate upload
+        // Key is callsign + frequency - same callsign on same frequency is a duplicate
+        // Allow re-upload only if more than 1 hour has passed
+        String qsoKey = generateQSOKey(qslRecord);
+        if (shouldSkipUpload(qsoKey)) {
+            return;
+        }
+
+        // 转换为adif格式
+        String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
+        Log.d(TAG,"ADIF data: " + logStr);
+        
+        // Retry logic: up to 3 attempts with exponential backoff (3s, 6s, 12s)
+        final int MAX_RETRIES = 3;
+        final int INITIAL_BACKOFF_MS = 3000; // 3 seconds
+        boolean success = false;
+        String lastError = null;
+        
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                Log.d(TAG, String.format("QRZ upload attempt %d/%d", attempt, MAX_RETRIES));
+                
+                UploadResult result = attemptQRZUpload(qslRecord, logStr, apikey);
+                
+                if (result.success) {
+                    success = true;
+                    // Mark as uploaded with current timestamp to prevent duplicate uploads
+                    markAsUploaded(qsoKey);
+                    // Show success message with callsign
+                    String callsign = qslRecord.getToCallsign();
+                    if (callsign != null && !callsign.isEmpty()) {
+                        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_success), callsign));
+                    } else {
+                        ToastMessage.show(GeneralVariables.getStringFromResource(R.string.qrz_upload_success).replace(": %s", ""));
+                    }
+                    Log.d(TAG, String.format("QRZ upload succeeded on attempt %d", attempt));
+                    return; // Success - exit retry loop
+                } else {
+                    lastError = result.errorMessage;
+                    Log.w(TAG, String.format("QRZ upload attempt %d failed: %s", attempt, lastError));
+                    
+                    // If this was the last attempt, don't wait
+                    if (attempt < MAX_RETRIES) {
+                        // Calculate exponential backoff: 3s, 6s, 12s
+                        long backoffMs = INITIAL_BACKOFF_MS * (1L << (attempt - 1)); // 2^(attempt-1) * 3000
+                        Log.d(TAG, String.format("Waiting %d ms before retry...", backoffMs));
+                        try {
+                            Thread.sleep(backoffMs);
+                        } catch (InterruptedException e) {
+                            Log.e(TAG, "Retry backoff interrupted", e);
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                lastError = e.getMessage();
+                if (lastError == null || lastError.isEmpty()) {
+                    lastError = e.toString();
+                }
+                Log.e(TAG, String.format("QRZ upload attempt %d exception: %s", attempt, lastError), e);
+                
+                // If this was the last attempt, don't wait
+                if (attempt < MAX_RETRIES) {
+                    // Calculate exponential backoff: 3s, 6s, 12s
+                    long backoffMs = INITIAL_BACKOFF_MS * (1L << (attempt - 1)); // 2^(attempt-1) * 3000
+                    Log.d(TAG, String.format("Waiting %d ms before retry after exception...", backoffMs));
+                    try {
+                        Thread.sleep(backoffMs);
+                    } catch (InterruptedException ie) {
+                        Log.e(TAG, "Retry backoff interrupted", ie);
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // All retries exhausted
+        if (!success) {
+            String finalError = lastError != null ? lastError : "Unknown error after " + MAX_RETRIES + " attempts";
+            Log.e(TAG, "QRZ upload failed after " + MAX_RETRIES + " attempts: " + finalError);
+            ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), finalError));
+        }
+    }
+    
+    /**
+     * Helper class to hold upload result
+     */
+    private static class UploadResult {
+        boolean success;
+        String errorMessage;
+        
+        UploadResult(boolean success, String errorMessage) {
+            this.success = success;
+            this.errorMessage = errorMessage;
+        }
+    }
+    
+    /**
+     * Attempt a single QRZ upload
+     * @param qslRecord The QSO record to upload
+     * @param logStr The ADIF formatted log string
+     * @param apikey The QRZ API key
+     * @return UploadResult indicating success or failure with error message
+     */
+    private static UploadResult attemptQRZUpload(QSLRecord qslRecord, String logStr, String apikey) {
         try {
             // URL encode the ADIF data to handle special characters
             String encodedAdif = URLEncoder.encode(logStr, StandardCharsets.UTF_8.toString());
@@ -242,13 +406,7 @@ public class ThirdPartyService {
                 
                 // Check if upload was successful (RESULT=OK)
                 if (response.get("RESULT") != null && response.get("RESULT").equals("OK")) {
-                    // Show toast message with callsign
-                    String callsign = qslRecord.getToCallsign();
-                    if (callsign != null && !callsign.isEmpty()) {
-                        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_success), callsign));
-                    } else {
-                        ToastMessage.show(GeneralVariables.getStringFromResource(R.string.qrz_upload_success).replace(": %s", ""));
-                    }
+                    return new UploadResult(true, null);
                 } else {
                     // Upload failed - extract error message
                     String errorMsg = response.get("ERROR");
@@ -258,22 +416,18 @@ public class ThirdPartyService {
                     if (errorMsg == null || errorMsg.isEmpty()) {
                         errorMsg = "Unknown error";
                     }
-                    Log.e(TAG, "QRZ upload failed: " + errorMsg);
-                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), errorMsg));
+                    return new UploadResult(false, errorMsg);
                 }
             } else {
                 // No response - network error or HTTP error
-                String errorMsg = "No response from server";
-                Log.e(TAG, "QRZ upload failed: " + errorMsg);
-                ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), errorMsg));
+                return new UploadResult(false, "No response from server");
             }
-        }catch (Exception k){
-            String errorMsg = k.getMessage();
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
             if (errorMsg == null || errorMsg.isEmpty()) {
-                errorMsg = k.toString();
+                errorMsg = e.toString();
             }
-            Log.e(TAG, "QRZ upload exception: " + errorMsg, k);
-            ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), errorMsg));
+            return new UploadResult(false, errorMsg);
         }
     }
 
