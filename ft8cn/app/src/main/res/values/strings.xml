@@ -136,6 +136,16 @@
     <string name="target_callsign">Target : %s</string>
     <string name="transmission_sequence">Sequential : %d</string>
     <string name="message_count">Messages(%d)</string>
+    <string name="call_sequence_details">Call Sequence Details</string>
+    <string name="current_order">Current Order: %d</string>
+    <string name="next_message">Next: Message %d</string>
+    <string name="sequence_status">Status: %s</string>
+    <string name="qso_progress">Progress: %d/6</string>
+    <string name="last_received_order">Last Received: Order %d</string>
+    <string name="status_waiting">Waiting for response</string>
+    <string name="status_transmitting">Transmitting</string>
+    <string name="status_cq">CQ Mode</string>
+    <string name="status_complete">QSO Complete</string>
 
     <!--   日志导出栏栏-->
     <string name="export_info">Please use the web browser of other devices to export from the background under the same LAN as this device.\nEnter the URL in the browser:\nhttp://%1$s:%2$d</string>

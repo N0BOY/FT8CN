@@ -186,6 +186,8 @@ public class MyCallingFragment extends Fragment {
         //当横屏时显示频谱图
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             binding.messageSpectrumView.run(mainViewModel, this);
+            // Show sequence details in landscape mode (below spectrum)
+            binding.sequenceDetailsLayout.setVisibility(View.VISIBLE);
         }
 
 
@@ -433,7 +435,131 @@ public class MyCallingFragment extends Fragment {
 
 
         showFreeTextEdit();
+        
+        // Initialize and observe call sequence details
+        initSequenceDetails();
+        
+        // Update sequence details immediately if already activated
+        if (mainViewModel.ft8TransmitSignal.isActivated() 
+                || getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            updateSequenceDetails();
+        }
+        
         return binding.getRoot();
+    }
+
+    /**
+     * Initialize and update call sequence details section
+     */
+    private void initSequenceDetails() {
+        // Show sequence details when activated (or always in landscape mode)
+        boolean isLandscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        if (isLandscape) {
+            binding.sequenceDetailsLayout.setVisibility(View.VISIBLE);
+        }
+        
+        final boolean finalIsLandscape = isLandscape; // For use in inner class
+        mainViewModel.ft8TransmitSignal.mutableIsActivated.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean activated) {
+                if (activated || finalIsLandscape) {
+                    binding.sequenceDetailsLayout.setVisibility(View.VISIBLE);
+                    updateSequenceDetails();
+                } else {
+                    binding.sequenceDetailsLayout.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        // Update sequence details when function order changes
+        mainViewModel.ft8TransmitSignal.mutableFunctionOrder.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                updateSequenceDetails();
+            }
+        });
+
+        // Update sequence details when transmitting message changes
+        mainViewModel.ft8TransmitSignal.mutableTransmittingMessage.observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                updateSequenceDetails();
+            }
+        });
+
+        // Update sequence details when functions list changes
+        mainViewModel.ft8TransmitSignal.mutableFunctions.observe(getViewLifecycleOwner(), new Observer<ArrayList<FunctionOfTransmit>>() {
+            @Override
+            public void onChanged(ArrayList<FunctionOfTransmit> functionOfTransmits) {
+                updateSequenceDetails();
+            }
+        });
+    }
+
+    /**
+     * Update the call sequence details display
+     */
+    @SuppressLint("DefaultLocale")
+    private void updateSequenceDetails() {
+        if (!mainViewModel.ft8TransmitSignal.isActivated()) {
+            return;
+        }
+
+        // Get current function order from functionList
+        int currentOrder = 6; // Default to CQ
+        if (mainViewModel.ft8TransmitSignal.functionList.size() > 0) {
+            for (FunctionOfTransmit func : mainViewModel.ft8TransmitSignal.functionList) {
+                if (func.isCurrentOrder()) {
+                    currentOrder = func.getFunctionOrder();
+                    break;
+                }
+            }
+            // If no current order found, use the first one
+            if (currentOrder == 6 && mainViewModel.ft8TransmitSignal.functionList.size() > 0) {
+                currentOrder = mainViewModel.ft8TransmitSignal.functionList.get(0).getFunctionOrder();
+            }
+        }
+
+        // Update current order
+        binding.currentFunctionOrderTextView.setText(
+                String.format(GeneralVariables.getStringFromResource(R.string.current_order), currentOrder));
+
+        // Update next message
+        int nextOrder = currentOrder < 6 ? currentOrder + 1 : 6;
+        if (currentOrder == 6) {
+            binding.nextMessageTextView.setText("Next: CQ");
+        } else {
+            binding.nextMessageTextView.setText(
+                    String.format(GeneralVariables.getStringFromResource(R.string.next_message), nextOrder));
+        }
+
+        // Update status
+        String status;
+        if (mainViewModel.ft8TransmitSignal.isTransmitting()) {
+            status = GeneralVariables.getStringFromResource(R.string.status_transmitting);
+        } else if (currentOrder == 6) {
+            status = GeneralVariables.getStringFromResource(R.string.status_cq);
+        } else if (currentOrder >= 5) {
+            status = GeneralVariables.getStringFromResource(R.string.status_complete);
+        } else {
+            status = GeneralVariables.getStringFromResource(R.string.status_waiting);
+        }
+        binding.sequenceStatusTextView.setText(
+                String.format(GeneralVariables.getStringFromResource(R.string.sequence_status), status));
+
+        // Update QSO progress
+        int progress = currentOrder == 6 ? 0 : currentOrder;
+        binding.qsoProgressTextView.setText(
+                String.format(GeneralVariables.getStringFromResource(R.string.qso_progress), progress));
+
+        // Update last received order (inferred from current order - 1, or -1 if at start)
+        int lastReceived = currentOrder > 1 && currentOrder < 6 ? currentOrder - 1 : -1;
+        if (lastReceived == -1) {
+            binding.lastReceivedOrderTextView.setText("Last Received: None");
+        } else {
+            binding.lastReceivedOrderTextView.setText(
+                    String.format(GeneralVariables.getStringFromResource(R.string.last_received_order), lastReceived));
+        }
     }
 
     private void showFreeTextEdit() {
