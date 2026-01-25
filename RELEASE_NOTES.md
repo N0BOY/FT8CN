@@ -1,5 +1,37 @@
 # FT8CN Release Notes
 
+## Version 0.93.105 (January 25, 2026)
+
+### 🎨 UI Improvements
+
+#### Callsign Queue Enhancements
+- **Fixed empty state display in landscape mode**: The "( Empty )" text now properly appears in the callsign queue when the queue is empty in landscape orientation
+  - Fixed layout constraints to use `wrap_content` with `maxHeight` instead of fixed constraints
+  - Ensures the RecyclerView properly displays items when the queue is empty
+- **Improved text visibility**: Changed callsign queue entry text color to black for better readability
+  - Position number, callsign text, and drag handle now use black color
+  - Provides better contrast against the background
+- **Enhanced delete gesture feedback**: Added visual trash can icon when swiping to delete items from the callsign queue
+  - Shows trash icon (`log_item_delete_icon`) during swipe gesture
+  - Gray background appears while swiping
+  - Matches the visual feedback pattern used in the calling list
+  - Makes it clear that swiping will delete the item
+
+#### Landscape Mode Improvements
+- **Resizable spectrum/sequence divider**: Added draggable divider to resize the split between spectrum view and call sequence/queue section in landscape mode
+  - Drag the purple divider left or right to adjust the split
+  - Divider turns orange while dragging for visual feedback
+  - Position is saved and restored on app restart
+  - Divider position is constrained between 30% and 70% to prevent views from becoming too small
+  - Uses SharedPreferences for persistent storage
+
+### 🐛 Bug Fixes
+- **Fixed callsign queue empty state**: Resolved issue where "( Empty )" placeholder text was not visible in landscape mode
+  - Corrected RecyclerView layout constraints in landscape layout
+  - Ensured proper initialization and visibility handling
+
+---
+
 ## Version 0.93.73 (January 25, 2026)
 
 ### 🎨 UI Improvements

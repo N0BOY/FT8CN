@@ -33,7 +33,6 @@ import com.bg7yoz.ft8cn.database.OperationBand;
 import com.bg7yoz.ft8cn.database.RigNameList;
 import com.bg7yoz.ft8cn.databinding.FragmentConfigBinding;
 import com.bg7yoz.ft8cn.ft8signal.FT8Package;
-import com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit;
 import com.bg7yoz.ft8cn.log.ThirdPartyService;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
@@ -59,7 +58,6 @@ public class ConfigFragment extends Fragment {
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
-    private FunctionOrderSpinnerAdapter functionOrderSpinnerAdapter;
     //private SerialPortSpinnerAdapter serialPortSpinnerAdapter;
 
     public ConfigFragment() {
@@ -726,46 +724,6 @@ public class ConfigFragment extends Fragment {
             }
         });
 
-        //设置序列选择下拉框
-        functionOrderSpinnerAdapter = new FunctionOrderSpinnerAdapter(requireContext(), mainViewModel);
-        binding.functionOrderSpinner.setAdapter(functionOrderSpinnerAdapter);
-        functionOrderSpinnerAdapter.notifyDataSetChanged();
-
-        //监视命令程序
-        mainViewModel.ft8TransmitSignal.mutableFunctions.observe(getViewLifecycleOwner()
-                , new Observer<ArrayList<com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit>>() {
-                    @Override
-                    public void onChanged(ArrayList<com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit> functionOfTransmits) {
-                        functionOrderSpinnerAdapter.notifyDataSetChanged();
-                    }
-                });
-
-        //观察指令序号的变化
-        mainViewModel.ft8TransmitSignal.mutableFunctionOrder.observe(getViewLifecycleOwner(), new Observer<Integer>() {
-            @Override
-            public void onChanged(Integer integer) {
-                if (mainViewModel.ft8TransmitSignal.functionList.size() < 6) {
-                    binding.functionOrderSpinner.setSelection(0);
-                } else {
-                    binding.functionOrderSpinner.setSelection(integer - 1);
-                }
-            }
-        });
-
-        //设置当指令序号被选择的事件
-        binding.functionOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (mainViewModel.ft8TransmitSignal.functionList.size() > 1) {
-                    mainViewModel.ft8TransmitSignal.setCurrentFunctionOrder(i + 1);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
 
 
         return binding.getRoot();

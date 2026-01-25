@@ -192,8 +192,14 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             holder.callingListSequenceTextView.setTextColor(context.getColor(R.color.follow_call_text_color));
         }
 
-        // Check if someone is calling the user's callsign - use bright green background
-        if (GeneralVariables.checkIsMyCallsign(holder.ft8Message.getCallsignTo())) {
+        // Check if this is a TX message (freq_hz <= 0.01 indicates transmit message)
+        boolean isTransmitMessage = holder.ft8Message.freq_hz <= 0.01f;
+        
+        if (isTransmitMessage) {
+            // TX messages: black bold text with #E66F6A background
+            holder.callListHolderConstraintLayout.setBackgroundColor(context.getResources().getColor(R.color.tx_message_background_color));
+        } else if (GeneralVariables.checkIsMyCallsign(holder.ft8Message.getCallsignTo())) {
+            // Check if someone is calling the user's callsign - use bright green background
             holder.callListHolderConstraintLayout.setBackgroundResource(R.drawable.calling_list_cell_my_callsign_style);
         } else {
             //根据1分钟内的4个时序区分颜色
@@ -230,8 +236,12 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         //查是不是通联过的呼号，获取是否存在holder.otherBandIsQso中
         setQueryHolderQSL_Callsign(holder);
 
-        //是否有与我呼号有关的消息
-        if (holder.ft8Message.inMyCall()) {
+        // Set text color - TX messages get black, others follow normal rules
+        if (isTransmitMessage) {
+            // TX messages: black text
+            holder.callListMessageTextView.setTextColor(context.getResources().getColor(R.color.black));
+        } else if (holder.ft8Message.inMyCall()) {
+            //是否有与我呼号有关的消息
             holder.callListMessageTextView.setTextColor(context.getResources().getColor(
                     R.color.message_in_my_call_text_color));
         } else if (holder.otherBandIsQso) {
@@ -249,7 +259,6 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
         // Make text bold only for:
         // 1. Our TX messages (freq_hz <= 0.01 indicates transmit message)
         // 2. Messages directed to our callsign
-        boolean isTransmitMessage = holder.ft8Message.freq_hz <= 0.01f;
         boolean isDirectedToMe = GeneralVariables.checkIsMyCallsign(holder.ft8Message.getCallsignTo());
         
         if (isTransmitMessage || isDirectedToMe) {
