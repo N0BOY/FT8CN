@@ -718,18 +718,22 @@ public class FT8TransmitSignal {
 
         //检查CQ我，不是73，
         // Second loop: Check if any callsign is calling us (broader search, still newest-first)
-        for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
-            Ft8Message msg = messages.get(i);
-            if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
-            //if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
-            if ((GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
-                    && !GeneralVariables.checkFun5(msg.extraInfo))) {//cq我、不是73、
-                //设置发射之前，确定消息的序号，避免从头开始
-                setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
-                                , msg.getSequence(), msg.snr)
-                        , GeneralVariables.checkFunOrder(msg) + 1
-                        , msg.extraInfo);
-                return true;
+        // Only switch if we're in CQ mode (functionOrder == 6) or auto-reply is enabled
+        // During an active QSO (functionOrder 1-5), only respond to current target (handled by first loop)
+        if (functionOrder == 6 || GeneralVariables.autoCallFollow) {
+            for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
+                Ft8Message msg = messages.get(i);
+                if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
+                //if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+                if ((GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
+                        && !GeneralVariables.checkFun5(msg.extraInfo))) {//cq我、不是73、
+                    //设置发射之前，确定消息的序号，避免从头开始
+                    setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
+                                    , msg.getSequence(), msg.snr)
+                            , GeneralVariables.checkFunOrder(msg) + 1
+                            , msg.extraInfo);
+                    return true;
+                }
             }
         }
 
@@ -744,6 +748,13 @@ public class FT8TransmitSignal {
         }
         //当已经有目标呼号的时候，不对关注的呼号做反应
         if (toCallsign.haveTargetCallsign()) {
+            return false;
+        }
+
+        // Don't switch to random CQ stations during an active QSO (functionOrder 1-5)
+        // Only allow switching to followed callsigns in CQ if we're in CQ mode (functionOrder == 6)
+        // or if auto-reply AND auto-follow-CQ are both enabled
+        if (functionOrder != 6 && !(GeneralVariables.autoCallFollow && GeneralVariables.autoFollowCQ)) {
             return false;
         }
 
@@ -960,12 +971,20 @@ public class FT8TransmitSignal {
 
     /**
      * 检查关注列表中，有没有正在CQ的消息，且不是我现在的目标呼号
+     * Only switches if auto-reply is enabled, to prevent switching to random CQ stations
      *
      * @param messages 关注的消息列表
      * @return 目标呼号，没有返回NULL
      */
     public boolean getNewTargetCallsign(ArrayList<Ft8Message> messages) {
         if (toCallsign == null) return false;
+        
+        // Only allow switching to new CQ targets if auto-reply is enabled
+        // This prevents switching to random stations calling CQ when auto-reply is disabled
+        if (!GeneralVariables.autoCallFollow) {
+            return false;
+        }
+        
         for (int i = messages.size() - 1; i >= 0; i--) {
             Ft8Message ft8Message = messages.get(i);
             if (ft8Message.band != GeneralVariables.band) {//如果消息不在相同的波段内，不理会
@@ -976,8 +995,11 @@ public class FT8TransmitSignal {
                 continue;
             }
             //不是当前的目标呼号，且之前没有通联成功过
+            // Only switch if it's a followed callsign or auto-follow-CQ is enabled
             if ((!ft8Message.getCallsignFrom().equals(toCallsign.callsign)
-                    && (!GeneralVariables.checkQSLCallsign(ft8Message.getCallsignFrom())))) //之前没有联通成功过
+                    && (!GeneralVariables.checkQSLCallsign(ft8Message.getCallsignFrom())) //之前没有联通成功过
+                    && ((GeneralVariables.autoCallFollow && GeneralVariables.autoFollowCQ) //自动呼叫CQ
+                    || GeneralVariables.callsignInFollow(ft8Message.getCallsignFrom())))) //是我关注的
             {
                 functionOrder = 1;
                 toCallsign.callsign = ft8Message.getCallsignFrom();
