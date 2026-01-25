@@ -62,7 +62,10 @@ public class GridMarkerInfoWindow extends InfoWindow {
 
 
         //查是不是在本波段内通联成功过的呼号
-        if (GeneralVariables.checkQSLCallsign(msg.getCallsignFrom())) {//如果在数据库中，划线
+        // Only cross out if callsign is in QSO log AND message band matches current band
+        boolean isQsoOnCurrentBand = GeneralVariables.checkQSLCallsign(msg.getCallsignFrom())
+                && msg.band == GeneralVariables.band;
+        if (isQsoOnCurrentBand) {//如果在数据库中，划线
             titleView.setPaintFlags(
                     titleView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
         } else {//如果不在数据库中，去掉划线

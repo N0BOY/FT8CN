@@ -51,9 +51,9 @@ public class TransmitCallsign {
     @SuppressLint("DefaultLocale")
     public String getSnr(){
         if (snr>0){
-            return String.format("+%d",snr);
+            return String.format("+%02d",snr);
         }else {
-            return String.format("%d",snr);
+            return String.format("%02d",snr);
         }
     }
 }

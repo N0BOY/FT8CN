@@ -282,7 +282,9 @@ public class WaterfallView extends View {
 //                        , 0, 0, messagePaintBack);//消息背景
                 _canvas.drawTextOnPath(msg.getMessageText(true), path
                         , 0, 0, messagePaint);//消息
-                if (GeneralVariables.checkQSLCallsign(msg.getCallsignFrom())) {//画删除线
+                // Only draw strikethrough if callsign is in QSO log AND message band matches current band
+                if (GeneralVariables.checkQSLCallsign(msg.getCallsignFrom()) 
+                        && msg.band == GeneralVariables.band) {//画删除线
                     float text_len = messagePaint.measureText(msg.getMessageText(true));
                     float text_start = ((pathEnd- pathStart)-text_len)/2;
                     float text_high =dpToPixel(4);//messagePaint.getFontSpacing()/2;

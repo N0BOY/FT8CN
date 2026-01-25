@@ -302,6 +302,13 @@ public class MainViewModel extends ViewModel {
                     , ArrayList<Ft8Message> messages, boolean isDeep) {
                 if (messages.size() == 0) return;//没有解码出消息，不触发动作
 
+                //检查发射程序。从消息列表中解析发射的程序
+                // Process decodes immediately for TX targeting - call this FIRST before other processing
+                // Allow evaluation even during transmission so sequence can advance based on decodes
+                // Deep decode messages can also advance the sequence
+                // Process all decodes regardless of timing
+                ft8TransmitSignal.parseMessageToFunction(messages);//解析消息，并处理
+
                 synchronized (ft8Messages) {
                     ft8Messages.addAll(messages);//添加消息到列表
                 }
@@ -312,12 +319,6 @@ public class MainViewModel extends ViewModel {
 
 
                 findIncludedCallsigns(messages);//查找符合条件的消息，放到呼叫列表中
-
-                //检查发射程序。从消息列表中解析发射的程序
-                // Allow evaluation even during transmission so sequence can advance based on decodes
-                // Deep decode messages can also advance the sequence
-                // Process all decodes regardless of timing
-                ft8TransmitSignal.parseMessageToFunction(messages);//解析消息，并处理
 
                 currentMessages = messages;
 
@@ -530,14 +531,64 @@ public class MainViewModel extends ViewModel {
                 //看不是通联成功的呼号的消息
                 msg.isQSL_Callsign = GeneralVariables.checkQSLCallsign(msg.getCallsignFrom());
                 if (!GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom)) {//不在排除呼号前缀的，才加入列表
-                    count++;
-                    GeneralVariables.transmitMessages.add(msg);
+                    // Check for duplicates before adding
+                    if (!isMessageInTransmitList(msg)) {
+                        count++;
+                        GeneralVariables.transmitMessages.add(msg);
+                    }
                 }
             }
         }
         GeneralVariables.deleteArrayListMore(GeneralVariables.transmitMessages);//删除多余的消息
         //mutableTransmitMessages.postValue(GeneralVariables.transmitMessages);
         mutableTransmitMessagesCount.postValue(count);
+    }
+
+    /**
+     * Check if a message is already in the transmitMessages list (duplicate detection)
+     */
+    private boolean isMessageInTransmitList(Ft8Message candidate) {
+        for (Ft8Message msg : GeneralVariables.transmitMessages) {
+            if (!msg.getMessageText().equals(candidate.getMessageText())) {
+                continue;
+            }
+            if (!sameCallsigns(msg, candidate)) {
+                continue;
+            }
+            if (Math.abs(msg.freq_hz - candidate.freq_hz) > 3.0f) {
+                continue;
+            }
+            if (Math.abs(msg.time_sec - candidate.time_sec) > 0.2f) {
+                continue;
+            }
+            // Same message found - update SNR if candidate has better signal
+            if (candidate.snr > msg.snr) {
+                msg.snr = candidate.snr;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if two messages have the same callsigns
+     */
+    private boolean sameCallsigns(Ft8Message left, Ft8Message right) {
+        return sameString(left.callsignFrom, right.callsignFrom)
+                && sameString(left.callsignTo, right.callsignTo);
+    }
+
+    /**
+     * Check if two strings are the same (null-safe)
+     */
+    private boolean sameString(String left, String right) {
+        if (left == null && right == null) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        return left.equals(right);
     }
 
     /**

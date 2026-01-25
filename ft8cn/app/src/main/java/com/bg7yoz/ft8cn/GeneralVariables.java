@@ -169,7 +169,8 @@ public class GeneralVariables {
 
     public static boolean swr_switch_on = true;//swr告警开关
     public static boolean alc_switch_on = true;//alc告警开关
-    public static boolean always_show_swr_alc = false;//总是显示SWR和ALC值当发射时
+    @Deprecated
+    public static boolean always_show_swr_alc = false;//已废弃：不再显示SWR和ALC值，只显示告警
     public static boolean decode_overrun_toast = false;//解码超时提示
     public static boolean live_decode_updates = false;//解码列表实时更新
 
@@ -207,6 +208,7 @@ public class GeneralVariables {
 
     public static boolean autoFollowCQ = false;//自动关注CQ
     public static boolean autoCallFollow = false;//自动呼叫关注的呼号
+    public static int manualTimeslot = -1;//手动设置发射时序: -1=自动, 0=奇数(0), 1=偶数(1)
     public static ArrayList<String> QSL_Callsign_list = new ArrayList<>();//QSL成功的呼号
     public static ArrayList<String> QSL_Callsign_list_other_band = new ArrayList<>();//在其它波段QSL成功的呼号
 

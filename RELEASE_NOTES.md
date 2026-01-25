@@ -1,5 +1,18 @@
 # FT8CN Release Notes
 
+## Version 0.93.73 (January 25, 2026)
+
+### 🎨 UI Improvements
+
+#### Settings Reorganization
+- **Moved sequence dropdown to settings page**: The sequence order dropdown has been moved from the calling screen to the settings page for better organization
+  - Sequence dropdown now appears in the settings page after the decode overrun settings
+  - Removed from the calling screen to reduce clutter
+  - Functionality remains the same - users can still manually select the sequence order
+  - Added help button for sequence selection in settings
+
+---
+
 ## Version 0.93.67 (January 25, 2026)
 
 ### 🔧 Auto Sequencing Improvements
@@ -71,16 +84,6 @@ This release includes comprehensive improvements to the auto sequencing system t
 
 ---
 
-## Pre-release
-
-### Bug Fixes
-- **Improved decoding**: Enhanced auto sequencing reliability and message processing
-  - **Fixed sequence filtering bug**: Previously, if the first decoded message had the same sequence as the current transmit sequence, all subsequent messages (even those with different sequences) would be ignored. Now the system checks all messages and only skips processing when ALL messages have the same sequence as the transmit sequence, ensuring valid messages are not dropped
-  - **Prevented sequence regression**: Fixed issue where receiving delayed or out-of-order messages could cause the auto sequencing to regress backward in the message sequence. The system now only advances forward, preventing sequence state corruption
-  - **Improved message processing**: Auto sequencing now correctly processes messages from different time slots even when mixed with messages from the same time slot, resulting in more reliable QSO progression
-  - **Enhanced robustness**: Added safeguards to handle edge cases with mixed sequence messages, ensuring the auto sequencing system maintains proper state throughout the QSO
-
-
 ## Version 0.93.47 (January 24, 2026)
 
 ### 🔧 Improvements
@@ -108,6 +111,14 @@ This release includes comprehensive improvements to the auto sequencing system t
 
 ### 📝 Documentation
 - **User guide**: Added `USER_GUIDE.md` with setup, operation, and troubleshooting guidance.
+
+### Bug Fixes
+- **Improved decoding**: Enhanced auto sequencing reliability and message processing
+  - **Fixed sequence filtering bug**: Previously, if the first decoded message had the same sequence as the current transmit sequence, all subsequent messages (even those with different sequences) would be ignored. Now the system checks all messages and only skips processing when ALL messages have the same sequence as the transmit sequence, ensuring valid messages are not dropped
+  - **Prevented sequence regression**: Fixed issue where receiving delayed or out-of-order messages could cause the auto sequencing to regress backward in the message sequence. The system now only advances forward, preventing sequence state corruption
+  - **Improved message processing**: Auto sequencing now correctly processes messages from different time slots even when mixed with messages from the same time slot, resulting in more reliable QSO progression
+  - **Enhanced robustness**: Added safeguards to handle edge cases with mixed sequence messages, ensuring the auto sequencing system maintains proper state throughout the QSO
+
 
 ## Version 0.93.11 (January 22, 2026)
 

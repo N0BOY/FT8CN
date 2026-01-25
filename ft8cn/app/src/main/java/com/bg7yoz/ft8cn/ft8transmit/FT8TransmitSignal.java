@@ -80,6 +80,10 @@ public class FT8TransmitSignal {
     public ArrayList<FunctionOfTransmit> functionList = new ArrayList<>();
     public MutableLiveData<ArrayList<FunctionOfTransmit>> mutableFunctions = new MutableLiveData<>();
 
+    // Callsign queue for managing multiple responding callsigns
+    public CallsignQueue callsignQueue = new CallsignQueue();
+    public MutableLiveData<ArrayList<CallsignQueue.QueuedCallsign>> mutableCallsignQueue = new MutableLiveData<>();
+
     private final OnDoTransmitted onDoTransmitted;//一般是用于打开关闭PTT
     private final ExecutorService doTransmitThreadPool = Executors.newCachedThreadPool();
     private final DoTransmitRunnable doTransmitRunnable = new DoTransmitRunnable(this);
@@ -209,6 +213,11 @@ public class FT8TransmitSignal {
         }
         mutableToCallsign.postValue(transmitCallsign);//设定呼叫的目标对象（含报告、时序，频率，呼号）
         toCallsign = transmitCallsign;//设定呼叫的目标
+        // Remove from queue if it was queued
+        if (transmitCallsign != null && !transmitCallsign.callsign.equals("CQ")) {
+            callsignQueue.removeCallsign(transmitCallsign.callsign);
+            mutableCallsignQueue.postValue(callsignQueue.getAll());
+        }
         //mutableToCallsign.postValue(toCallsign);//设定呼叫的目标
 
         if (functionOrder == -1) {//说明是回复消息
@@ -228,7 +237,14 @@ public class FT8TransmitSignal {
             setBaseFrequency(transmitCallsign.frequency);
         }
 
-        sequential = (toCallsign.sequential + 1) % 2;//发射的时序
+        // Calculate sequential: use manual setting if set, otherwise use automatic calculation
+        if (GeneralVariables.manualTimeslot >= 0) {
+            // Manual timeslot override: 0 = Odd, 1 = Even
+            sequential = GeneralVariables.manualTimeslot;
+        } else {
+            // Automatic: transmit on opposite timeslot from target
+            sequential = (toCallsign.sequential + 1) % 2;
+        }
         mutableSequential.postValue(sequential);//通知发射时序改变
         generateFun();
         mutableFunctionOrder.postValue(functionOrder);
@@ -624,6 +640,13 @@ public class FT8TransmitSignal {
                     && checkCallsignIsCallTo(ft8Message.getCallsignFrom(), toCallsign.callsign)) {
                 //--TODO ----检查起始时间是不是0，如果是0，补充起始时间。因为有的呼叫会越过第一步
 
+                // Update signal strength with latest received value (not just first one)
+                // Always update with the latest SNR from any message from the target
+                sendReport = messages.get(i).snr;//把接收到的信号保存下来
+                if (toCallsign != null) {
+                    toCallsign.snr = messages.get(i).snr;//更新目标呼号的信号强度为最新接收到的值
+                }
+
                 //检测是不是对方给我的信号报告
                 if (GeneralVariables.checkFun3(ft8Message.extraInfo)
                         || GeneralVariables.checkFun2(ft8Message.extraInfo)) {
@@ -634,7 +657,6 @@ public class FT8TransmitSignal {
                         receivedReport = ft8Message.report;
                     }
                 }
-                sendReport = messages.get(i).snr;//把接收到的信号保存下来
 
                 int order = GeneralVariables.checkFunOrder(ft8Message);//检查消息的序号
                 if (order != -1) return order;//说明成功解析出序号
@@ -718,22 +740,34 @@ public class FT8TransmitSignal {
 
         //检查CQ我，不是73，
         // Second loop: Check if any callsign is calling us (broader search, still newest-first)
-        // Only switch if we're in CQ mode (functionOrder == 6) or auto-reply is enabled
-        // During an active QSO (functionOrder 1-5), only respond to current target (handled by first loop)
-        if (functionOrder == 6 || GeneralVariables.autoCallFollow) {
-            for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
-                Ft8Message msg = messages.get(i);
-                if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
-                //if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
-                if ((GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
-                        && !GeneralVariables.checkFun5(msg.extraInfo))) {//cq我、不是73、
-                    //设置发射之前，确定消息的序号，避免从头开始
-                    setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
-                                    , msg.getSequence(), msg.snr)
-                            , GeneralVariables.checkFunOrder(msg) + 1
-                            , msg.extraInfo);
-                    return true;
+        // Add callsigns to queue instead of immediately responding
+        for (int i = messages.size() - 1; i >= 0; i--) {//此处是检查有没有CQ我。（TO:ME,且不能是73）
+            Ft8Message msg = messages.get(i);
+            if (isExcludeMessage(msg)) continue;//检查是不是属于排除的消息：
+            //if ((msg.getCallsignTo().equals(GeneralVariables.myCallsign)
+            if ((GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
+                    && !GeneralVariables.checkFun5(msg.extraInfo))) {//cq我、不是73、
+                // Add to queue if not already in queue or currently active
+                if (toCallsign == null || !checkCallsignIsCallTo(msg.getCallsignFrom(), toCallsign.callsign)) {
+                    callsignQueue.addCallsign(msg.getCallsignFrom(), msg);
+                    mutableCallsignQueue.postValue(callsignQueue.getAll());
                 }
+            }
+        }
+        
+        // Process queue: if no active QSO, start with oldest in queue
+        if (toCallsign == null || functionOrder == 6) {
+            CallsignQueue.QueuedCallsign next = callsignQueue.getNext();
+            if (next != null) {
+                // Start QSO with oldest queued callsign
+                setTransmit(new TransmitCallsign(next.initialMessage.i3, next.initialMessage.n3, 
+                                next.callsign, next.initialMessage.freq_hz
+                                , next.initialMessage.getSequence(), next.initialMessage.snr)
+                        , GeneralVariables.checkFunOrder(next.initialMessage) + 1
+                        , next.initialMessage.extraInfo);
+                callsignQueue.removeCallsign(next.callsign);
+                mutableCallsignQueue.postValue(callsignQueue.getAll());
+                return true;
             }
         }
 
@@ -895,12 +929,30 @@ public class FT8TransmitSignal {
 
         ) {
             //进入到CQ状态
+            // Remove current callsign from queue if it was queued
+            if (toCallsign != null) {
+                callsignQueue.removeCallsign(toCallsign.callsign);
+            }
             resetToCQ();
 
-            //加入检查消息中有没有呼叫我的，或关注的呼号在CQ
-            checkCQMeOrFollowCQMessage(messages);
+            // Process queue: get next callsign (oldest first)
+            CallsignQueue.QueuedCallsign next = callsignQueue.getNext();
+            if (next != null) {
+                // Start QSO with next queued callsign
+                setTransmit(new TransmitCallsign(next.initialMessage.i3, next.initialMessage.n3, 
+                                next.callsign, next.initialMessage.freq_hz
+                                , next.initialMessage.getSequence(), next.initialMessage.snr)
+                        , GeneralVariables.checkFunOrder(next.initialMessage) + 1
+                        , next.initialMessage.extraInfo);
+                callsignQueue.removeCallsign(next.callsign);
+                mutableCallsignQueue.postValue(callsignQueue.getAll());
+            } else {
+                //加入检查消息中有没有呼叫我的，或关注的呼号在CQ
+                checkCQMeOrFollowCQMessage(messages);
+            }
             setCurrentFunctionOrder(functionOrder);//设置当前消息
             mutableFunctionOrder.postValue(functionOrder);
+            mutableCallsignQueue.postValue(callsignQueue.getAll());
             return;
         }
 
@@ -952,6 +1004,27 @@ public class FT8TransmitSignal {
         //如果超出无反应限定值，复位到CQ状态
         // Fixed: Changed > to >= so that noReplyLimit=2 triggers after 2 no-replies, not 3
         if ((GeneralVariables.noReplyCount >= GeneralVariables.noReplyLimit) && (GeneralVariables.noReplyLimit > 0)) {
+            // Remove current callsign from queue if it was queued (timed out due to no reply)
+            if (toCallsign != null) {
+                callsignQueue.removeCallsign(toCallsign.callsign);
+            }
+            
+            // Check queue first: get next callsign (oldest first)
+            CallsignQueue.QueuedCallsign next = callsignQueue.getNext();
+            if (next != null) {
+                // Start QSO with next queued callsign
+                setTransmit(new TransmitCallsign(next.initialMessage.i3, next.initialMessage.n3, 
+                                next.callsign, next.initialMessage.freq_hz
+                                , next.initialMessage.getSequence(), next.initialMessage.snr)
+                        , GeneralVariables.checkFunOrder(next.initialMessage) + 1
+                        , next.initialMessage.extraInfo);
+                callsignQueue.removeCallsign(next.callsign);
+                mutableCallsignQueue.postValue(callsignQueue.getAll());
+                setCurrentFunctionOrder(functionOrder);//设置当前消息
+                mutableFunctionOrder.postValue(functionOrder);
+                return;
+            }
+            
             //检查关注消息列表，如果没有新的CQ，就进入到CQ状态，如果有，就转入到呼叫新的目标。
             if (!getNewTargetCallsign(messages)) {//检查关注列表中的CQ消息，如果有新的目标，返回TRUE;
                 functionOrder = 6;
@@ -964,6 +1037,7 @@ public class FT8TransmitSignal {
             setCurrentFunctionOrder(functionOrder);//设置当前消息
             mutableToCallsign.postValue(toCallsign);
             mutableFunctionOrder.postValue(functionOrder);
+            mutableCallsignQueue.postValue(callsignQueue.getAll());
 
         }
 
@@ -1063,7 +1137,11 @@ public class FT8TransmitSignal {
         }
         //要判断我的呼号类型，才能确定i3n3 !!!
         int i3 = GenerateFT8.checkI3ByCallsign(GeneralVariables.myCallsign);
-        setTransmit(new TransmitCallsign(i3, 0, "CQ", UtcTimer.getNowSequential())
+        // Use manual timeslot if set, otherwise use current sequential
+        int cqSequential = GeneralVariables.manualTimeslot >= 0 
+            ? GeneralVariables.manualTimeslot 
+            : UtcTimer.getNowSequential();
+        setTransmit(new TransmitCallsign(i3, 0, "CQ", cqSequential)
                 , 6, "");
 
     }
@@ -1085,7 +1163,11 @@ public class FT8TransmitSignal {
         if (toCallsign == null) {
             //要判断我的呼号类型，才能确定i3n3 !!!
             int i3 = GenerateFT8.checkI3ByCallsign(GeneralVariables.myCallsign);
-            setTransmit(new TransmitCallsign(i3, 0, "CQ", (UtcTimer.getNowSequential() + 1) % 2)
+            // Use manual timeslot if set, otherwise alternate from current sequential
+            int cqSequential = GeneralVariables.manualTimeslot >= 0 
+                ? GeneralVariables.manualTimeslot 
+                : (UtcTimer.getNowSequential() + 1) % 2;
+            setTransmit(new TransmitCallsign(i3, 0, "CQ", cqSequential)
                     , 6, "");
         } else {
             functionOrder = 6;

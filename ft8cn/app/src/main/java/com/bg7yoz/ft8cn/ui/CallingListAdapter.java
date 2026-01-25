@@ -246,23 +246,13 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
 
         holder.callListMessageTextView.setText(holder.ft8Message.getMessageText(true));
         
-        // Make text bold when transmitting (freq_hz <= 0.01 indicates transmit message)
-        // or when the decoded message matches what we're currently transmitting
+        // Make text bold only for:
+        // 1. Our TX messages (freq_hz <= 0.01 indicates transmit message)
+        // 2. Messages directed to our callsign
         boolean isTransmitMessage = holder.ft8Message.freq_hz <= 0.01f;
-        boolean matchesTransmitting = false;
-        if (!isTransmitMessage && mainViewModel.ft8TransmitSignal.isTransmitting()) {
-            String transmittingMessage = mainViewModel.ft8TransmitSignal.mutableTransmittingMessage.getValue();
-            if (transmittingMessage != null) {
-                // Extract message text from transmitting message (format: " (freqHz) messageText")
-                String transmittingText = transmittingMessage.contains(") ") 
-                    ? transmittingMessage.substring(transmittingMessage.indexOf(") ") + 2)
-                    : transmittingMessage;
-                String currentMessageText = holder.ft8Message.getMessageText(true);
-                matchesTransmitting = currentMessageText.equals(transmittingText.trim());
-            }
-        }
+        boolean isDirectedToMe = GeneralVariables.checkIsMyCallsign(holder.ft8Message.getCallsignTo());
         
-        if (isTransmitMessage || matchesTransmitting) {
+        if (isTransmitMessage || isDirectedToMe) {
             holder.callListMessageTextView.setTypeface(holder.callListMessageTextView.getTypeface(), android.graphics.Typeface.BOLD);
         } else {
             holder.callListMessageTextView.setTypeface(holder.callListMessageTextView.getTypeface(), android.graphics.Typeface.NORMAL);
@@ -399,10 +389,17 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
     //检查是不是通联过的呼号
     private void setQueryHolderQSL_Callsign(@NonNull CallingListItemHolder holder) {
         //查是不是在本波段内通联成功过的呼号
-        if (GeneralVariables.checkQSLCallsign(holder.ft8Message.getCallsignFrom())) {//如果在数据库中，划线
+        // Only cross out if:
+        // 1. Callsign is in QSO log for current band
+        // 2. Message band matches current band
+        boolean isQsoOnCurrentBand = GeneralVariables.checkQSLCallsign(holder.ft8Message.getCallsignFrom())
+                && holder.ft8Message.band == GeneralVariables.band;
+        
+        if (isQsoOnCurrentBand) {
             holder.callListMessageTextView.setPaintFlags(
                     holder.callListMessageTextView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-        } else {//如果不在数据库中，去掉划线
+        } else {
+            // If not in current band QSO list, remove strikethrough
             holder.callListMessageTextView.setPaintFlags(
                     holder.callListMessageTextView.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
         }

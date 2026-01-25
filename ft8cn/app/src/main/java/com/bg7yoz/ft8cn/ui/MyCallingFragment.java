@@ -21,6 +21,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -38,6 +40,7 @@ import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.databinding.FragmentMyCallingBinding;
+import com.bg7yoz.ft8cn.ft8transmit.CallsignQueue;
 import com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit;
 import com.bg7yoz.ft8cn.ft8transmit.TransmitCallsign;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -54,7 +57,9 @@ public class MyCallingFragment extends Fragment {
 
     private CallingListAdapter transmitCallListAdapter;
 
-    private FunctionOrderSpinnerAdapter functionOrderSpinnerAdapter;
+    
+    private RecyclerView callsignQueueRecyclerView;
+    private CallsignQueueAdapter callsignQueueAdapter;
 
 
     static {
@@ -191,12 +196,6 @@ public class MyCallingFragment extends Fragment {
         }
 
 
-        //发射消息的列表
-        functionOrderSpinnerAdapter = new FunctionOrderSpinnerAdapter(requireContext(), mainViewModel);
-        binding.functionOrderSpinner.setAdapter(functionOrderSpinnerAdapter);
-        functionOrderSpinnerAdapter.notifyDataSetChanged();
-
-
         //关注的消息列表
         transmitRecycleView = binding.transmitRecycleView;
         transmitCallListAdapter = new CallingListAdapter(this.getContext(), mainViewModel
@@ -207,6 +206,51 @@ public class MyCallingFragment extends Fragment {
 
         transmitCallListAdapter.notifyDataSetChanged();
 
+        // Initialize callsign queue RecyclerView
+        callsignQueueRecyclerView = binding.callsignQueueRecyclerView;
+        callsignQueueAdapter = new CallsignQueueAdapter();
+        callsignQueueRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        callsignQueueRecyclerView.setAdapter(callsignQueueAdapter);
+        
+        // Set up queue item action listener for delete and reorder
+        callsignQueueAdapter.setOnQueueItemActionListener(new CallsignQueueAdapter.OnQueueItemActionListener() {
+            @Override
+            public void onItemDeleted(int position, CallsignQueue.QueuedCallsign item) {
+                // Remove from actual queue
+                mainViewModel.ft8TransmitSignal.callsignQueue.removeCallsign(item.callsign);
+                mainViewModel.ft8TransmitSignal.mutableCallsignQueue.postValue(
+                        mainViewModel.ft8TransmitSignal.callsignQueue.getAll());
+            }
+
+            @Override
+            public void onItemMoved(int fromPosition, int toPosition) {
+                // Update actual queue order
+                mainViewModel.ft8TransmitSignal.callsignQueue.moveItem(fromPosition, toPosition);
+                // Update queue with new order from adapter
+                mainViewModel.ft8TransmitSignal.callsignQueue.setOrder(
+                        new ArrayList<>(callsignQueueAdapter.getQueue()));
+                mainViewModel.ft8TransmitSignal.mutableCallsignQueue.postValue(
+                        mainViewModel.ft8TransmitSignal.callsignQueue.getAll());
+            }
+        });
+        
+        // Set up drag and swipe gestures for queue
+        setupQueueItemTouchHelper();
+        
+        // Observe callsign queue changes
+        mainViewModel.ft8TransmitSignal.mutableCallsignQueue.observe(getViewLifecycleOwner(), new Observer<ArrayList<CallsignQueue.QueuedCallsign>>() {
+            @Override
+            public void onChanged(ArrayList<CallsignQueue.QueuedCallsign> queuedCallsigns) {
+                if (queuedCallsigns != null) {
+                    callsignQueueAdapter.updateQueue(queuedCallsigns);
+                } else {
+                    callsignQueueAdapter.updateQueue(new ArrayList<>());
+                }
+            }
+        });
+        
+        // Initialize queue display with current queue state
+        mainViewModel.ft8TransmitSignal.mutableCallsignQueue.postValue(mainViewModel.ft8TransmitSignal.callsignQueue.getAll());
 
         //设置消息列表滑动，用于快速呼叫
         initRecyclerViewAction();
@@ -271,42 +315,6 @@ public class MyCallingFragment extends Fragment {
             }
         });
 
-        //监视命令程序
-        mainViewModel.ft8TransmitSignal.mutableFunctions.observe(getViewLifecycleOwner()
-                , new Observer<ArrayList<FunctionOfTransmit>>() {
-                    @Override
-                    public void onChanged(ArrayList<FunctionOfTransmit> functionOfTransmits) {
-                        functionOrderSpinnerAdapter.notifyDataSetChanged();
-                    }
-                });
-
-        //观察指令序号的变化
-        mainViewModel.ft8TransmitSignal.mutableFunctionOrder.observe(getViewLifecycleOwner(), new Observer<Integer>() {
-            @Override
-            public void onChanged(Integer integer) {
-                if (mainViewModel.ft8TransmitSignal.functionList.size() < 6) {
-                    binding.functionOrderSpinner.setSelection(0);
-                } else {
-                    binding.functionOrderSpinner.setSelection(integer - 1);
-                }
-            }
-        });
-
-        //设置当指令序号被选择的事件
-        binding.functionOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if (mainViewModel.ft8TransmitSignal.functionList.size() > 1) {
-                    mainViewModel.ft8TransmitSignal.setCurrentFunctionOrder(i + 1);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
 
         //显示当前目标呼号
         mainViewModel.ft8TransmitSignal.mutableToCallsign.observe(getViewLifecycleOwner(), new Observer<TransmitCallsign>() {
@@ -334,6 +342,9 @@ public class MyCallingFragment extends Fragment {
                                 , integer));
             }
         });
+
+        //设置手动时序选择器
+        setupTimeslotSpinner();
 
         //设置发射按钮
         binding.setTransmitImageButton.setOnClickListener(new View.OnClickListener() {
@@ -565,10 +576,8 @@ public class MyCallingFragment extends Fragment {
     private void showFreeTextEdit() {
         if (mainViewModel.getTransitIsFreeText()) {
             binding.transFreeTextEdit.setVisibility(View.VISIBLE);
-            binding.functionOrderSpinner.setVisibility(View.GONE);
         } else {
             binding.transFreeTextEdit.setVisibility(View.GONE);
-            binding.functionOrderSpinner.setVisibility(View.VISIBLE);
         }
     }
 
@@ -659,5 +668,78 @@ public class MyCallingFragment extends Fragment {
 
             }
         }).attachToRecyclerView(binding.transmitRecycleView);
+    }
+
+    /**
+     * Setup the timeslot selection spinner
+     */
+    private void setupTimeslotSpinner() {
+        // Create adapter with timeslot options
+        String[] timeslotOptions = {
+            GeneralVariables.getStringFromResource(R.string.timeslot_auto),
+            GeneralVariables.getStringFromResource(R.string.timeslot_odd),
+            GeneralVariables.getStringFromResource(R.string.timeslot_even)
+        };
+        
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), 
+            android.R.layout.simple_spinner_item, timeslotOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.timeslotSpinner.setAdapter(adapter);
+        
+        // Set current selection based on GeneralVariables.manualTimeslot
+        // -1 = Auto (index 0), 0 = Odd (index 1), 1 = Even (index 2)
+        int selection = GeneralVariables.manualTimeslot + 1; // Convert -1,0,1 to 0,1,2
+        if (selection < 0 || selection > 2) selection = 0; // Default to Auto if invalid
+        binding.timeslotSpinner.setSelection(selection);
+        
+        // Handle selection changes
+        binding.timeslotSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // Convert selection index to timeslot value: 0->-1 (Auto), 1->0 (Odd), 2->1 (Even)
+                int newTimeslot = position - 1;
+                if (newTimeslot != GeneralVariables.manualTimeslot) {
+                    GeneralVariables.manualTimeslot = newTimeslot;
+                    // Save to database
+                    mainViewModel.databaseOpr.writeConfig("manualTimeslot", String.valueOf(newTimeslot), null);
+                    Log.d(TAG, "Manual timeslot changed to: " + newTimeslot);
+                }
+            }
+            
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
+    /**
+     * Set up drag and swipe gestures for the callsign queue RecyclerView
+     */
+    private void setupQueueItemTouchHelper() {
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+                ItemTouchHelper.UP | ItemTouchHelper.DOWN, // Drag directions
+                ItemTouchHelper.START | ItemTouchHelper.END) { // Swipe directions
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                // Handle drag to reorder
+                int fromPosition = viewHolder.getAdapterPosition();
+                int toPosition = target.getAdapterPosition();
+                callsignQueueAdapter.moveItem(fromPosition, toPosition);
+                return true;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                // Handle swipe to delete (both directions)
+                int position = viewHolder.getAdapterPosition();
+                callsignQueueAdapter.removeItem(position);
+            }
+
+            @Override
+            public boolean isItemViewSwipeEnabled() {
+                return true; // Enable swipe to delete
+            }
+        }).attachToRecyclerView(callsignQueueRecyclerView);
     }
 }

@@ -2143,6 +2143,13 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("autoCallFollow")) {//自动呼叫关注
                     GeneralVariables.autoCallFollow = result.equals("1");
                 }
+                if (name.equalsIgnoreCase("manualTimeslot")) {//手动设置发射时序
+                    try {
+                        GeneralVariables.manualTimeslot = result.equals("") ? -1 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        GeneralVariables.manualTimeslot = -1;
+                    }
+                }
                 if (name.equalsIgnoreCase("pttDelay")) {//ptt延时设置
                     GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);
                 }
@@ -2224,7 +2231,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.alc_switch_on = result.equals("1");
                 }
                 if (name.equalsIgnoreCase("alwaysShowSwrAlc")) {
-                    GeneralVariables.always_show_swr_alc = result.equals("1");
+                    // Deprecated: No longer used - only alerts are shown, not values
+                    GeneralVariables.always_show_swr_alc = false;
                 }
                 if (name.equalsIgnoreCase("decodeOverrunToast")) {
                     GeneralVariables.decode_overrun_toast = result.equals("1");

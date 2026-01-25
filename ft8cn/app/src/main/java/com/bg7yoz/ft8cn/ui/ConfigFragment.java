@@ -33,12 +33,14 @@ import com.bg7yoz.ft8cn.database.OperationBand;
 import com.bg7yoz.ft8cn.database.RigNameList;
 import com.bg7yoz.ft8cn.databinding.FragmentConfigBinding;
 import com.bg7yoz.ft8cn.ft8signal.FT8Package;
+import com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit;
 import com.bg7yoz.ft8cn.log.ThirdPartyService;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -57,6 +59,7 @@ public class ConfigFragment extends Fragment {
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
+    private FunctionOrderSpinnerAdapter functionOrderSpinnerAdapter;
     //private SerialPortSpinnerAdapter serialPortSpinnerAdapter;
 
     public ConfigFragment() {
@@ -655,6 +658,40 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //设置SWR告警开关
+        binding.swrSwitch.setOnCheckedChangeListener(null);
+        binding.swrSwitch.setChecked(GeneralVariables.swr_switch_on);
+        setSwrSwitchText();
+        binding.swrSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.swr_switch_on = binding.swrSwitch.isChecked();
+                if (binding.swrSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("swrSwitch", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("swrSwitch", "0", null);
+                }
+                setSwrSwitchText();
+            }
+        });
+
+        //设置ALC告警开关
+        binding.alcSwitch.setOnCheckedChangeListener(null);
+        binding.alcSwitch.setChecked(GeneralVariables.alc_switch_on);
+        setAlcSwitchText();
+        binding.alcSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.alc_switch_on = binding.alcSwitch.isChecked();
+                if (binding.alcSwitch.isChecked()) {
+                    mainViewModel.databaseOpr.writeConfig("alcSwitch", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("alcSwitch", "0", null);
+                }
+                setAlcSwitchText();
+            }
+        });
+
 
         //获取梅登海德网格
         binding.configGetGridImageButton.setOnClickListener(new View.OnClickListener() {
@@ -685,6 +722,47 @@ public class ConfigFragment extends Fragment {
                                 stopBitsSpinnerAdapter.getPosition(GeneralVariables.serialStopBits));
                     }
                 });
+
+            }
+        });
+
+        //设置序列选择下拉框
+        functionOrderSpinnerAdapter = new FunctionOrderSpinnerAdapter(requireContext(), mainViewModel);
+        binding.functionOrderSpinner.setAdapter(functionOrderSpinnerAdapter);
+        functionOrderSpinnerAdapter.notifyDataSetChanged();
+
+        //监视命令程序
+        mainViewModel.ft8TransmitSignal.mutableFunctions.observe(getViewLifecycleOwner()
+                , new Observer<ArrayList<com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit>>() {
+                    @Override
+                    public void onChanged(ArrayList<com.bg7yoz.ft8cn.ft8transmit.FunctionOfTransmit> functionOfTransmits) {
+                        functionOrderSpinnerAdapter.notifyDataSetChanged();
+                    }
+                });
+
+        //观察指令序号的变化
+        mainViewModel.ft8TransmitSignal.mutableFunctionOrder.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                if (mainViewModel.ft8TransmitSignal.functionList.size() < 6) {
+                    binding.functionOrderSpinner.setSelection(0);
+                } else {
+                    binding.functionOrderSpinner.setSelection(integer - 1);
+                }
+            }
+        });
+
+        //设置当指令序号被选择的事件
+        binding.functionOrderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                if (mainViewModel.ft8TransmitSignal.functionList.size() > 1) {
+                    mainViewModel.ft8TransmitSignal.setCurrentFunctionOrder(i + 1);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
 
             }
         });
@@ -908,6 +986,22 @@ public class ConfigFragment extends Fragment {
             binding.saveSWLSwitch.setText(getString(R.string.config_donot_save_swl));
         }
     }
+    private void setSwrSwitchText() {
+        if (binding.swrSwitch.isChecked()) {
+            binding.swrSwitch.setText(getString(R.string.swr_switch_on));
+        } else {
+            binding.swrSwitch.setText(getString(R.string.swr_switch_off));
+        }
+    }
+
+    private void setAlcSwitchText() {
+        if (binding.alcSwitch.isChecked()) {
+            binding.alcSwitch.setText(getString(R.string.alc_switch_on));
+        } else {
+            binding.alcSwitch.setText(getString(R.string.alc_switch_off));
+        }
+    }
+
     private void setSaveSwlQSO() {
         if (binding.saveSWLQSOSwitch.isChecked()) {
             binding.saveSWLQSOSwitch.setText(getString(R.string.config_save_swl_qso));

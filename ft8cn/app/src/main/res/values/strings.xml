@@ -135,8 +135,13 @@
     <string name="sound_frequency_is">Freq : %.0f Hz</string>
     <string name="target_callsign">Target : %s</string>
     <string name="transmission_sequence">Sequential : %d</string>
+    <string name="timeslot_auto">Auto</string>
+    <string name="timeslot_odd">Odd (0)</string>
+    <string name="timeslot_even">Even (1)</string>
+    <string name="timeslot_manual">Manual Timeslot</string>
     <string name="message_count">Messages(%d)</string>
     <string name="call_sequence_details">Call Sequence Details</string>
+    <string name="callsign_queue">Callsign Queue</string>
     <string name="current_order">Current Order: %d</string>
     <string name="next_message">Next: Message %d</string>
     <string name="sequence_status">Status: %s</string>
