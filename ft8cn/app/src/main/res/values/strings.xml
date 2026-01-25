@@ -155,10 +155,10 @@
     <!--   发射监管-->
     <string name="freq_syn">Lockd TX=RX</string>
     <string name="freq_asyn">Tx/Rx Split</string>
-    <string name="auto_follow_cq">Auto track CQ</string>
-    <string name="not_concerned_about_CQ">No track CQ</string>
-    <string name="automatic_call_following">Auto call tracked</string>
-    <string name="do_not_call_the_following_callsign">No call tracked</string>
+    <string name="auto_follow_cq">Show CQs in calling window</string>
+    <string name="not_concerned_about_CQ">Don\'t show CQs in calling window</string>
+    <string name="automatic_call_following">Auto Reply to anyone calling CQ</string>
+    <string name="do_not_call_the_following_callsign">Don\'t auto reply to CQ</string>
 
     <!--   解码栏-->
     <string name="message_count_count">Messages(%1$d/%2$d)</string>

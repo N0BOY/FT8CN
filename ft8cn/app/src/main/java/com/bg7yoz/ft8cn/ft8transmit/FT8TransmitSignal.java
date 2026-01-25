@@ -939,7 +939,8 @@ public class FT8TransmitSignal {
             GeneralVariables.noReplyCount++;
         }
         //如果超出无反应限定值，复位到CQ状态
-        if ((GeneralVariables.noReplyCount > GeneralVariables.noReplyLimit) && (GeneralVariables.noReplyLimit > 0)) {
+        // Fixed: Changed > to >= so that noReplyLimit=2 triggers after 2 no-replies, not 3
+        if ((GeneralVariables.noReplyCount >= GeneralVariables.noReplyLimit) && (GeneralVariables.noReplyLimit > 0)) {
             //检查关注消息列表，如果没有新的CQ，就进入到CQ状态，如果有，就转入到呼叫新的目标。
             if (!getNewTargetCallsign(messages)) {//检查关注列表中的CQ消息，如果有新的目标，返回TRUE;
                 functionOrder = 6;

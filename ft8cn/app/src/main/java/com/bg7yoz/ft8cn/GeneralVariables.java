@@ -205,8 +205,8 @@ public class GeneralVariables {
     public static String icomPassword = "";
 
 
-    public static boolean autoFollowCQ = true;//自动关注CQ
-    public static boolean autoCallFollow = true;//自动呼叫关注的呼号
+    public static boolean autoFollowCQ = false;//自动关注CQ
+    public static boolean autoCallFollow = false;//自动呼叫关注的呼号
     public static ArrayList<String> QSL_Callsign_list = new ArrayList<>();//QSL成功的呼号
     public static ArrayList<String> QSL_Callsign_list_other_band = new ArrayList<>();//在其它波段QSL成功的呼号
 

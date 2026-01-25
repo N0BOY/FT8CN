@@ -526,7 +526,6 @@ public class ConfigFragment extends Fragment {
                 } else {
                     mainViewModel.databaseOpr.writeConfig("autoFollowCQ", "0", null);
                 }
-                setAutoFollowCQText();
             }
         });
 
@@ -577,7 +576,6 @@ public class ConfigFragment extends Fragment {
                 } else {
                     mainViewModel.databaseOpr.writeConfig("autoCallFollow", "0", null);
                 }
-                setAutoCallFollow();
             }
         });
 

@@ -314,15 +314,10 @@ public class MainViewModel extends ViewModel {
                 findIncludedCallsigns(messages);//查找符合条件的消息，放到呼叫列表中
 
                 //检查发射程序。从消息列表中解析发射的程序
-                //超出周期2秒钟，就不应该解析了
-                if (!ft8TransmitSignal.isTransmitting()
-                        && !isDeep//屏蔽掉深度解码激活自动程序
-                        //深度解码的列表应该加到没有深度解码的新消息列表中
-                        && (ft8SignalListener.timeSec
-                        + GeneralVariables.pttDelay
-                        + GeneralVariables.transmitDelay <= 2000)) {//考虑网络模式，发射时长是13秒
-                    ft8TransmitSignal.parseMessageToFunction(messages);//解析消息，并处理
-                }
+                // Allow evaluation even during transmission so sequence can advance based on decodes
+                // Deep decode messages can also advance the sequence
+                // Process all decodes regardless of timing
+                ft8TransmitSignal.parseMessageToFunction(messages);//解析消息，并处理
 
                 currentMessages = messages;
 

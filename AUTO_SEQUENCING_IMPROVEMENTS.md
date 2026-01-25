@@ -155,6 +155,38 @@ While there's a null check, if `toCallsign` becomes null between iterations in a
 
 ---
 
+### 7. **No Reply Limit Off-by-One Error (Line 942) - FIXED ✅**
+**Severity**: Medium  
+**Location**: `parseMessageToFunction()` method  
+**Status**: ✅ **RESOLVED**
+
+**Problem**:
+```java
+if ((GeneralVariables.noReplyCount > GeneralVariables.noReplyLimit) && (GeneralVariables.noReplyLimit > 0)) {
+```
+
+Uses `>` (greater than) instead of `>=` (greater than or equal) for the no-reply limit check.
+
+**Impact**:
+- If user sets `noReplyLimit = 2`, the system requires **3** no-replies before moving on, not 2
+- User expects: 2 no-replies = move on
+- Actual behavior: 3 no-replies = move on
+- This is an off-by-one error that makes the retry count one higher than expected
+
+**Example**:
+- User sets `noReplyLimit = 2`
+- After 1st no-reply: `noReplyCount = 1` (1 > 2? No, continue)
+- After 2nd no-reply: `noReplyCount = 2` (2 > 2? No, continue)
+- After 3rd no-reply: `noReplyCount = 3` (3 > 2? Yes, triggers!)
+
+**Fix Applied**: Changed `>` to `>=` so that when `noReplyCount` equals `noReplyLimit`, it triggers:
+- After 1st no-reply: `noReplyCount = 1` (1 >= 2? No, continue)
+- After 2nd no-reply: `noReplyCount = 2` (2 >= 2? Yes, triggers!) ✅
+
+**Result**: Now when `noReplyLimit = 2`, the system correctly moves on after 2 no-replies.
+
+---
+
 ## Implementation Status
 
 ### ✅ Completed Fixes
@@ -163,6 +195,7 @@ While there's a null check, if `toCallsign` becomes null between iterations in a
 3. **✅ Added defensive null checks** (Issues #4, #6) - Added null checks before accessing toCallsign
 4. **✅ Added bounds checking** (Issue #3) - Added explicit size check before accessing messages.get(0)
 5. **✅ Documented message processing order** - Added comprehensive documentation in code and this file
+6. **✅ Fixed no-reply limit off-by-one error** (Issue #7) - Changed `>` to `>=` so retry count matches user expectation
 
 ### Summary
 All identified issues have been resolved. The auto sequencing system now has:
@@ -223,6 +256,101 @@ for (int i = messages.size() - 1; i >= 0; i--) {
 
 ---
 
+## Transmission Cycle Behavior
+
+### Overview
+This section documents how the system handles incoming calls and message changes during an active transmission cycle.
+
+### Message Generation Timing
+The transmission message is **generated at the start of each transmission cycle**, not during transmission. This occurs in `DoTransmitRunnable.run()` at line 1127:
+
+```java
+msg = transmitSignal.getFunctionCommand(transmitSignal.functionOrder);
+```
+
+The message is created using the current values of:
+- `toCallsign` - The target callsign
+- `functionOrder` - The message sequence number (1-6)
+- `toMaidenheadGrid` - The target's grid square (if applicable)
+
+### Behavior When Someone Calls During TX
+
+**Question**: When someone calls us during the middle of a TX cycle, does the previous TX message switch immediately to the new TX message?
+
+**Answer**: **No, the current TX message does NOT switch immediately.**
+
+#### What Happens:
+
+1. **During Active Transmission**:
+   - If `parseMessageToFunction()` detects someone calling us (via `checkCQMeOrFollowCQMessage()` at line 923)
+   - It calls `setTransmit()` which updates:
+     - `toCallsign` (line 211)
+     - `functionOrder` (line 221)
+     - `sequential` (line 231)
+   - However, the **current transmission is already in progress** and continues with the message that was generated at the start of the cycle
+
+2. **Next Transmission Cycle**:
+   - When `doTransmit()` is called again by the UTC timer (line 138)
+   - The new `DoTransmitRunnable` will generate a message using the **updated** `toCallsign` and `functionOrder` values
+   - The new target/message will be used for this next cycle
+
+#### Code Flow:
+
+```
+Current TX Cycle:
+├── doTransmit() called by timer
+├── DoTransmitRunnable.run() executes
+├── Message generated using current toCallsign/functionOrder (line 1127)
+├── isTransmitting = true (line 1136)
+├── Audio transmission begins
+│
+└── [During TX] Someone calls us
+    ├── parseMessageToFunction() processes decode
+    ├── checkCQMeOrFollowCQMessage() detects call
+    ├── setTransmit() updates toCallsign/functionOrder
+    └── Current TX continues with original message (unchanged)
+
+Next TX Cycle:
+├── doTransmit() called by timer
+├── DoTransmitRunnable.run() executes
+└── Message generated using NEW toCallsign/functionOrder ✅
+```
+
+### Rationale
+
+This behavior is **intentional and correct**:
+
+1. **FT8 Protocol Timing**: FT8 transmissions are time-synchronized 15-second cycles. Interrupting mid-cycle would:
+   - Break the timing synchronization
+   - Cause incomplete transmissions
+   - Confuse other stations expecting a complete message
+
+2. **Message Integrity**: Once transmission starts, the audio signal is already being generated/transmitted. Changing mid-cycle would:
+   - Require stopping and restarting transmission
+   - Potentially cause timing issues
+   - Create incomplete or corrupted signals
+
+3. **Next Cycle Response**: The system correctly responds to new calls at the start of the next cycle, which is:
+   - The proper time to change messages
+   - Maintains FT8 timing protocol
+   - Ensures complete message transmission
+
+### Impact
+
+- **Current TX Cycle**: Continues with the original message (cannot be changed mid-cycle)
+- **Next TX Cycle**: Uses the new target/message if `setTransmit()` was called during the previous cycle
+- **User Experience**: The system will respond to new callers, but only at the start of the next transmission cycle
+
+### Related Code Locations
+
+- **Message Generation**: `FT8TransmitSignal.DoTransmitRunnable.run()` line 1127
+- **Target Detection**: `FT8TransmitSignal.checkCQMeOrFollowCQMessage()` line 695
+- **Target Update**: `FT8TransmitSignal.setTransmit()` line 199
+- **Message Processing**: `FT8TransmitSignal.parseMessageToFunction()` line 841
+- **Transmission Trigger**: `FT8TransmitSignal.doTransmit()` line 172
+
+---
+
 ## Notes
 
 - All identified issues have been resolved and tested
@@ -230,3 +358,4 @@ for (int i = messages.size() - 1; i >= 0; i--) {
 - Unparseable messages are now logged for debugging purposes
 - Defensive programming improvements prevent potential crashes
 - Message processing order is fully documented in code and this document
+- Transmission cycle behavior is documented above
