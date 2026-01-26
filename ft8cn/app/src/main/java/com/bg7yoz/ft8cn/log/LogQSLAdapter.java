@@ -83,6 +83,17 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
 
     }
 
+    /**
+     * 修改QRZ上传状态
+     *
+     * @param position 列表位置
+     * @param b        状态
+     */
+    public void setRecordIsQRZUploaded(int position, boolean b) {
+        qslRecords.get(position).isQRZ_uploaded = b;
+        mainViewModel.databaseOpr.setQSLTableIsQRZUploaded(b, qslRecords.get(position).id);
+    }
+
     @SuppressLint({"DefaultLocale", "SetTextI18n"})
     @Override
     public void onBindViewHolder(@NonNull LogQSLItemHolder holder, int position) {
@@ -128,17 +139,31 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
                 , holder.record.getMode()));
         holder.logQSOcCommentTextView.setText(holder.record.getComment());
 
+        // Build status text - show multiple statuses if applicable
+        StringBuilder statusText = new StringBuilder();
         if (holder.record.isLotW_QSL) {
-            holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_lotw_confirmation));
-            holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
-                    R.color.is_qsl_text_color));
+            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_lotw_confirmation));
         } else if (holder.record.isQSL) {
-            holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation));
+            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation));
+        } else {
+            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_unconfirmed));
+        }
+        
+        // Add QRZ upload status if uploaded
+        if (holder.record.isQRZ_uploaded) {
+            if (statusText.length() > 0) {
+                statusText.append(", ");
+            }
+            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_qrz_uploaded));
+        }
+        
+        holder.logIsQSLTextView.setText(statusText.toString());
+        
+        // Set text color based on confirmation status
+        if (holder.record.isLotW_QSL || holder.record.isQSL) {
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
                     R.color.is_qsl_text_color));
-
         } else {
-            holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_unconfirmed));
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
                     R.color.is_not_qsl_text_color));
         }

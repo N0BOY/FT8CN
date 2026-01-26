@@ -45,6 +45,7 @@ public class QSLRecord {
     public boolean isQSL = false;//手工确认
     public boolean isLotW_import = false;//是否是从外部数据导入的，此项需要在数据库中比对才能设定
     public boolean isLotW_QSL = false;//是否是lotw确认的
+    public boolean isQRZ_uploaded = false;//是否已上传到QRZ.com
 
     public boolean saved = false;//是否被保存到数据库中
 

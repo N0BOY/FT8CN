@@ -10,6 +10,7 @@ package com.bg7yoz.ft8cn.database;
  */
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
@@ -127,6 +128,15 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         //deleteDxccPrefixEqual(sqLiteDatabase);
     }
 
+    @Override
+    public void onOpen(SQLiteDatabase sqLiteDatabase) {
+        super.onOpen(sqLiteDatabase);
+        // Ensure isQRZ_uploaded column exists (for older databases that haven't been upgraded)
+        if (checkTableExists(sqLiteDatabase, "QSLTable")) {
+            alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+        }
+    }
+
 
     public SQLiteDatabase getDb() {
         return db;
@@ -210,6 +220,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "isLotW_import INTEGER DEFAULT 0");
             alterTable(sqLiteDatabase, "QSLTable", "isLotW_QSL"
                     , "isLotW_QSL INTEGER DEFAULT 0");
+            alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded"
+                    , "isQRZ_uploaded INTEGER DEFAULT 0");
 
         } else {
             sqLiteDatabase.execSQL("CREATE TABLE QSLTable (\n" +
@@ -217,6 +229,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "isQSL INTEGER DEFAULT 0,\n" +//是否确认QSL
                     "isLotW_import INTEGER DEFAULT 0,\n" +//是否是lotw导入
                     "isLotW_QSL INTEGER DEFAULT 0,\n" +
+                    "isQRZ_uploaded INTEGER DEFAULT 0,\n" +//是否已上传到QRZ.com
 
 
                     "call TEXT,\n" +
@@ -739,6 +752,26 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     }
 
     /**
+     * 设置日志的QRZ上传状态
+     *
+     * @param isQRZ_uploaded 是否已上传到QRZ.com
+     * @param id            ID号
+     */
+    public void setQSLTableIsQRZUploaded(boolean isQRZ_uploaded, int id) {
+        new SetQSLTableIsQRZUploaded(db, id, isQRZ_uploaded).execute();
+    }
+
+    /**
+     * 根据QSLRecord设置QRZ上传状态（通过callsign, date, time, mode查找）
+     *
+     * @param record QSL记录
+     * @param isQRZ_uploaded 是否已上传到QRZ.com
+     */
+    public void setQSLTableIsQRZUploadedByRecord(QSLRecord record, boolean isQRZ_uploaded) {
+        new SetQSLTableIsQRZUploadedByRecord(db, record, isQRZ_uploaded).execute();
+    }
+
+    /**
      * 到数据库中查呼号和网格的对应关系，查出后，会把数据写入到GeneralVariables的callsignAndGrids中
      *
      * @param callsign 呼号
@@ -1186,14 +1219,15 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
 
         if (!checkIsQSL(record)) {//如果不存在日志数据就添加
-            querySQL = "INSERT INTO QSLTable(call, isQSL,isLotW_import,isLotW_QSL,gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
+            querySQL = "INSERT INTO QSLTable(call, isQSL,isLotW_import,isLotW_QSL,isQRZ_uploaded,gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
                     "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
-                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             db.execSQL(querySQL, new String[]{record.getToCallsign()
                     , String.valueOf(record.isQSL ? 1 : 0)
                     , String.valueOf(record.isLotW_import ? 1 : 0)
                     , String.valueOf(record.isLotW_QSL ? 1 : 0)
+                    , String.valueOf(record.isQRZ_uploaded ? 1 : 0)
                     , record.getToMaidenGrid()
                     , record.getMode()
                     , String.valueOf(record.getSendReport())
@@ -1231,6 +1265,14 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             }
             if (record.isLotW_QSL) {
                 db.execSQL("UPDATE  QSLTable  SET isLotW_QSL=? " +
+                                " WHERE (call=?) and (qso_date=?) and(time_on=?) and(mode=?)"
+                        , new Object[]{1, record.getToCallsign()
+                                , record.getQso_date()
+                                , record.getTime_on()
+                                , record.getMode()});
+            }
+            if (record.isQRZ_uploaded) {
+                db.execSQL("UPDATE  QSLTable  SET isQRZ_uploaded=? " +
                                 " WHERE (call=?) and (qso_date=?) and(time_on=?) and(mode=?)"
                         , new Object[]{1, record.getToCallsign()
                                 , record.getQso_date()
@@ -1793,6 +1835,13 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 record.isQSL = cursor.getInt(cursor.getColumnIndex("isQSL")) == 1;
                 record.isLotW_import = cursor.getInt(cursor.getColumnIndex("isLotW_import")) == 1;
                 record.isLotW_QSL = cursor.getInt(cursor.getColumnIndex("isLotW_QSL")) == 1;
+                // Check if isQRZ_uploaded column exists (for older databases)
+                int qrzUploadedIndex = cursor.getColumnIndex("isQRZ_uploaded");
+                if (qrzUploadedIndex >= 0) {
+                    record.isQRZ_uploaded = cursor.getInt(qrzUploadedIndex) == 1;
+                } else {
+                    record.isQRZ_uploaded = false; // Default to false if column doesn't exist
+                }
                 record.setGridsquare(cursor.getString(cursor.getColumnIndex("gridsquare")));
                 record.setMode(cursor.getString(cursor.getColumnIndex("mode")));
                 record.setRst_sent(cursor.getString(cursor.getColumnIndex("rst_sent")));
@@ -1987,7 +2036,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            db.execSQL("UPDATE QslCallsigns SET isQSL=? where id=?", new Object[]{isQSL ? "1" : "0", id});
+            ContentValues values = new ContentValues();
+            values.put("isQSL", isQSL ? 1 : 0);
+            db.update("QslCallsigns", values, "id=?", new String[]{String.valueOf(id)});
             return null;
         }
     }
@@ -2008,7 +2059,62 @@ public class DatabaseOpr extends SQLiteOpenHelper {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            db.execSQL("UPDATE QSLTable SET isQSL=? where id=?", new Object[]{isQSL ? "1" : "0", id});
+            ContentValues values = new ContentValues();
+            values.put("isQSL", isQSL ? 1 : 0);
+            db.update("QSLTable", values, "id=?", new String[]{String.valueOf(id)});
+            return null;
+        }
+    }
+
+    /**
+     * 设置日志的QRZ上传状态
+     */
+    static class SetQSLTableIsQRZUploaded extends AsyncTask<Void, Void, Void> {
+        private final SQLiteDatabase db;
+        private final int id;
+        private final boolean isQRZ_uploaded;
+
+        public SetQSLTableIsQRZUploaded(SQLiteDatabase db, int id, boolean isQRZ_uploaded) {
+            this.db = db;
+            this.id = id;
+            this.isQRZ_uploaded = isQRZ_uploaded;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentValues values = new ContentValues();
+            values.put("isQRZ_uploaded", isQRZ_uploaded ? 1 : 0);
+            db.update("QSLTable", values, "id=?", new String[]{String.valueOf(id)});
+            return null;
+        }
+    }
+
+    /**
+     * 根据QSLRecord设置QRZ上传状态（通过callsign, date, time, mode查找）
+     */
+    static class SetQSLTableIsQRZUploadedByRecord extends AsyncTask<Void, Void, Void> {
+        private final SQLiteDatabase db;
+        private final QSLRecord record;
+        private final boolean isQRZ_uploaded;
+
+        public SetQSLTableIsQRZUploadedByRecord(SQLiteDatabase db, QSLRecord record, boolean isQRZ_uploaded) {
+            this.db = db;
+            this.record = record;
+            this.isQRZ_uploaded = isQRZ_uploaded;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ContentValues values = new ContentValues();
+            values.put("isQRZ_uploaded", isQRZ_uploaded ? 1 : 0);
+            db.update("QSLTable", values,
+                    "call=? AND qso_date=? AND time_on=? AND mode=?",
+                    new String[]{
+                            record.getToCallsign(),
+                            record.getQso_date(),
+                            record.getTime_on(),
+                            record.getMode()
+                    });
             return null;
         }
     }
