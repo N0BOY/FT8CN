@@ -297,6 +297,10 @@ public class ThirdPartyService {
                     success = true;
                     // Mark as uploaded with current timestamp to prevent duplicate uploads
                     markAsUploaded(qsoKey);
+                    // Mark QSO as uploaded to QRZ in database
+                    com.bg7yoz.ft8cn.database.DatabaseOpr.getInstance(
+                            GeneralVariables.getMainContext(), "data.db")
+                            .setQSLTableIsQRZUploadedByRecord(qslRecord, true);
                     // Show success message with callsign
                     String callsign = qslRecord.getToCallsign();
                     if (callsign != null && !callsign.isEmpty()) {

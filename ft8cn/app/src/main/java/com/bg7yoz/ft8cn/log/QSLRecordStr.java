@@ -30,6 +30,7 @@ public class QSLRecordStr implements Serializable {
     public boolean isQSL = false;//手工确认
     public boolean isLotW_import = false;//是否是lotw导入的
     public boolean isLotW_QSL = false;//是否是lotw确认的
+    public boolean isQRZ_uploaded = false;//是否已上传到QRZ.com
 
 
     public String getCall() {
