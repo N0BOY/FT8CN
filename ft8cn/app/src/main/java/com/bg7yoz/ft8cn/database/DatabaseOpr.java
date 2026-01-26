@@ -128,6 +128,15 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         //deleteDxccPrefixEqual(sqLiteDatabase);
     }
 
+    @Override
+    public void onOpen(SQLiteDatabase sqLiteDatabase) {
+        super.onOpen(sqLiteDatabase);
+        // Ensure isQRZ_uploaded column exists (for older databases that haven't been upgraded)
+        if (checkTableExists(sqLiteDatabase, "QSLTable")) {
+            alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+        }
+    }
+
 
     public SQLiteDatabase getDb() {
         return db;
