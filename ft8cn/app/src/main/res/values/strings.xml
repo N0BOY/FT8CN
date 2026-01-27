@@ -594,5 +594,6 @@
     <string name="skip_my_grid_when_responding">Skip my grid when responding</string>
     <string name="skip_my_grid_when_responding_on" translatable="false">On</string>
     <string name="skip_my_grid_when_responding_off" translatable="false">Off</string>
+    <string name="skip_my_grid_when_responding_help">skip_my_grid_when_responding_help_en.txt</string>
 
 </resources>

@@ -283,7 +283,15 @@ public class FT8TransmitSignal {
     public Ft8Message getFunctionCommand(int order) {
         // Determine if we should include my grid square
         // Skip my grid if: setting is enabled AND this is a response to someone calling me
-        boolean shouldIncludeMyGrid = !(GeneralVariables.skip_my_grid_when_responding && isResponseToCall);
+        // BUT: Always include grid for CQ (case 6) and when I initiate contact (not a response)
+        boolean shouldIncludeMyGrid;
+        if (order == 6) {
+            // CQ always includes grid square
+            shouldIncludeMyGrid = true;
+        } else {
+            // For other messages: skip grid only if responding to someone who called me AND setting is enabled
+            shouldIncludeMyGrid = !(GeneralVariables.skip_my_grid_when_responding && isResponseToCall);
+        }
         String myGrid = shouldIncludeMyGrid ? GeneralVariables.getMyMaidenhead4Grid() : "";
         
         switch (order) {
@@ -320,8 +328,9 @@ public class FT8TransmitSignal {
                 return msg;
         }
 
+        // Default case: also CQ, always include grid
         return new Ft8Message("CQ", GeneralVariables.myCallsign
-                , myGrid);
+                , GeneralVariables.getMyMaidenhead4Grid());
     }
 
     /**

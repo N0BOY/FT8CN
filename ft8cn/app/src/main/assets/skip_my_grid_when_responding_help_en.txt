@@ -1,0 +1,17 @@
+Skip My Grid When Responding
+
+When enabled, this setting omits your maidenhead grid square from FT8 messages when responding to stations that have called you.
+
+Important Notes:
+• CQ messages ALWAYS include your grid square (regardless of this setting)
+• When you initiate contact, your grid square is ALWAYS included
+• This setting only affects responses to stations that called you
+
+Use Cases:
+• Useful for reducing message length when responding in crowded conditions
+• May help when operating in areas with long grid squares
+• Grid square is still included in CQ and when you initiate contact
+
+Message Types:
+• Only affects message type 1 (first contact message with grid)
+• Other message types (signal reports, RRR, 73) are not affected

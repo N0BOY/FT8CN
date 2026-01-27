@@ -12,7 +12,7 @@ static def getCurrentTime() {
     return df.format(Calendar.getInstance(Locale.CHINA).getTime())
 }
 
-// Version management - auto-increment on build
+// Version management - auto-increment on release build only
 def versionPropsFile = file('version.properties')
 def versionProps = new Properties()
 
@@ -31,21 +31,31 @@ if (!versionProps.containsKey('VERSION_NAME') || versionProps['VERSION_NAME'] ==
 def versionCode = versionProps['VERSION_CODE'].toString().toInteger()
 def versionName = versionProps['VERSION_NAME'].toString()
 
-// Auto-increment version code on each build
-versionCode++
-versionProps['VERSION_CODE'] = versionCode.toString()
-
-// Increment version name patch version (0.93 -> 0.94, etc.)
-def versionParts = versionName.split('\\.')
-if (versionParts.length >= 3) {
-    def patchVersion = versionParts[2].toInteger() + 1
-    versionName = "${versionParts[0]}.${versionParts[1]}.${patchVersion}".toString()
-} else if (versionParts.length == 2) {
-    versionName = "${versionParts[0]}.${versionParts[1]}.1".toString()
+// Check if this is a release build task
+def isReleaseBuild = gradle.startParameter.taskNames.any { taskName ->
+    taskName.toLowerCase().contains('release') && 
+    (taskName.toLowerCase().contains('assemble') || 
+     taskName.toLowerCase().contains('bundle') ||
+     taskName.toLowerCase().contains('build'))
 }
-versionProps['VERSION_NAME'] = versionName.toString()
 
-versionProps.store(new FileOutputStream(versionPropsFile), null)
+// Auto-increment version code only on release builds
+if (isReleaseBuild) {
+    versionCode++
+    versionProps['VERSION_CODE'] = versionCode.toString()
+    
+    // Increment version name patch version (0.93 -> 0.94, etc.)
+    def versionParts = versionName.split('\\.')
+    if (versionParts.length >= 3) {
+        def patchVersion = versionParts[2].toInteger() + 1
+        versionName = "${versionParts[0]}.${versionParts[1]}.${patchVersion}".toString()
+    } else if (versionParts.length == 2) {
+        versionName = "${versionParts[0]}.${versionParts[1]}.1".toString()
+    }
+    versionProps['VERSION_NAME'] = versionName.toString()
+    
+    versionProps.store(new FileOutputStream(versionPropsFile), null)
+}
 
 android {
 

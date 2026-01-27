@@ -1620,6 +1620,16 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //跳过我的网格位置（当有人呼叫我时）
+        binding.skipMyGridHelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.skip_my_grid_when_responding_help)
+                        , true).show();
+            }
+        });
+
         //音频输出帮助
         binding.audioOutputImageButton.setOnClickListener(new View.OnClickListener() {
             @Override

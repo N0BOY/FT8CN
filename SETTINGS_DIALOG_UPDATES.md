@@ -181,3 +181,8 @@ After adding a new setting, verify:
 - Always add null checks when accessing binding elements in Java code
 - Settings are persisted using `DatabaseOpr.writeConfig()`
 - Settings are loaded in `DatabaseOpr.readConfig()` and applied in `ConfigFragment.onCreateView()`
+
+## Related Feature Documentation
+
+For detailed documentation on specific features, see:
+- **Skip My Grid When Responding**: See `SKIP_MY_GRID_WHEN_RESPONDING.md`
