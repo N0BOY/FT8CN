@@ -57,6 +57,7 @@ Before modifying auto sequencing:
 - Check test results at: `ft8cn/app/build/reports/tests/test/index.html`
 - Fix any failing tests before proceeding
 - If tests pass, continue to debug build
+- **Note**: Tests do NOT run automatically during builds - they must be run explicitly with the `test` command
 
 ### Run Debug Build
 

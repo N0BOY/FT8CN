@@ -117,15 +117,8 @@ android.applicationVariants.all { variant ->
     }
 }
 
-tasks.named("build") {
-    dependsOn("testDebugUnitTest")
-}
-
-afterEvaluate {
-    tasks.matching { it.name in ["assembleDebug", "assembleRelease"] }.configureEach {
-        dependsOn("testDebugUnitTest")
-    }
-}
+// Tests are only run when explicitly calling: ./gradlew test
+// Removed automatic test execution during builds to speed up build process
 
 dependencies {
 
