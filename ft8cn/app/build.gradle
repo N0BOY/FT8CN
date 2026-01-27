@@ -100,6 +100,10 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']
+            // Note: Language-specific resource directories (values-el, values-es, etc.)
+            // have been moved to ../../localization/ to prevent bundling and protect
+            // from automated modifications. See localization/README.md for instructions
+            // on how to add languages back to the build.
         }
     }
     namespace 'com.bg7yoz.ft8cn'
