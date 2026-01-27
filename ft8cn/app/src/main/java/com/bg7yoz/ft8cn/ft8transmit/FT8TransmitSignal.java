@@ -61,6 +61,7 @@ public class FT8TransmitSignal {
     private String toMaidenheadGrid = "";//目标的网格信息
     private int sendReport = 0;//我发送到对方的报告
     private int sentTargetReport = -100;//
+    private boolean isResponseToCall = false;//标记是否是响应别人的呼叫（true=别人呼叫我，false=我主动呼叫）
 
 
     private int receivedReport = 0;//我接收到的报告
@@ -202,8 +203,23 @@ public class FT8TransmitSignal {
     //@RequiresApi(api = Build.VERSION_CODES.N)
     public void setTransmit(TransmitCallsign transmitCallsign
             , int functionOrder, String toMaidenheadGrid) {
+        setTransmit(transmitCallsign, functionOrder, toMaidenheadGrid, false);
+    }
+
+    /**
+     * 设置发射目标
+     * @param transmitCallsign 目标呼号
+     * @param functionOrder 消息序号
+     * @param toMaidenheadGrid 目标网格
+     * @param isResponseToCall 是否是响应别人的呼叫（true=别人呼叫我，false=我主动呼叫）
+     */
+    @SuppressLint("DefaultLocale")
+    //@RequiresApi(api = Build.VERSION_CODES.N)
+    public void setTransmit(TransmitCallsign transmitCallsign
+            , int functionOrder, String toMaidenheadGrid, boolean isResponseToCall) {
 
         messageStartTime = 0;//复位起始的时间
+        this.isResponseToCall = isResponseToCall;//记录是否是响应别人的呼叫
 
         Log.d(TAG, "准备发射数据...");
         if (GeneralVariables.checkFun1(toMaidenheadGrid)) {
@@ -265,12 +281,25 @@ public class FT8TransmitSignal {
      * @return FT8消息
      */
     public Ft8Message getFunctionCommand(int order) {
+        // Determine if we should include my grid square
+        // Skip my grid if: setting is enabled AND this is a response to someone calling me
+        // BUT: Always include grid for CQ (case 6) and when I initiate contact (not a response)
+        boolean shouldIncludeMyGrid;
+        if (order == 6) {
+            // CQ always includes grid square
+            shouldIncludeMyGrid = true;
+        } else {
+            // For other messages: skip grid only if responding to someone who called me AND setting is enabled
+            shouldIncludeMyGrid = !(GeneralVariables.skip_my_grid_when_responding && isResponseToCall);
+        }
+        String myGrid = shouldIncludeMyGrid ? GeneralVariables.getMyMaidenhead4Grid() : "";
+        
         switch (order) {
             //发射模式1，BG7YOY BG7YOZ OL50
             case 1:
                 resetTargetReport();//把给对方的信号报告记录复位成-100
                 return new Ft8Message(1, 0, toCallsign.callsign, GeneralVariables.myCallsign
-                        , GeneralVariables.getMyMaidenhead4Grid());
+                        , myGrid);
             //发射模式2，BG7YOY BG7YOZ -10
             case 2:
                 sentTargetReport = toCallsign.snr;
@@ -294,11 +323,12 @@ public class FT8TransmitSignal {
             case 6:
                 resetTargetReport();//把给对方的信号报告,接收到对方的信号报告记录复位成-100
                 Ft8Message msg = new Ft8Message(1, 0, "CQ", GeneralVariables.myCallsign
-                        , GeneralVariables.getMyMaidenhead4Grid());
+                        , myGrid);
                 msg.modifier = GeneralVariables.toModifier;
                 return msg;
         }
 
+        // Default case: also CQ, always include grid
         return new Ft8Message("CQ", GeneralVariables.myCallsign
                 , GeneralVariables.getMyMaidenhead4Grid());
     }
@@ -730,10 +760,11 @@ public class FT8TransmitSignal {
                     && checkCallsignIsCallTo(msg.getCallsignFrom(), toCallsign.callsign)//Fixed: Use checkCallsignIsCallTo for compound callsigns
                     && !GeneralVariables.checkFun5(msg.extraInfo)) {//cq我、不是73、发送方是我关注的目标
                 //设置发射之前，确定消息的序号，避免从头开始
+                // This is a response to someone calling me, so set isResponseToCall = true
                 setTransmit(new TransmitCallsign(msg.i3, msg.n3, msg.getCallsignFrom(), msg.freq_hz
                                 , msg.getSequence(), msg.snr)
                         , GeneralVariables.checkFunOrder(msg) + 1
-                        , msg.extraInfo);
+                        , msg.extraInfo, true); // true = this is a response to someone calling me
                 return true;
             }
         }
@@ -760,11 +791,12 @@ public class FT8TransmitSignal {
             CallsignQueue.QueuedCallsign next = callsignQueue.getNext();
             if (next != null) {
                 // Start QSO with oldest queued callsign
+                // This is a response to someone calling me (from queue), so set isResponseToCall = true
                 setTransmit(new TransmitCallsign(next.initialMessage.i3, next.initialMessage.n3, 
                                 next.callsign, next.initialMessage.freq_hz
                                 , next.initialMessage.getSequence(), next.initialMessage.snr)
                         , GeneralVariables.checkFunOrder(next.initialMessage) + 1
-                        , next.initialMessage.extraInfo);
+                        , next.initialMessage.extraInfo, true); // true = this is a response to someone calling me
                 callsignQueue.removeCallsign(next.callsign);
                 mutableCallsignQueue.postValue(callsignQueue.getAll());
                 return true;
@@ -939,11 +971,12 @@ public class FT8TransmitSignal {
             CallsignQueue.QueuedCallsign next = callsignQueue.getNext();
             if (next != null) {
                 // Start QSO with next queued callsign
+                // This is a response to someone calling me (from queue), so set isResponseToCall = true
                 setTransmit(new TransmitCallsign(next.initialMessage.i3, next.initialMessage.n3, 
                                 next.callsign, next.initialMessage.freq_hz
                                 , next.initialMessage.getSequence(), next.initialMessage.snr)
                         , GeneralVariables.checkFunOrder(next.initialMessage) + 1
-                        , next.initialMessage.extraInfo);
+                        , next.initialMessage.extraInfo, true); // true = this is a response to someone calling me
                 callsignQueue.removeCallsign(next.callsign);
                 mutableCallsignQueue.postValue(callsignQueue.getAll());
             } else {
@@ -1013,11 +1046,12 @@ public class FT8TransmitSignal {
             CallsignQueue.QueuedCallsign next = callsignQueue.getNext();
             if (next != null) {
                 // Start QSO with next queued callsign
+                // This is a response to someone calling me (from queue), so set isResponseToCall = true
                 setTransmit(new TransmitCallsign(next.initialMessage.i3, next.initialMessage.n3, 
                                 next.callsign, next.initialMessage.freq_hz
                                 , next.initialMessage.getSequence(), next.initialMessage.snr)
                         , GeneralVariables.checkFunOrder(next.initialMessage) + 1
-                        , next.initialMessage.extraInfo);
+                        , next.initialMessage.extraInfo, true); // true = this is a response to someone calling me
                 callsignQueue.removeCallsign(next.callsign);
                 mutableCallsignQueue.postValue(callsignQueue.getAll());
                 setCurrentFunctionOrder(functionOrder);//设置当前消息

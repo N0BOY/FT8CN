@@ -80,7 +80,9 @@ public class MyCallingFragment extends Fragment {
      */
     //@RequiresApi(api = Build.VERSION_CODES.N)
     private void doCallNow(Ft8Message message) {
-        mainViewModel.addFollowCallsign(message.getCallsignFrom());
+        if (GeneralVariables.callingAddsToFollowList) {
+            mainViewModel.addFollowCallsign(message.getCallsignFrom());
+        }
         if (!mainViewModel.ft8TransmitSignal.isActivated()) {
             mainViewModel.ft8TransmitSignal.setActivated(true);
             GeneralVariables.transmitMessages.add(message);//把消息添加到关注列表中
@@ -135,7 +137,9 @@ public class MyCallingFragment extends Fragment {
 
             case 4://回复
                 Log.d(TAG, "回复：" + ft8Message.getCallsignFrom());
-                mainViewModel.addFollowCallsign(ft8Message.getCallsignFrom());
+                if (GeneralVariables.callingAddsToFollowList) {
+                    mainViewModel.addFollowCallsign(ft8Message.getCallsignFrom());
+                }
                 if (!mainViewModel.ft8TransmitSignal.isActivated()) {
                     mainViewModel.ft8TransmitSignal.setActivated(true);
                     GeneralVariables.transmitMessages.add(ft8Message);//把消息添加到关注列表中
@@ -886,6 +890,12 @@ public class MyCallingFragment extends Fragment {
                 }
             }
 
+            @Override
+            public float getSwipeThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
+                // Increase threshold from default 0.5 to 0.7 (70% of view width)
+                // This allows long press to register before swipe is detected
+                return 0.7f;
+            }
 
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {

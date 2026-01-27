@@ -21,9 +21,12 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bg7yoz.ft8cn.BuildConfig;
 import com.bg7yoz.ft8cn.GeneralVariables;
+import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
 import com.bg7yoz.ft8cn.database.OnAfterQueryFollowCallsigns;
@@ -49,6 +52,9 @@ public class ClearCacheDataDialog extends Dialog {
     private CACHE_MODE cache_mode;
     private DatabaseOpr db;
     private final Timer timer = new Timer();
+    private RecyclerView followCallsignDialogRecyclerView;
+    private FollowCallsignAdapter followCallsignAdapter;
+    private MainViewModel mainViewModel;
 
     private TimerTask timeEvent() {
         return new TimerTask() {
@@ -74,6 +80,14 @@ public class ClearCacheDataDialog extends Dialog {
         this.activity = activity;
         this.cache_mode = cache_mode;
         this.db=db;
+        // Get MainViewModel from the activity if it's a FragmentActivity (which implements ViewModelStoreOwner)
+        if (activity instanceof androidx.fragment.app.FragmentActivity) {
+            this.mainViewModel = MainViewModel.getInstance((androidx.lifecycle.ViewModelStoreOwner) activity);
+        } else {
+            // If not a FragmentActivity, we can't get MainViewModel this way
+            // This should not happen in practice, but we'll handle it gracefully
+            this.mainViewModel = null;
+        }
     }
 
 
@@ -84,6 +98,7 @@ public class ClearCacheDataDialog extends Dialog {
         cacheHelpMessage = (TextView) findViewById(R.id.cacheHelpMessage);
         appNameTextView = (TextView) findViewById(R.id.appNameTextView);
         buildVersionTextView = (TextView) findViewById(R.id.buildVersionTextView);
+        followCallsignDialogRecyclerView = (RecyclerView) findViewById(R.id.followCallsignDialogRecyclerView);
         //cacheHelpMessage.setText(msg);
         upImageView = (ImageView) findViewById(R.id.scrollUpImageView);
         downImageView = (ImageView) findViewById(R.id.scrollDownImageView);
@@ -103,11 +118,27 @@ public class ClearCacheDataDialog extends Dialog {
 
         StringBuilder msg = new StringBuilder();
         if (cache_mode == CACHE_MODE.FOLLOW_DATA) {
-            msg.append(GeneralVariables.getStringFromResource(R.string.html_tracking_callsign));
-            for (int i = 0; i < GeneralVariables.followCallsign.size(); i++) {
-                msg.append("\n" + GeneralVariables.followCallsign.get(i));
+            // Use RecyclerView with remove buttons instead of TextView
+            cacheHelpMessage.setVisibility(View.GONE);
+            followCallsignDialogRecyclerView.setVisibility(View.VISIBLE);
+            
+            if (mainViewModel != null) {
+                followCallsignAdapter = new FollowCallsignAdapter(mainViewModel);
+                followCallsignAdapter.setOnListUpdateListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Update the adapter when a callsign is removed
+                        followCallsignAdapter.updateList();
+                    }
+                });
+                followCallsignDialogRecyclerView.setLayoutManager(new LinearLayoutManager(context));
+                followCallsignDialogRecyclerView.setAdapter(followCallsignAdapter);
+                followCallsignAdapter.updateList();
             }
-            cacheHelpMessage.setText(msg.toString());
+        } else {
+            // For other modes, use TextView as before
+            cacheHelpMessage.setVisibility(View.VISIBLE);
+            followCallsignDialogRecyclerView.setVisibility(View.GONE);
         }
         //解码的消息
         if (cache_mode==CACHE_MODE.SWL_MSG){

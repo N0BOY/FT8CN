@@ -1,0 +1,101 @@
+---
+description: Development workflow requirements - investigate markdown docs, run tests and debug build after changes
+alwaysApply: true
+---
+
+# Development Workflow Requirements
+
+## Before Making Changes
+
+### Investigate Markdown Documentation
+
+Before implementing any feature or making significant changes, **always** investigate relevant markdown documentation files to understand how things should work:
+
+1. **Read relevant documentation files**:
+   - `APPLICATION_FLOW.md` - Application architecture and flow
+   - `AUTO_SEQUENCING_IMPROVEMENTS.md` - Auto sequencing behavior and fixes
+   - `CALLSIGN_QUEUE.md` - Callsign queue feature documentation
+   - `DECODE_IMPROVEMENTS.md` - Decoding improvements and behavior
+   - `USER_GUIDE.md` - User-facing features and usage
+   - `RELEASE_NOTES.md` - Recent changes and version history
+   - `README.md` - Project setup and build instructions
+
+2. **Search for related documentation**:
+   - Use `codebase_search` to find relevant sections in markdown files
+   - Look for existing patterns, conventions, or documented behaviors
+   - Check if similar features have been documented before
+
+3. **Understand the context**:
+   - Read the full relevant sections, not just snippets
+   - Understand the "why" behind existing implementations
+   - Note any constraints or design decisions mentioned
+
+### Example Workflow
+
+```markdown
+Before modifying auto sequencing:
+1. Read AUTO_SEQUENCING_IMPROVEMENTS.md to understand current behavior
+2. Read APPLICATION_FLOW.md to understand the overall flow
+3. Search markdown files for related discussions
+4. Then proceed with implementation
+```
+
+## After Making Changes
+
+### Run Unit Tests
+
+**Always** run unit tests after making code changes to ensure nothing is broken:
+
+```bash
+# Windows
+.\gradlew.bat test
+
+# Linux/macOS
+./gradlew test
+```
+
+- Check test results at: `ft8cn/app/build/reports/tests/test/index.html`
+- Fix any failing tests before proceeding
+- If tests pass, continue to debug build
+- **Note**: Tests do NOT run automatically during builds - they must be run explicitly with the `test` command
+
+### Run Debug Build
+
+**Always** run a debug build after making changes to verify compilation succeeds:
+
+```bash
+# Windows
+.\gradlew.bat assembleDebug
+
+# Linux/macOS
+./gradlew assembleDebug
+```
+
+- Verify the build completes successfully without errors
+- Check for any warnings that should be addressed
+- Debug APK location: `ft8cn/app/build/outputs/apk/debug/app-debug.apk`
+
+### Workflow Checklist
+
+When making changes, follow this checklist:
+
+- [ ] Investigated relevant markdown documentation files
+- [ ] Understood existing patterns and conventions
+- [ ] Made code changes
+- [ ] Ran unit tests (`.\gradlew.bat test` or `./gradlew test`)
+- [ ] All tests passed
+- [ ] Ran debug build (`.\gradlew.bat assembleDebug` or `./gradlew assembleDebug`)
+- [ ] Build completed successfully
+- [ ] Updated documentation if needed (especially RELEASE_NOTES.md for user-facing changes)
+
+## Exceptions
+
+- **Documentation-only changes**: Only require markdown investigation (no tests/build needed)
+- **Trivial changes**: Minor formatting or comment updates may skip tests, but still run debug build
+- **Emergency fixes**: May skip full investigation, but must run tests and build before committing
+
+## Notes
+
+- The project uses JDK 17 and Android SDK API 33
+- Test results are available in HTML format for easy review
+- Always verify the debug APK builds successfully before considering changes complete

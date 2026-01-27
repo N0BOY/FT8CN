@@ -1,0 +1,125 @@
+---
+description: Require markdown documentation when making large scale operations or improvements
+alwaysApply: true
+---
+
+# Large Scale Operations Documentation
+
+## When Documentation Is Required
+
+Create or update markdown documentation files when making:
+
+1. **Large scale changes**:
+   - Modifying core systems (decoding, sequencing, transmission)
+   - Refactoring major components
+   - Adding new major features
+   - Changing fundamental behaviors
+
+2. **Multiple related fixes**:
+   - Fixing multiple bugs in the same system
+   - Addressing related issues together
+   - Making improvements to a specific subsystem
+
+3. **Behavior changes**:
+   - Changing how existing features work
+   - Modifying algorithms or logic flows
+   - Performance optimizations with behavior changes
+
+## Documentation File Structure
+
+Follow the pattern established in existing documentation files:
+
+### File Naming
+- Use descriptive names: `*_IMPROVEMENTS.md` or `*_CHANGES.md`
+- Examples: `DECODE_IMPROVEMENTS.md`, `AUTO_SEQUENCING_IMPROVEMENTS.md`
+
+### Document Structure
+
+```markdown
+# [Feature/System] Improvements
+
+Brief overview of what this document covers and why changes were made.
+
+## Overview
+
+High-level summary of the improvements, their purpose, and impact.
+
+---
+
+## 1. [First Improvement Title]
+
+### Problem
+Clear description of the issue or limitation being addressed.
+
+### Solution
+Explanation of how the problem was solved.
+
+### Implementation Details
+- Location: Specific file and method/class names
+- Code references: Key constants, variables, or logic
+- Process: Step-by-step explanation if complex
+
+### Impact
+- **Before**: What the behavior was previously
+- **After**: What the behavior is now
+
+---
+
+## 2. [Second Improvement Title]
+[Same structure as above]
+
+...
+```
+
+## Required Sections for Each Improvement
+
+Each improvement should include:
+
+1. **Problem**: What was wrong or needed improvement
+2. **Solution**: How it was fixed or improved
+3. **Implementation Details**: 
+   - File locations
+   - Code references (line numbers, method names)
+   - Key constants or variables
+   - Process flow if complex
+4. **Impact**: Before/after comparison showing the improvement
+
+## Examples of Existing Documentation
+
+Reference these files as examples:
+- `DECODE_IMPROVEMENTS.md` - Documents decode system improvements
+- `AUTO_SEQUENCING_IMPROVEMENTS.md` - Documents auto sequencing fixes
+- `CALLSIGN_QUEUE.md` - Documents callsign queue feature
+
+## When to Create New Files vs. Update Existing
+
+- **New file**: When documenting improvements to a system that doesn't have a dedicated improvements file
+- **Update existing**: When adding improvements to a system that already has a documentation file
+- **Update RELEASE_NOTES.md**: Always update release notes for user-facing changes, but detailed technical documentation goes in dedicated files
+
+## Integration with Release Notes
+
+- **RELEASE_NOTES.md**: High-level summary for users
+- **Improvement files**: Detailed technical documentation for developers
+- Both should be updated for large scale changes
+
+## Checklist for Large Scale Operations
+
+When making large scale changes:
+
+- [ ] Identified all related changes and improvements
+- [ ] Created or updated appropriate markdown documentation file
+- [ ] Documented each improvement with Problem/Solution/Implementation/Impact
+- [ ] Included code locations and references
+- [ ] Updated RELEASE_NOTES.md with user-facing summary
+- [ ] Followed existing documentation patterns and style
+
+## Exceptions
+
+Documentation not required for:
+- Single-line bug fixes
+- Trivial changes (typos, formatting)
+- Documentation-only updates
+- Very small, isolated changes
+
+When in doubt, document it. Better to have too much documentation than too little.

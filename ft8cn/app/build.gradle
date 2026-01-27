@@ -12,7 +12,7 @@ static def getCurrentTime() {
     return df.format(Calendar.getInstance(Locale.CHINA).getTime())
 }
 
-// Version management - auto-increment on build
+// Version management - auto-increment on release build only
 def versionPropsFile = file('version.properties')
 def versionProps = new Properties()
 
@@ -31,21 +31,31 @@ if (!versionProps.containsKey('VERSION_NAME') || versionProps['VERSION_NAME'] ==
 def versionCode = versionProps['VERSION_CODE'].toString().toInteger()
 def versionName = versionProps['VERSION_NAME'].toString()
 
-// Auto-increment version code on each build
-versionCode++
-versionProps['VERSION_CODE'] = versionCode.toString()
-
-// Increment version name patch version (0.93 -> 0.94, etc.)
-def versionParts = versionName.split('\\.')
-if (versionParts.length >= 3) {
-    def patchVersion = versionParts[2].toInteger() + 1
-    versionName = "${versionParts[0]}.${versionParts[1]}.${patchVersion}".toString()
-} else if (versionParts.length == 2) {
-    versionName = "${versionParts[0]}.${versionParts[1]}.1".toString()
+// Check if this is a release build task
+def isReleaseBuild = gradle.startParameter.taskNames.any { taskName ->
+    taskName.toLowerCase().contains('release') && 
+    (taskName.toLowerCase().contains('assemble') || 
+     taskName.toLowerCase().contains('bundle') ||
+     taskName.toLowerCase().contains('build'))
 }
-versionProps['VERSION_NAME'] = versionName.toString()
 
-versionProps.store(new FileOutputStream(versionPropsFile), null)
+// Auto-increment version code only on release builds
+if (isReleaseBuild) {
+    versionCode++
+    versionProps['VERSION_CODE'] = versionCode.toString()
+    
+    // Increment version name patch version (0.93 -> 0.94, etc.)
+    def versionParts = versionName.split('\\.')
+    if (versionParts.length >= 3) {
+        def patchVersion = versionParts[2].toInteger() + 1
+        versionName = "${versionParts[0]}.${versionParts[1]}.${patchVersion}".toString()
+    } else if (versionParts.length == 2) {
+        versionName = "${versionParts[0]}.${versionParts[1]}.1".toString()
+    }
+    versionProps['VERSION_NAME'] = versionName.toString()
+    
+    versionProps.store(new FileOutputStream(versionPropsFile), null)
+}
 
 android {
 
@@ -72,8 +82,22 @@ android {
         signingConfig signingConfigs.debug
     }
 
+    // Disable APK splits for faster debug builds (single APK instead of multiple)
+    splits {
+        abi {
+            enable false
+        }
+        density {
+            enable false
+        }
+    }
+
     buildTypes {
         debug {
+            // Optimize debug builds for faster compilation
+            minifyEnabled false
+            shrinkResources false
+            
             buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
             buildConfigField("int", "VERSION_CODE", "${versionCode}")
             buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
@@ -100,6 +124,10 @@ android {
     sourceSets {
         main {
             jniLibs.srcDirs = ['libs']
+            // Note: Language-specific resource directories (values-el, values-es, etc.)
+            // have been moved to ../../localization/ to prevent bundling and protect
+            // from automated modifications. See localization/README.md for instructions
+            // on how to add languages back to the build.
         }
     }
     namespace 'com.bg7yoz.ft8cn'
@@ -113,15 +141,8 @@ android.applicationVariants.all { variant ->
     }
 }
 
-tasks.named("build") {
-    dependsOn("testDebugUnitTest")
-}
-
-afterEvaluate {
-    tasks.matching { it.name in ["assembleDebug", "assembleRelease"] }.configureEach {
-        dependsOn("testDebugUnitTest")
-    }
-}
+// Tests are only run when explicitly calling: ./gradlew test
+// Removed automatic test execution during builds to speed up build process
 
 dependencies {
 
