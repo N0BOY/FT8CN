@@ -173,6 +173,7 @@ public class GeneralVariables {
     public static boolean always_show_swr_alc = false;//已废弃：不再显示SWR和ALC值，只显示告警
     public static boolean decode_overrun_toast = false;//解码超时提示
     public static boolean live_decode_updates = false;//解码列表实时更新
+    public static boolean skip_my_grid_when_responding = false;//当有人呼叫我时，跳过发送我的网格位置
 
     public static MutableLiveData<Float> mutableBaseFrequency = new MutableLiveData<>();
     public static String cloudlogServerAddress = "";//cloudlog的服务器地址

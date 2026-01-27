@@ -7,7 +7,15 @@ alwaysApply: true
 
 ## Git Commits After Code Changes
 
-**Always** create a git commit with a proper commit message after making code changes.
+**Always ask the user before committing changes.** Do not commit automatically.
+
+Before creating a commit:
+1. **Ask the user** if they want to commit the changes
+2. **Show a summary** of what will be committed (use `git status` and `git diff --stat`)
+3. **Propose a commit message** for their approval
+4. **Wait for confirmation** before executing `git commit`
+
+Only commit after explicit user approval.
 
 ### Commit Message Format
 
@@ -68,15 +76,31 @@ git commit -m "docs(release): Update release notes for version 0.93.106"
 - Before moving to a different feature/fix
 - After tests pass and build succeeds
 
-### Commit Command
+### Commit Workflow
 
-```bash
-# Stage all changes
-git add .
+**Before committing, always:**
 
-# Commit with message
-git commit -m "type(scope): subject" -m "body if needed"
-```
+1. **Show what will be committed**:
+   ```bash
+   git status
+   git diff --stat  # Show summary of changes
+   ```
+
+2. **Ask the user**:
+   - "Would you like me to commit these changes?"
+   - Show proposed commit message
+   - Wait for approval
+
+3. **Only after approval**, execute:
+   ```bash
+   # Stage all changes
+   git add .
+   
+   # Commit with approved message
+   git commit -m "type(scope): subject" -m "body if needed"
+   ```
+
+**Never commit without explicit user approval.**
 
 ## Reverting Changes
 
@@ -227,7 +251,10 @@ git revert <commit-hash>
 - [ ] Ran tests (if applicable)
 - [ ] Ran debug build (if applicable)
 - [ ] Reviewed changes with `git diff`
-- [ ] Created git commit with proper message
+- [ ] **Asked user if they want to commit**
+- [ ] **Shown summary of changes (`git status`, `git diff --stat`)**
+- [ ] **Proposed commit message and received approval**
+- [ ] Created git commit with approved message
 - [ ] Verified commit with `git log`
 
 ## Checklist for Reverting

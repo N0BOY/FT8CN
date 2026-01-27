@@ -591,5 +591,8 @@
     <string name="live_decode_updates_on" translatable="false">On</string>
     <string name="live_decode_updates_off" translatable="false">Off</string>
     <string name="live_decode_updates_help">live_decode_updates_help_en.txt</string>
+    <string name="skip_my_grid_when_responding">Skip my grid when responding</string>
+    <string name="skip_my_grid_when_responding_on" translatable="false">On</string>
+    <string name="skip_my_grid_when_responding_off" translatable="false">Off</string>
 
 </resources>
