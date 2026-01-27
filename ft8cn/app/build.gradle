@@ -72,8 +72,22 @@ android {
         signingConfig signingConfigs.debug
     }
 
+    // Disable APK splits for faster debug builds (single APK instead of multiple)
+    splits {
+        abi {
+            enable false
+        }
+        density {
+            enable false
+        }
+    }
+
     buildTypes {
         debug {
+            // Optimize debug builds for faster compilation
+            minifyEnabled false
+            shrinkResources false
+            
             buildConfigField("String", "VERSION_NAME", "\"${versionName}\"")
             buildConfigField("int", "VERSION_CODE", "${versionCode}")
             buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
