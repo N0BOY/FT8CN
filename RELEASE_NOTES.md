@@ -1,5 +1,41 @@
 # FT8CN Release Notes
 
+## Version 0.93.113 (January 26, 2026)
+
+### 🎨 UI Improvements
+
+#### Calling Page Enhancements
+- **Horizontal resize divider for spectrum/sequence split**: Added a draggable horizontal divider between the spectrum view and the queue manager/sequencing section in landscape mode
+  - Drag the purple divider up or down to adjust the vertical split
+  - Divider turns orange while dragging for visual feedback
+  - Position is saved and restored on app restart (default: 65%)
+  - Divider position is constrained between 30% and 85% to prevent views from becoming too small
+  - Uses SharedPreferences for persistent storage
+  - Works alongside the existing vertical divider for left/right resizing
+
+#### QSO Logs Page Improvements
+- **Simplified QRZ upload status display**: QSO logs now focus exclusively on QRZ.com upload status
+  - Removed "Unconfirmed", "LoTW confirmed", and "Manually confirmed" status displays
+  - Shows "QRZ.com uploaded" in green text when entry has been uploaded to QRZ
+  - Shows "Not uploaded to QRZ.com" in default text color when not uploaded
+  - Green text color (`holo_green_dark`) provides clear visual indication of uploaded status
+- **Removed confirmation features**: Removed manual confirmation and cancel confirmation functionality
+  - Removed long-press context menu items for manual confirmation and cancel confirmation
+  - Removed swipe-left gesture that toggled QSL confirmation
+  - Context menu still available for QRZ lookup and location features
+  - Streamlined interface focuses on QRZ upload tracking
+
+### 🌐 Localization
+- **Added QRZ upload status strings**: Added "Not uploaded to QRZ.com" string resource to all supported languages
+  - English: "Not uploaded to QRZ.com"
+  - Chinese (Simplified): "未上传到QRZ.com"
+  - Chinese (Traditional): "未上傳到QRZ.com"
+  - Spanish: "No subido a QRZ.com"
+  - Japanese: "QRZ.comにアップロードされていません"
+  - Greek: "Δεν ανέβηκε στο QRZ.com"
+
+---
+
 ## Version 0.93.105 (January 25, 2026)
 
 ### 🎨 UI Improvements
