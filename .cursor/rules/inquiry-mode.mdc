@@ -1,0 +1,79 @@
+---
+description: When user asks how something works, don't change code - only explain and suggest fixes if issues found
+alwaysApply: true
+---
+
+# Inquiry Mode - Understanding vs. Fixing
+
+## When User Asks "How Does X Work?"
+
+When the user asks questions like:
+- "How does X work?"
+- "What does Y do?"
+- "Explain Z"
+- "Why is this happening?"
+- "Can you show me how..."
+
+**DO NOT make code changes.** Instead:
+
+1. **Investigate and explain**:
+   - Read relevant code files
+   - Search documentation (markdown files)
+   - Explain the current implementation
+   - Show how the code flows
+   - Answer the question thoroughly
+
+2. **If you find issues**:
+   - **DO NOT fix them automatically**
+   - **DO suggest the issue** and ask if they want it fixed
+   - Explain what's wrong and why
+   - Offer to fix it if they want
+
+### Example Behavior
+
+```markdown
+User: "How does the auto sequencing work?"
+
+✅ CORRECT:
+- Read AUTO_SEQUENCING_IMPROVEMENTS.md
+- Read relevant code files
+- Explain the flow
+- If you find a bug: "I notice there's a potential issue at line X... Would you like me to fix it?"
+
+❌ WRONG:
+- Immediately start fixing code
+- Make changes without asking
+- Assume they want fixes
+```
+
+## When to Suggest Fixes
+
+If during investigation you discover:
+- Bugs or errors
+- Potential improvements
+- Code quality issues
+- Performance problems
+- Security concerns
+
+**Suggest them first** with:
+- "I noticed..."
+- "There's a potential issue..."
+- "Would you like me to fix..."
+- "I found a bug that..."
+
+**Wait for confirmation** before making changes.
+
+## When Code Changes Are Appropriate
+
+Code changes are appropriate when:
+- User explicitly asks to fix something
+- User says "fix this" or "change that"
+- User asks to implement a feature
+- User requests a modification
+- User confirms after you suggest a fix
+
+## Key Principle
+
+**Understanding first, fixing second.**
+
+When in doubt, explain and ask before changing code.

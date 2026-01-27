@@ -1581,6 +1581,16 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //实时解码更新
+        binding.liveDecodeHelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.live_decode_updates_help)
+                        , true).show();
+            }
+        });
+
         //音频输出帮助
         binding.audioOutputImageButton.setOnClickListener(new View.OnClickListener() {
             @Override

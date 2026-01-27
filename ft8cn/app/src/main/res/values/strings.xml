@@ -590,5 +590,6 @@
     <string name="live_decode_updates">Live decode updates</string>
     <string name="live_decode_updates_on" translatable="false">On</string>
     <string name="live_decode_updates_off" translatable="false">Off</string>
+    <string name="live_decode_updates_help">live_decode_updates_help_en.txt</string>
 
 </resources>

@@ -478,6 +478,7 @@
     <string name="deep_mode">多次解碼</string>
     <string name="export_null">請在與本機相同的局域網下，用其它設備的網頁瀏覽器從後台導出。\n在瀏覽器的地址欄中輸入如下內容：\n無法獲取合適的IP地址，請連接到一個有效的Wifi。</string>
     <string name="deep_mode_help">decode_help.txt</string>
+    <string name="live_decode_updates_help">live_decode_updates_help.txt</string>
     <string name="null_task_html">任務不存在！</string>
     <string name="log_importing_html">正在匯入...</string>
     <string name="log_import_finished_html">匯入結束！</string>

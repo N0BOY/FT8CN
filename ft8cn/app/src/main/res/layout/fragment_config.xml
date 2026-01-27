@@ -183,10 +183,23 @@
                             android:thumbTintMode="multiply"
                             android:trackTint="@color/button_start_color"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/liveDecodeHelpButton"
                             app:layout_constraintStart_toEndOf="@+id/liveDecodeText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
+
+                        <ImageButton
+                            android:id="@+id/liveDecodeHelpButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:background="@drawable/imagebutton_transparent_style"
+                            android:contentDescription="@string/help"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:srcCompat="@drawable/ic_baseline_info_32"
+                            tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -1,0 +1,239 @@
+---
+description: Git commit requirements and proper revert procedures using git commands
+alwaysApply: true
+---
+
+# Git Workflow Requirements
+
+## Git Commits After Code Changes
+
+**Always** create a git commit with a proper commit message after making code changes.
+
+### Commit Message Format
+
+Follow conventional commit message format:
+
+```
+<type>(<scope>): <subject>
+
+<body (optional)>
+
+<footer (optional)>
+```
+
+### Commit Types
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, no logic change)
+- `refactor`: Code refactoring
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks, build changes
+
+### Commit Message Guidelines
+
+1. **Subject line**:
+   - Use imperative mood ("Add feature" not "Added feature")
+   - First line should be 50 characters or less
+   - Capitalize first letter
+   - No period at the end
+
+2. **Body** (if needed):
+   - Explain what and why, not how
+   - Wrap at 72 characters
+   - Can include multiple paragraphs
+   - Use bullet points for lists
+
+3. **Examples**:
+
+```bash
+# Good commit messages:
+git commit -m "feat(calling): Add horizontal resize divider for spectrum/sequence split"
+
+git commit -m "fix(logs): Remove unconfirmed status and confirmation features
+
+- Removed manual confirmation and cancel confirmation functionality
+- Changed to show only QRZ upload status with green text for uploaded entries
+- Updated all language string resources"
+
+git commit -m "docs(release): Update release notes for version 0.93.106"
+```
+
+### When to Commit
+
+- After completing a logical unit of work
+- After making related changes together
+- Before moving to a different feature/fix
+- After tests pass and build succeeds
+
+### Commit Command
+
+```bash
+# Stage all changes
+git add .
+
+# Commit with message
+git commit -m "type(scope): subject" -m "body if needed"
+```
+
+## Reverting Changes
+
+**NEVER manually revert changes by editing code back.** Always use git commands.
+
+### When User Asks to Revert
+
+If the user asks to:
+- "Revert that change"
+- "Undo that"
+- "Go back to before"
+- "Remove that change"
+
+**DO NOT**:
+- ❌ Manually edit files to remove changes
+- ❌ Delete code you just added
+- ❌ Try to reconstruct previous state
+
+**DO**:
+- ✅ Use `git checkout` to restore files
+- ✅ Use `git reset` to undo commits
+- ✅ Use `git revert` to create revert commits
+- ✅ Ask which approach they prefer if unclear
+
+### Revert Methods
+
+1. **Uncommitted changes** (working directory):
+   ```bash
+   # Discard changes to specific file
+   git checkout -- <file>
+   
+   # Discard all uncommitted changes
+   git checkout -- .
+   
+   # Or use restore (newer Git)
+   git restore <file>
+   git restore .
+   ```
+
+2. **Last commit** (keep changes in working directory):
+   ```bash
+   git reset --soft HEAD~1
+   ```
+
+3. **Last commit** (discard changes completely):
+   ```bash
+   git reset --hard HEAD~1
+   ```
+
+4. **Specific commit** (create revert commit):
+   ```bash
+   git revert <commit-hash>
+   ```
+
+5. **Multiple commits**:
+   ```bash
+   # Interactive rebase
+   git rebase -i HEAD~N
+   
+   # Or reset to specific commit
+   git reset --hard <commit-hash>
+   ```
+
+### Revert Workflow
+
+1. **Check git status**:
+   ```bash
+   git status
+   ```
+
+2. **Check recent commits**:
+   ```bash
+   git log --oneline -5
+   ```
+
+3. **Ask user** (if not clear):
+   - "Do you want to discard uncommitted changes or revert a commit?"
+   - "Which commit should I revert to?"
+
+4. **Execute appropriate git command**
+
+5. **Verify**:
+   ```bash
+   git status
+   git log --oneline -3
+   ```
+
+### Example Scenarios
+
+**Scenario 1: User wants to undo uncommitted changes**
+```bash
+# Check what will be discarded
+git status
+
+# Discard changes
+git checkout -- <file>
+# or
+git restore <file>
+```
+
+**Scenario 2: User wants to undo last commit but keep changes**
+```bash
+git reset --soft HEAD~1
+```
+
+**Scenario 3: User wants to completely remove last commit**
+```bash
+git reset --hard HEAD~1
+```
+
+**Scenario 4: User wants to revert a specific commit**
+```bash
+# Find the commit
+git log --oneline
+
+# Revert it (creates new commit)
+git revert <commit-hash>
+```
+
+## Git Best Practices
+
+1. **Check status before committing**:
+   ```bash
+   git status
+   ```
+
+2. **Review changes before committing**:
+   ```bash
+   git diff
+   ```
+
+3. **Commit related changes together**:
+   - Don't mix unrelated changes in one commit
+   - One logical change per commit
+
+4. **Use descriptive commit messages**:
+   - Future you (and others) will thank you
+   - Makes `git log` useful
+
+5. **Verify after revert**:
+   - Check `git status`
+   - Check `git log`
+   - Confirm changes are as expected
+
+## Checklist for Code Changes
+
+- [ ] Made code changes
+- [ ] Ran tests (if applicable)
+- [ ] Ran debug build (if applicable)
+- [ ] Reviewed changes with `git diff`
+- [ ] Created git commit with proper message
+- [ ] Verified commit with `git log`
+
+## Checklist for Reverting
+
+- [ ] Checked `git status` to see current state
+- [ ] Checked `git log` to see recent commits
+- [ ] Determined appropriate git command
+- [ ] Executed git command (not manual code changes)
+- [ ] Verified revert with `git status` and `git log`
