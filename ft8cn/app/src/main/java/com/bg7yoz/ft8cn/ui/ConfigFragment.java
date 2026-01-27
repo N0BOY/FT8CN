@@ -565,21 +565,23 @@ public class ConfigFragment extends Fragment {
         });
 
         //设置跳过我的网格位置（当有人呼叫我时）
-        binding.skipMyGridSwitch.setOnCheckedChangeListener(null);
-        binding.skipMyGridSwitch.setChecked(GeneralVariables.skip_my_grid_when_responding);
-        setSkipMyGridSwitchText();
-        binding.skipMyGridSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                GeneralVariables.skip_my_grid_when_responding = binding.skipMyGridSwitch.isChecked();
-                if (binding.skipMyGridSwitch.isChecked()) {
-                    mainViewModel.databaseOpr.writeConfig("skipMyGridWhenResponding", "1", null);
-                } else {
-                    mainViewModel.databaseOpr.writeConfig("skipMyGridWhenResponding", "0", null);
+        if (binding.skipMyGridSwitch != null) {
+            binding.skipMyGridSwitch.setOnCheckedChangeListener(null);
+            binding.skipMyGridSwitch.setChecked(GeneralVariables.skip_my_grid_when_responding);
+            setSkipMyGridSwitchText();
+            binding.skipMyGridSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    GeneralVariables.skip_my_grid_when_responding = binding.skipMyGridSwitch.isChecked();
+                    if (binding.skipMyGridSwitch.isChecked()) {
+                        mainViewModel.databaseOpr.writeConfig("skipMyGridWhenResponding", "1", null);
+                    } else {
+                        mainViewModel.databaseOpr.writeConfig("skipMyGridWhenResponding", "0", null);
+                    }
+                    setSkipMyGridSwitchText();
                 }
-                setSkipMyGridSwitchText();
-            }
-        });
+            });
+        }
 
         //设置自动呼叫关注的呼号
         binding.autoCallfollowSwitch.setOnCheckedChangeListener(null);
@@ -946,10 +948,12 @@ public class ConfigFragment extends Fragment {
     }
 
     private void setSkipMyGridSwitchText() {
-        if (binding.skipMyGridSwitch.isChecked()) {
-            binding.skipMyGridSwitch.setText(R.string.skip_my_grid_when_responding_on);
-        } else {
-            binding.skipMyGridSwitch.setText(R.string.skip_my_grid_when_responding_off);
+        if (binding.skipMyGridSwitch != null) {
+            if (binding.skipMyGridSwitch.isChecked()) {
+                binding.skipMyGridSwitch.setText(R.string.skip_my_grid_when_responding_on);
+            } else {
+                binding.skipMyGridSwitch.setText(R.string.skip_my_grid_when_responding_off);
+            }
         }
     }
 
