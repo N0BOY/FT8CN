@@ -2349,6 +2349,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("skipMyGridWhenResponding")) {
                     GeneralVariables.skip_my_grid_when_responding = result.equals("1");
                 }
+                if (name.equalsIgnoreCase("callingAddsToFollowList")) {
+                    GeneralVariables.callingAddsToFollowList = result.equals("1");
+                }
 
             }
 

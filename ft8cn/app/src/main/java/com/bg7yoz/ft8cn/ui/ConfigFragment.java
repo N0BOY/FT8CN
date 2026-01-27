@@ -58,6 +58,7 @@ public class ConfigFragment extends Fragment {
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
+    // Follow callsign list management moved to ClearCacheDataDialog
     //private SerialPortSpinnerAdapter serialPortSpinnerAdapter;
 
     public ConfigFragment() {
@@ -403,6 +404,8 @@ public class ConfigFragment extends Fragment {
                 setScrollImageVisible();
             }
         }, 1000);
+        // Follow callsign list is now shown in the ClearCacheDataDialog
+
         binding.scrollView3.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
@@ -579,6 +582,25 @@ public class ConfigFragment extends Fragment {
                         mainViewModel.databaseOpr.writeConfig("skipMyGridWhenResponding", "0", null);
                     }
                     setSkipMyGridSwitchText();
+                }
+            });
+        }
+
+        //设置呼叫时添加到关注列表
+        if (binding.callingAddsToFollowSwitch != null) {
+            binding.callingAddsToFollowSwitch.setOnCheckedChangeListener(null);
+            binding.callingAddsToFollowSwitch.setChecked(GeneralVariables.callingAddsToFollowList);
+            setCallingAddsToFollowSwitchText();
+            binding.callingAddsToFollowSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    GeneralVariables.callingAddsToFollowList = binding.callingAddsToFollowSwitch.isChecked();
+                    if (binding.callingAddsToFollowSwitch.isChecked()) {
+                        mainViewModel.databaseOpr.writeConfig("callingAddsToFollowList", "1", null);
+                    } else {
+                        mainViewModel.databaseOpr.writeConfig("callingAddsToFollowList", "0", null);
+                    }
+                    setCallingAddsToFollowSwitchText();
                 }
             });
         }
@@ -957,6 +979,17 @@ public class ConfigFragment extends Fragment {
         }
     }
 
+    // Follow callsign list management moved to ClearCacheDataDialog
+
+    private void setCallingAddsToFollowSwitchText() {
+        if (binding.callingAddsToFollowSwitch != null) {
+            if (binding.callingAddsToFollowSwitch.isChecked()) {
+                binding.callingAddsToFollowSwitch.setText(R.string.calling_adds_to_follow_list_on);
+            } else {
+                binding.callingAddsToFollowSwitch.setText(R.string.calling_adds_to_follow_list_off);
+            }
+        }
+    }
 
     //设置自动呼叫关注的呼号
     private void setAutoCallFollow() {
@@ -1630,6 +1663,18 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //呼叫添加到关注列表帮助
+        if (binding.callingAddsToFollowHelpButton != null) {
+            binding.callingAddsToFollowHelpButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    new HelpDialog(requireContext(), requireActivity()
+                            , GeneralVariables.getStringFromResource(R.string.calling_adds_to_follow_list_help)
+                            , true).show();
+                }
+            });
+        }
+
         //音频输出帮助
         binding.audioOutputImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1721,6 +1766,8 @@ public class ConfigFragment extends Fragment {
                         ,ClearCacheDataDialog.CACHE_MODE.FOLLOW_DATA).show();
             }
         });
+
+        // Follow callsign list is now shown in the ClearCacheDataDialog, not on the settings page
         binding.clearLogCacheButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

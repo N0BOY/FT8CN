@@ -596,4 +596,12 @@
     <string name="skip_my_grid_when_responding_off" translatable="false">Off</string>
     <string name="skip_my_grid_when_responding_help">skip_my_grid_when_responding_help_en.txt</string>
 
+    <string name="calling_adds_to_follow_list">Calling adds to follow list</string>
+    <string name="calling_adds_to_follow_list_on" translatable="false">On</string>
+    <string name="calling_adds_to_follow_list_off" translatable="false">Off</string>
+    <string name="calling_adds_to_follow_list_help">calling_adds_to_follow_list_help_en.txt</string>
+    <string name="follow_callsign_list">Follow Callsign List</string>
+    <string name="remove_from_follow_list">Remove</string>
+    <string name="no_follow_callsigns">No callsigns in follow list</string>
+
 </resources>

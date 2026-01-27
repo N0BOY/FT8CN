@@ -11,7 +11,9 @@ import android.content.Context;
 import android.graphics.Paint;
 import android.opengl.Visibility;
 import android.view.ContextMenu;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -472,8 +474,46 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
             ituFromImageView.setVisibility(View.GONE);
             cqFromImageView.setVisibility(View.GONE);
             itemView.setTag(-1);
-            itemView.setOnClickListener(listener);
             itemView.setOnCreateContextMenuListener(menuListener);
+
+            // Set up GestureDetector for double tap
+            GestureDetector gestureDetector = new GestureDetector(itemView.getContext(), new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onDoubleTap(MotionEvent e) {
+                    // Show context menu on double tap
+                    itemView.showContextMenu();
+                    return true;
+                }
+
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    // Handle single tap (original onClick behavior)
+                    if (listener != null) {
+                        listener.onClick(itemView);
+                    }
+                    return true;
+                }
+
+                @Override
+                public boolean onDown(MotionEvent e) {
+                    // Return true to indicate we want to handle touch events
+                    // This allows the GestureDetector to receive subsequent events
+                    return true;
+                }
+            });
+
+            // Set up touch listener to use GestureDetector
+            // Only consume events if it's a tap/double tap, otherwise let RecyclerView handle scrolling
+            itemView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    // Let GestureDetector try to handle the event
+                    boolean handled = gestureDetector.onTouchEvent(event);
+                    // If GestureDetector handled it (tap/double tap), consume the event
+                    // Otherwise, return false to allow RecyclerView to handle scrolling
+                    return handled;
+                }
+            });
 
         }
 

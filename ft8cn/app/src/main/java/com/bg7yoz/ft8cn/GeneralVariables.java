@@ -209,6 +209,7 @@ public class GeneralVariables {
 
     public static boolean autoFollowCQ = false;//自动关注CQ
     public static boolean autoCallFollow = false;//自动呼叫关注的呼号
+    public static boolean callingAddsToFollowList = true;//呼叫时自动添加到关注列表
     public static int manualTimeslot = -1;//手动设置发射时序: -1=自动, 0=奇数(0), 1=偶数(1)
     public static ArrayList<String> QSL_Callsign_list = new ArrayList<>();//QSL成功的呼号
     public static ArrayList<String> QSL_Callsign_list_other_band = new ArrayList<>();//在其它波段QSL成功的呼号

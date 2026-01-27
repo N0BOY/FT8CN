@@ -120,7 +120,9 @@ public class GridMarkerInfoWindow extends InfoWindow {
      */
     //@RequiresApi(api = Build.VERSION_CODES.N)
     private void doCallNow() {
-        mainViewModel.addFollowCallsign(msg.getCallsignFrom());
+        if (GeneralVariables.callingAddsToFollowList) {
+            mainViewModel.addFollowCallsign(msg.getCallsignFrom());
+        }
         if (!mainViewModel.ft8TransmitSignal.isActivated()) {
             mainViewModel.ft8TransmitSignal.setActivated(true);
             GeneralVariables.transmitMessages.add(msg);//把消息添加到关注列表中

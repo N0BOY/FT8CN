@@ -1,0 +1,9 @@
+Calling Adds to Follow List
+
+When this setting is enabled (default), calling or replying to a station will automatically add that station's callsign to your follow list. This means messages from that station will appear in the calling window.
+
+When disabled, calling or replying will NOT automatically add the callsign to the follow list. You can still manually add callsigns to the follow list using the "Follow" option in the context menu.
+
+Note: Explicit "Follow" actions in the context menu will always add callsigns to the follow list, regardless of this setting.
+
+This setting helps you control which callsigns appear in your calling window by preventing automatic additions when you call or reply to stations.
