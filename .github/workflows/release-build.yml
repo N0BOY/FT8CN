@@ -1,0 +1,83 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g., 0.93.114)'
+        required: false
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 33
+          build-tools: 33.0.0
+        
+      - name: Update version.properties if version_name provided
+        if: github.event.inputs.version_name != ''
+        working-directory: ft8cn/app
+        run: |
+          if [ -f version.properties ]; then
+            sed -i "s/VERSION_NAME=.*/VERSION_NAME=${{ github.event.inputs.version_name }}/" version.properties
+          else
+            echo "VERSION_NAME=${{ github.event.inputs.version_name }}" > version.properties
+            echo "VERSION_CODE=1" >> version.properties
+          fi
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x ft8cn/gradlew
+        
+      - name: Build release APK
+        working-directory: ft8cn
+        run: ./gradlew assembleRelease
+        
+      - name: Find APK file
+        id: find_apk
+        working-directory: ft8cn/app/build/outputs/apk/release
+        run: |
+          APK_FILE=$(ls -t *.apk | head -n 1)
+          echo "apk_file=$APK_FILE" >> $GITHUB_OUTPUT
+          echo "Found APK: $APK_FILE"
+          
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: ft8cn/app/build/outputs/apk/release/*.apk
+          retention-days: 7
+          
+      - name: Get version info
+        id: version_info
+        working-directory: ft8cn/app
+        run: |
+          if [ -f version.properties ]; then
+            VERSION_NAME=$(grep VERSION_NAME version.properties | cut -d'=' -f2)
+            VERSION_CODE=$(grep VERSION_CODE version.properties | cut -d'=' -f2)
+            echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+            echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+            echo "Version: $VERSION_NAME (Code: $VERSION_CODE)"
+          fi
+          
+      - name: Create release summary
+        run: |
+          echo "## Release Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Name**: ${{ steps.version_info.outputs.version_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version Code**: ${{ steps.version_info.outputs.version_code }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **APK File**: ${{ steps.find_apk.outputs.apk_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
