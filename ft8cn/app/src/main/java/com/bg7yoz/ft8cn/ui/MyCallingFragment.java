@@ -199,8 +199,10 @@ public class MyCallingFragment extends Fragment {
             binding.messageSpectrumView.run(mainViewModel, this);
             // Show sequence details in landscape mode (below spectrum)
             binding.sequenceDetailsLayout.setVisibility(View.VISIBLE);
-            // Set up resizable divider for spectrum/sequence split
+            // Set up resizable divider for spectrum/sequence split (vertical)
             setupResizableDivider();
+            // Set up resizable divider for spectrum/sequence details split (horizontal)
+            setupHorizontalResizableDivider();
         }
 
 
@@ -1081,6 +1083,7 @@ public class MyCallingFragment extends Fragment {
     }
 
     private float dividerPosition = 0.5f;
+    private float horizontalDividerPosition = 0.65f;
 
     /**
      * Set up the resizable divider between spectrum and sequence/queue views in landscape mode
@@ -1164,6 +1167,93 @@ public class MyCallingFragment extends Fragment {
         
         // Update guideline position
         constraintSet.setGuidelinePercent(R.id.guideline22, position);
+        
+        // Apply constraints
+        constraintSet.applyTo(parent);
+    }
+
+    /**
+     * Set up the horizontal resizable divider between spectrum and sequence details in landscape mode
+     */
+    private void setupHorizontalResizableDivider() {
+        View divider = binding.spectrumSequenceDivider;
+        if (divider == null) {
+            return;
+        }
+
+        // Load saved divider position from SharedPreferences (default to 0.65 = 65%)
+        SharedPreferences prefs = requireContext().getSharedPreferences("ft8cn_prefs", Context.MODE_PRIVATE);
+        horizontalDividerPosition = prefs.getFloat("spectrumSequenceDividerPosition", 0.65f);
+        
+        // Clamp between 0.3 and 0.85 (30% to 85%) to prevent too small views
+        horizontalDividerPosition = Math.max(0.3f, Math.min(0.85f, horizontalDividerPosition));
+        
+        // Set initial guideline position
+        updateHorizontalDividerPosition(horizontalDividerPosition);
+
+        // Set up drag handling
+        divider.setOnTouchListener(new View.OnTouchListener() {
+            private float startY;
+            private float startPosition;
+            private boolean isDragging = false;
+
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                switch (event.getAction()) {
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        startY = event.getRawY();
+                        startPosition = horizontalDividerPosition;
+                        isDragging = true;
+                        v.setBackgroundColor(Color.parseColor("#FF6B00")); // Orange when dragging
+                        return true;
+
+                    case android.view.MotionEvent.ACTION_MOVE:
+                        if (isDragging) {
+                            ConstraintLayout parent = (ConstraintLayout) v.getParent();
+                            float deltaY = event.getRawY() - startY;
+                            float parentHeight = parent.getHeight();
+                            
+                            if (parentHeight > 0) {
+                                float deltaPercent = deltaY / parentHeight;
+                                float newPosition = startPosition + deltaPercent;
+                                
+                                // Clamp between 0.3 and 0.85
+                                newPosition = Math.max(0.3f, Math.min(0.85f, newPosition));
+                                
+                                updateHorizontalDividerPosition(newPosition);
+                            }
+                        }
+                        return true;
+
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        if (isDragging) {
+                            isDragging = false;
+                            v.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.purple_500));
+                            
+                            // Save position to SharedPreferences
+                            SharedPreferences prefs = requireContext().getSharedPreferences("ft8cn_prefs", Context.MODE_PRIVATE);
+                            prefs.edit().putFloat("spectrumSequenceDividerPosition", horizontalDividerPosition).apply();
+                        }
+                        return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Update the horizontal divider position by updating the guideline
+     */
+    private void updateHorizontalDividerPosition(float position) {
+        horizontalDividerPosition = position;
+        
+        ConstraintLayout parent = (ConstraintLayout) binding.getRoot();
+        ConstraintSet constraintSet = new ConstraintSet();
+        constraintSet.clone(parent);
+        
+        // Update horizontal guideline position
+        constraintSet.setGuidelinePercent(R.id.guidelineSpectrumSequence, position);
         
         // Apply constraints
         constraintSet.applyTo(parent);

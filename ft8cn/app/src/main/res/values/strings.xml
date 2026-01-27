@@ -208,6 +208,7 @@
     <string name="qsl_manual_confirmation">Manually confirmed</string>
     <string name="qsl_unconfirmed">Unconfirmed</string>
     <string name="qsl_qrz_uploaded">QRZ.com uploaded</string>
+    <string name="qsl_qrz_not_uploaded">Not uploaded to QRZ.com</string>
     <string name="qsl_cancel_confirmation">Cancel confirmation (%s)</string>
     <string name="qsl_manual_confirmation_s">Manual confirmation (%s)</string>
     <string name="qsl_qrz_confirmation_s">QRZ (%s)</string>
