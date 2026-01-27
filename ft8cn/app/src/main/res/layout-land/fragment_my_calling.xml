@@ -338,7 +338,7 @@
             android:id="@+id/messageSpectrumView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@+id/sequenceDetailsLayout"
+            app:layout_constraintBottom_toTopOf="@+id/guidelineSpectrumSequence"
             app:layout_constraintEnd_toStartOf="@+id/guideline22"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/mycall_tools_bar" />
@@ -358,7 +358,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/guideline22"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/messageSpectrumView"
+            app:layout_constraintTop_toBottomOf="@+id/guidelineSpectrumSequence"
             tools:visibility="visible">
 
             <!-- Left side: Sequence Details -->
@@ -489,7 +489,15 @@
             android:orientation="vertical"
             app:layout_constraintGuide_percent="0.5" />
 
-        <!-- Resizable divider between spectrum and right side content -->
+        <!-- Horizontal guideline to split spectrum and sequence details -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guidelineSpectrumSequence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.65" />
+
+        <!-- Resizable divider between spectrum and right side content (vertical) -->
         <View
             android:id="@+id/spectrumDivider"
             android:layout_width="6dp"
@@ -503,6 +511,21 @@
             app:layout_constraintEnd_toEndOf="@+id/guideline22"
             app:layout_constraintStart_toStartOf="@+id/guideline22"
             app:layout_constraintTop_toTopOf="@+id/mycall_tools_bar" />
+
+        <!-- Resizable divider between spectrum and sequence details (horizontal) -->
+        <View
+            android:id="@+id/spectrumSequenceDivider"
+            android:layout_width="0dp"
+            android:layout_height="6dp"
+            android:background="@color/purple_500"
+            android:clickable="true"
+            android:focusable="true"
+            android:backgroundTint="@color/purple_500"
+            android:minHeight="6dp"
+            app:layout_constraintBottom_toBottomOf="@+id/guidelineSpectrumSequence"
+            app:layout_constraintEnd_toStartOf="@+id/guideline22"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/guidelineSpectrumSequence" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

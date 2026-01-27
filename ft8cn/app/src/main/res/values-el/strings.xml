@@ -179,6 +179,8 @@
     <string name="qsl_lotw_confirmation">Επιβεβαίωση LoTW</string>
     <string name="qsl_manual_confirmation">Χειροκ. επιβεβαίωση</string>
     <string name="qsl_unconfirmed">Χωρίς επιβεβαίωση</string>
+    <string name="qsl_qrz_uploaded">Ανεβάστηκε στο QRZ.com</string>
+    <string name="qsl_qrz_not_uploaded">Δεν ανέβηκε στο QRZ.com</string>
     <string name="qsl_cancel_confirmation">Ακύρωση επιβεβαίωσης (%s)</string>
     <string name="qsl_manual_confirmation_s">Χειροκ. επιβεβαίωση (%s)</string>
     <string name="qsl_qrz_confirmation_s">QRZ (%s)</string>

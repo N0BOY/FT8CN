@@ -288,14 +288,6 @@ public class LogFragment extends Fragment {
         int position = (Integer) item.getActionView().getTag();
         if (!mainViewModel.logListShowCallsign) {
             switch (item.getItemId()) {
-                case 0:
-                    logQSLAdapter.setRecordIsQSL(position, false);
-                    logQSLAdapter.notifyItemChanged(position);
-                    break;
-                case 1:
-                    logQSLAdapter.setRecordIsQSL(position, true);
-                    logQSLAdapter.notifyItemChanged(position);
-                    break;
                 case 2:
                     showQrzFragment(logQSLAdapter.getRecord(position).getCall());
                     break;
@@ -413,11 +405,7 @@ public class LogFragment extends Fragment {
 
                 }
 
-                if (direction == ItemTouchHelper.START) {
-                    logQSLAdapter.setRecordIsQSL(viewHolder.getAdapterPosition()
-                            , !logQSLAdapter.getRecord(viewHolder.getAdapterPosition()).isQSL);
-                    logQSLAdapter.notifyItemChanged(viewHolder.getAdapterPosition());
-                }
+                // Swipe left action removed - no longer toggling QSL confirmation
             }
 
             //判断列表格式，呼号列表
@@ -428,7 +416,8 @@ public class LogFragment extends Fragment {
                 if (mainViewModel.logListShowCallsign) {
                     swipeFlag = 0;
                 } else {
-                    swipeFlag = ItemTouchHelper.START | ItemTouchHelper.END;
+                    // Only allow swipe right (END) for delete, no more swipe left (START) for QSL toggle
+                    swipeFlag = ItemTouchHelper.END;
                 }
                 return makeMovementFlags(0, swipeFlag);
             }
@@ -436,8 +425,6 @@ public class LogFragment extends Fragment {
             //制作删除背景的图标显示
             final Drawable delIcon = ContextCompat.getDrawable(requireActivity()
                     , R.drawable.log_item_delete_icon);
-            final Drawable qslIcon = ContextCompat.getDrawable(requireActivity()
-                    , R.drawable.ic_baseline_library_add_check_24);
             final Drawable background = new ColorDrawable(Color.LTGRAY);
 
             @Override
@@ -445,42 +432,26 @@ public class LogFragment extends Fragment {
                     , @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY
                     , int actionState, boolean isCurrentlyActive) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-                Drawable icon;
-                View itemView = viewHolder.itemView;
+                // Only show delete icon when swiping right (no more QSL toggle on left swipe)
                 if (dX > 0) {
-                    icon = delIcon;
-                } else {
-                    icon = qslIcon;
-                }
-
-                int iconMargin = (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-                int iconLeft, iconRight, iconTop, iconBottom;
-                int backTop, backBottom, backLeft, backRight;
-                backTop = itemView.getTop();
-                backBottom = itemView.getBottom();
-                iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-                iconBottom = iconTop + icon.getIntrinsicHeight();
-                if (dX > 0) {
+                    Drawable icon = delIcon;
+                    View itemView = viewHolder.itemView;
+                    int iconMargin = (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
+                    int iconLeft, iconRight, iconTop, iconBottom;
+                    int backTop, backBottom, backLeft, backRight;
+                    backTop = itemView.getTop();
+                    backBottom = itemView.getBottom();
+                    iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
+                    iconBottom = iconTop + icon.getIntrinsicHeight();
                     backLeft = itemView.getLeft();
                     backRight = itemView.getLeft() + (int) dX;
                     background.setBounds(backLeft, backTop, backRight, backBottom);
                     iconLeft = itemView.getLeft() + iconMargin;
                     iconRight = iconLeft + icon.getIntrinsicWidth();
                     icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                } else if (dX < 0) {
-                    backRight = itemView.getRight();
-                    backLeft = itemView.getRight() + (int) dX;
-                    background.setBounds(backLeft, backTop, backRight, backBottom);
-                    iconRight = itemView.getRight() - iconMargin;
-                    iconLeft = iconRight - icon.getIntrinsicWidth();
-                    icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-                } else {
-                    background.setBounds(0, 0, 0, 0);
-                    icon.setBounds(0, 0, 0, 0);
+                    background.draw(c);
+                    icon.draw(c);
                 }
-                background.draw(c);
-                icon.draw(c);
-
             }
         }).attachToRecyclerView(binding.logRecyclerView);
     }

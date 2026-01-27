@@ -139,31 +139,15 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
                 , holder.record.getMode()));
         holder.logQSOcCommentTextView.setText(holder.record.getComment());
 
-        // Build status text - show multiple statuses if applicable
-        StringBuilder statusText = new StringBuilder();
-        if (holder.record.isLotW_QSL) {
-            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_lotw_confirmation));
-        } else if (holder.record.isQSL) {
-            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation));
-        } else {
-            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_unconfirmed));
-        }
-        
-        // Add QRZ upload status if uploaded
+        // Show QRZ upload status only
         if (holder.record.isQRZ_uploaded) {
-            if (statusText.length() > 0) {
-                statusText.append(", ");
-            }
-            statusText.append(GeneralVariables.getStringFromResource(R.string.qsl_qrz_uploaded));
-        }
-        
-        holder.logIsQSLTextView.setText(statusText.toString());
-        
-        // Set text color based on confirmation status
-        if (holder.record.isLotW_QSL || holder.record.isQSL) {
+            holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_qrz_uploaded));
+            // Set text color to green if uploaded to QRZ
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
-                    R.color.is_qsl_text_color));
+                    android.R.color.holo_green_dark));
         } else {
+            holder.logIsQSLTextView.setText(GeneralVariables.getStringFromResource(R.string.qsl_qrz_not_uploaded));
+            // Default text color if not uploaded
             holder.logIsQSLTextView.setTextColor(context.getResources().getColor(
                     R.color.is_not_qsl_text_color));
         }
@@ -234,25 +218,18 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
             logQSLWhereTextView = itemView.findViewById(R.id.logQSLWhereTextView);
             logIsQSLTextView = itemView.findViewById(R.id.logIsQSLTextView);
 
+            // Context menu for QRZ and location only (confirm/cancel removed)
             itemView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                 @Override
                 public void onCreateContextMenu(ContextMenu contextMenu, View view
                         , ContextMenu.ContextMenuInfo contextMenuInfo) {
                     view.setTag(getAdapterPosition());
-                    //添加菜单的参数i1:组，i2:id值，i3:显示顺序
-                    if (record.isQSL) {
-                        contextMenu.add(0, 0, 0
-                                , String.format(GeneralVariables.getStringFromResource(R.string.qsl_cancel_confirmation)
-                                        , record.getCall())).setActionView(view);
-                    } else {
-                        contextMenu.add(0, 1, 0
-                                , String.format(GeneralVariables.getStringFromResource(R.string.qsl_manual_confirmation_s)
-                                        , record.getCall())).setActionView(view);
-                    }
+                    // QRZ menu item
                     contextMenu.add(0, 2, 0
                             , String.format(GeneralVariables.getStringFromResource(R.string.qsl_qrz_confirmation_s)
                                     , record.getCall())).setActionView(view);
 
+                    // Location menu item (if gridsquares are available)
                     if (record.getGridsquare() != null && !record.getGridsquare().equals("")
                             && record.getMy_gridsquare() != null && !record.getMy_gridsquare().equals("")) {
                         contextMenu.add(0, 3, 0

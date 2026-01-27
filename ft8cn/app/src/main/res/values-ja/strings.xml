@@ -333,6 +333,8 @@
     <string name="qsl_manual_confirmation">手動で確認</string>
 
     <string name="qsl_unconfirmed">未確認</string>
+    <string name="qsl_qrz_uploaded">QRZ.comにアップロード済み</string>
+    <string name="qsl_qrz_not_uploaded">QRZ.comにアップロードされていません</string>
 
     <string name="qsl_cancel_confirmation">確認をキャンセル%s</string>
 

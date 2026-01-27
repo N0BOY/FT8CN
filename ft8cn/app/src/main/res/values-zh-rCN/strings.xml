@@ -179,6 +179,8 @@
     <string name="qsl_lotw_confirmation">LoTW已确认</string>
     <string name="qsl_manual_confirmation">手工确认</string>
     <string name="qsl_unconfirmed">未确认</string>
+    <string name="qsl_qrz_uploaded">已上传到QRZ.com</string>
+    <string name="qsl_qrz_not_uploaded">未上传到QRZ.com</string>
     <string name="qsl_cancel_confirmation">取消确认：%s</string>
     <string name="qsl_manual_confirmation_s">手工确认：%s</string>
 

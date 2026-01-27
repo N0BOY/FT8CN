@@ -179,6 +179,8 @@
     <string name="qsl_lotw_confirmation">LoTW confirmado</string>
     <string name="qsl_manual_confirmation">Confirmado manualmente</string>
     <string name="qsl_unconfirmed">Inconfirmado</string>
+    <string name="qsl_qrz_uploaded">Subido a QRZ.com</string>
+    <string name="qsl_qrz_not_uploaded">No subido a QRZ.com</string>
     <string name="qsl_cancel_confirmation">Cancelar confirmación (%s)</string>
     <string name="qsl_manual_confirmation_s">Confirmado manualmente (%s)</string>
     <string name="qsl_qrz_confirmation_s">QRZ (%s)</string>
