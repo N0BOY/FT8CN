@@ -1,5 +1,109 @@
 # FT8CN Release Notes
 
+## Version 0.93.153 (January 27, 2026)
+
+### 🎤 Audio Input Monitoring & Control
+
+#### Microphone Input Level Meter
+- **Real-time microphone input level display**: Added visual microphone input level meter next to the microphone icon in the calling list
+  - Displays input level as percentage (0% to 100%)
+  - Updates in real-time (every 100ms) when microphone is active
+  - Automatically hides when microphone is not recording
+  - Level calculation based on RMS (Root Mean Square) of audio samples
+  - Maps dBFS values (-60 dBFS to 0 dBFS) to percentage scale for intuitive display
+- **Visual warning for high input levels**: Text color changes to red when input level exceeds 80%
+  - Provides immediate visual feedback for potential clipping or distortion
+  - Helps users adjust microphone gain or distance to prevent audio issues
+  - Default text color (white/gray) used for normal levels
+
+#### Microphone Input Gain Control
+- **Adjustable microphone input gain**: Added microphone input gain slider in the volume settings dialog
+  - Gain range: 25% (0.25x) to 200% (2.0x)
+  - Default: 100% (1.0x, no gain change)
+  - Gain is applied to audio samples in real-time before processing
+  - Prevents clipping by clamping samples to valid range (-1.0 to 1.0)
+  - Gain setting persists across app restarts (saved to database)
+- **Unified audio control dialog**: Both output volume and microphone input gain controls are now in the same settings dialog
+  - Signal output strength slider (top section)
+  - Microphone input gain slider (bottom section)
+  - Both controls include visual progress indicators
+  - Consistent UI/UX for audio adjustments
+
+### 🔧 Technical Improvements
+
+#### Audio Processing
+- **Real-time dB level calculation**: Added RMS-based dB level calculation in MicRecorder
+  - Calculates dBFS (decibels relative to full scale) from audio samples
+  - Updates LiveData for UI observation
+  - Handles edge cases (silence, clipping) gracefully
+- **Gain application**: Microphone input gain is applied to audio samples before passing to listeners
+  - Gain multiplication with clipping protection
+  - Affects both audio processing and dB level display
+  - Real-time application without buffering delays
+
+#### Database & Configuration
+- **Mic input gain persistence**: Added database storage for microphone input gain setting
+  - Config key: `micInputGain` (stored as percentage, 25-200)
+  - Automatic loading on app startup
+  - Value clamping to valid range [0.25, 2.0]
+  - Default value: 1.0 (100%) if not set
+
+### 🌐 Localization
+- **Added microphone input gain string**: Added "Microphone input gain %.0f %%" string resource
+  - Available in all supported languages
+
+---
+
+## Version 0.93.148 (January 27, 2026)
+
+### 🧪 Testing & Quality Assurance
+
+#### Comprehensive Unit Test Coverage
+- **Added unit tests for high-touch areas**: Created comprehensive test suites for critical components
+  - **CallsignQueue tests**: 20+ test cases covering queue operations, FIFO ordering, duplicate prevention, item reordering, and thread safety
+  - **GeneralVariables tests**: 30+ test cases covering function order detection, message type classification, callsign matching, and exclusion list management
+  - **DecodeDuplicateFilter tests**: 15+ test cases covering multi-factor duplicate detection, tolerance boundaries, SNR updates, and real-world scenarios
+  - **QSLRecord tests**: 13 test cases covering record creation, validation, error handling, data import, and date/time formatting
+  - **Database operations tests**: Tests for configuration operations, SQL construction, and data validation
+  - **Settings validation tests**: 10 test cases covering input validation for all major settings fields
+
+#### Test Infrastructure
+- All 93+ unit tests passing
+- Tests follow existing patterns and use JUnit 4
+- Test results available in HTML format for easy review
+- Tests help prevent regressions in critical areas
+
+### 🔄 CI/CD Improvements
+
+#### GitHub Actions Workflows
+- **Unit tests workflow**: Automatically runs unit tests on pull requests and pushes to the `release` branch
+  - Sets up JDK 17 and Android SDK API 33
+  - Runs all unit tests with `./gradlew test`
+  - Uploads test results as artifacts (retained for 7 days)
+- **Release build workflow**: Manual workflow for creating release builds
+  - Can be triggered manually from GitHub Actions UI
+  - Optional version name input for custom versioning
+  - Builds release APK with `./gradlew assembleRelease`
+  - Uploads APK as artifact (retained for 30 days)
+  - Creates build summary with version information
+
+### 📚 Documentation Organization
+
+#### Wiki Structure
+- **Moved documentation to wiki folder**: Reorganized markdown documentation files
+  - Moved `APPLICATION_FLOW.md`, `AUTO_SEQUENCING_IMPROVEMENTS.md`, `CALLSIGN_QUEUE.md`, `DECODE_IMPROVEMENTS.md`, `SETTINGS_DIALOG_UPDATES.md`, `SKIP_MY_GRID_WHEN_RESPONDING.md`, and `USER_GUIDE.md` to `wiki/` folder
+  - Kept `README.md` and `RELEASE_NOTES.md` in root for GitHub visibility
+  - Improved project organization and documentation discoverability
+
+### 🔧 Technical Improvements
+
+#### Code Quality
+- Enhanced test coverage for critical business logic
+- Improved validation and error handling in settings dialogs
+- Better documentation of database operations and configuration management
+
+---
+
 ## Version 0.93.113 (January 26, 2026)
 
 ### 🎨 UI Improvements

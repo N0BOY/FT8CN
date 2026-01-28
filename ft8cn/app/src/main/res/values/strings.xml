@@ -60,6 +60,8 @@
     <string name="pl_select_serial_port">Please select serial port</string>
     <string name="close">Close</string>
     <string name="rig_name">Rig</string>
+    <string name="rig_make">Make</string>
+    <string name="rig_model">Model</string>
     <string name="debug">Debug</string>
     <string name="logo_image">FT8CN</string>
     <string name="RTS">RTS</string>
@@ -393,6 +395,7 @@
     <string name="alc_value">ALC: %.1f</string>
     <string name="swr_value">SWR: %.1f</string>
     <string name="volume_percent">Signal output strength %.0f %%</string>
+    <string name="mic_input_gain_percent">Microphone input gain %.0f %%</string>
     <string name="signal_strength">Signal output strength</string>
     <string name="html_distance">Distance</string>
     <string name="html_callsign_qth">QTH of callsign</string>

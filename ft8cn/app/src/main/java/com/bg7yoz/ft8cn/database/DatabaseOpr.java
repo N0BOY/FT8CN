@@ -203,7 +203,33 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             cursor.close();
             return true;
         }
+        cursor.close();
         return false;
+    }
+    
+    /**
+     * Safely get a string value from a cursor, returning default if null or column doesn't exist.
+     * Prevents NullPointerException when database fields are uninitialized.
+     * 
+     * @param cursor The database cursor
+     * @param columnName The column name to read
+     * @param defaultValue The default value to return if column is null or doesn't exist
+     * @return The string value or default
+     */
+    @SuppressLint("Range")
+    private static String getStringSafely(Cursor cursor, String columnName, String defaultValue) {
+        try {
+            int columnIndex = cursor.getColumnIndex(columnName);
+            if (columnIndex < 0) {
+                // Column doesn't exist
+                return defaultValue;
+            }
+            String value = cursor.getString(columnIndex);
+            return value != null ? value : defaultValue;
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading column " + columnName + ": " + e.getMessage());
+            return defaultValue;
+        }
     }
     private void deleteDxccPrefixEqual(SQLiteDatabase db) {
         db.execSQL("DELETE from dxcc_prefix where prefix LIKE \"=%\"");
@@ -1831,7 +1857,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 QSLRecordStr record = new QSLRecordStr();
                 record.id = cursor.getInt(cursor.getColumnIndex("id"));
-                record.setCall(cursor.getString(cursor.getColumnIndex("call")));
+                record.setCall(getStringSafely(cursor, "call", ""));
                 record.isQSL = cursor.getInt(cursor.getColumnIndex("isQSL")) == 1;
                 record.isLotW_import = cursor.getInt(cursor.getColumnIndex("isLotW_import")) == 1;
                 record.isLotW_QSL = cursor.getInt(cursor.getColumnIndex("isLotW_QSL")) == 1;
@@ -1846,18 +1872,20 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 record.setMode(cursor.getString(cursor.getColumnIndex("mode")));
                 record.setRst_sent(cursor.getString(cursor.getColumnIndex("rst_sent")));
                 record.setRst_rcvd(cursor.getString(cursor.getColumnIndex("rst_rcvd")));
-                record.setTime_on(String.format("%s-%s"
-                        , cursor.getString(cursor.getColumnIndex("qso_date"))
-                        , cursor.getString(cursor.getColumnIndex("time_on"))));
+                // Safe string access with null checks
+                String qsoDate = getStringSafely(cursor, "qso_date", "");
+                String timeOn = getStringSafely(cursor, "time_on", "");
+                record.setTime_on(String.format("%s-%s", qsoDate, timeOn));
 
-                record.setTime_off(String.format("%s-%s"
-                        , cursor.getString(cursor.getColumnIndex("qso_date_off"))
-                        , cursor.getString(cursor.getColumnIndex("time_off"))));
-                record.setBand(cursor.getString(cursor.getColumnIndex("band")));//波长
-                record.setFreq(cursor.getString(cursor.getColumnIndex("freq")));//频率
-                record.setStation_callsign(cursor.getString(cursor.getColumnIndex("station_callsign")));
-                record.setMy_gridsquare(cursor.getString(cursor.getColumnIndex("my_gridsquare")));
-                record.setComment(cursor.getString(cursor.getColumnIndex("comment")));
+                String qsoDateOff = getStringSafely(cursor, "qso_date_off", "");
+                String timeOff = getStringSafely(cursor, "time_off", "");
+                record.setTime_off(String.format("%s-%s", qsoDateOff, timeOff));
+                // Safe string access - handle null values
+                record.setBand(getStringSafely(cursor, "band", ""));//波长
+                record.setFreq(getStringSafely(cursor, "freq", ""));//频率
+                record.setStation_callsign(getStringSafely(cursor, "station_callsign", ""));
+                record.setMy_gridsquare(getStringSafely(cursor, "my_gridsquare", ""));
+                record.setComment(getStringSafely(cursor, "comment", ""));
                 records.add(record);
             }
             cursor.close();
@@ -2169,14 +2197,24 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 //String result = "";
                 String result = cursor.getString(cursor.getColumnIndex("Value"));
                 String name = cursor.getString(cursor.getColumnIndex("KeyName"));
+                
+                // Safety check: Skip if name or result is null
+                if (name == null) {
+                    Log.w(TAG, "Skipping config entry with null key name");
+                    continue;
+                }
+                // result can be null, handle it safely
+                if (result == null) {
+                    result = "";
+                }
 
                 if (name.equalsIgnoreCase("grid")) {
-                    GeneralVariables.setMyMaidenheadGrid(result);
+                    GeneralVariables.setMyMaidenheadGrid(result != null ? result : "");
                 }
                 if (name.equalsIgnoreCase("callsign")) {
-                    GeneralVariables.myCallsign = result;
+                    GeneralVariables.myCallsign = result != null ? result : "";
                     String callsign = GeneralVariables.myCallsign;
-                    if (callsign.length() > 0) {
+                    if (callsign != null && callsign.length() > 0) {
                         Ft8Message.hashList.addHash(FT8Package.getHash22(callsign), callsign);
                         Ft8Message.hashList.addHash(FT8Package.getHash12(callsign), callsign);
                         Ft8Message.hashList.addHash(FT8Package.getHash10(callsign), callsign);
@@ -2189,81 +2227,148 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     }
                 }
                 if (name.equalsIgnoreCase("toModifier")) {
-                    GeneralVariables.toModifier = result;
+                    GeneralVariables.toModifier = result != null ? result : "";
                 }
                 if (name.equalsIgnoreCase("freq")) {
                     float freq = 1000;
                     try {
-                        freq = Float.parseFloat(result);
-                    } catch (Exception e) {
-                        Log.e(TAG, "doInBackground: " + e.getMessage());
+                        if (result != null && !result.equals("")) {
+                            freq = Float.parseFloat(result);
+                            // Clamp frequency to valid range [100, 2900]
+                            if (freq < 100.0f) {
+                                freq = 100.0f;
+                                Log.w(TAG, "Frequency clamped to minimum 100 Hz");
+                            } else if (freq > 2900.0f) {
+                                freq = 2900.0f;
+                                Log.w(TAG, "Frequency clamped to maximum 2900 Hz");
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid freq value: " + result + ", using default 1000");
+                        freq = 1000;
                     }
-                    //GeneralVariables.setBaseFrequency(result.equals("") ? 1000 : Float.parseFloat(result));
                     GeneralVariables.setBaseFrequency(freq);
                 }
                 if (name.equalsIgnoreCase("synFreq")) {
-                    GeneralVariables.synFrequency = !(result.equals("") || result.equals("0"));
+                    GeneralVariables.synFrequency = !(result == null || result.equals("") || result.equals("0"));
                 }
                 if (name.equalsIgnoreCase("transDelay")) {
-                    if (result.matches("^\\d{1,4}$")) {//正则表达式，1-4位长度的数字
-                        GeneralVariables.transmitDelay = Integer.parseInt(result);
-                    } else {
+                    try {
+                        if (result != null && result.matches("^\\d{1,4}$")) {//正则表达式，1-4位长度的数字
+                            GeneralVariables.transmitDelay = Integer.parseInt(result);
+                        } else {
+                            GeneralVariables.transmitDelay = FT8Common.FT8_TRANSMIT_DELAY;
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid transDelay: " + result + ", using default");
                         GeneralVariables.transmitDelay = FT8Common.FT8_TRANSMIT_DELAY;
                     }
                 }
 
                 if (name.equalsIgnoreCase("civ")) {
-                    GeneralVariables.civAddress = result.equals("") ? 0xa4 : Integer.parseInt(result, 16);
+                    try {
+                        GeneralVariables.civAddress = result.equals("") ? 0xa4 : Integer.parseInt(result, 16);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid civ address: " + result + ", using default 0xa4");
+                        GeneralVariables.civAddress = 0xa4;
+                    }
                 }
                 if (name.equalsIgnoreCase("baudRate")) {
-                    GeneralVariables.baudRate = result.equals("") ? 19200 : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.baudRate = result.equals("") ? 19200 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid baudRate: " + result + ", using default 19200");
+                        GeneralVariables.baudRate = 19200;
+                    }
                 }
                 if (name.equalsIgnoreCase("bandFreq")) {
-                    GeneralVariables.band = result.equals("") ? 14074000 : Long.parseLong(result);
-                    GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
+                    try {
+                        GeneralVariables.band = result.equals("") ? 14074000 : Long.parseLong(result);
+                        GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid bandFreq: " + result + ", using default 14074000");
+                        GeneralVariables.band = 14074000;
+                        GeneralVariables.bandListIndex = OperationBand.getIndexByFreq(GeneralVariables.band);
+                    }
                 }
 
                 if (name.equalsIgnoreCase("msgMode")) {
-                    GeneralVariables.simpleCallItemMode = result.equals("1") ;
+                    GeneralVariables.simpleCallItemMode = result != null && result.equals("1");
                 }
 
                 if (name.equalsIgnoreCase("ctrMode")) {
-                    GeneralVariables.controlMode = result.equals("") ? ControlMode.VOX : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.controlMode = result.equals("") ? ControlMode.VOX : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid controlMode: " + result + ", using default VOX");
+                        GeneralVariables.controlMode = ControlMode.VOX;
+                    }
                 }
                 if (name.equalsIgnoreCase("model")) {//电台型号
-                    GeneralVariables.modelNo = result.equals("") ? 0 : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.modelNo = result.equals("") ? 0 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid model: " + result + ", using default 0");
+                        GeneralVariables.modelNo = 0;
+                    }
                 }
                 if (name.equalsIgnoreCase("instruction")) {//指令集
-                    GeneralVariables.instructionSet = result.equals("") ? 0 : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.instructionSet = result.equals("") ? 0 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid instructionSet: " + result + ", using default 0");
+                        GeneralVariables.instructionSet = 0;
+                    }
                 }
                 if (name.equalsIgnoreCase("launchSupervision")) {//发射监管
-                    GeneralVariables.launchSupervision = result.equals("") ?
-                            GeneralVariables.DEFAULT_LAUNCH_SUPERVISION : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.launchSupervision = result.equals("") ?
+                                GeneralVariables.DEFAULT_LAUNCH_SUPERVISION : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid launchSupervision: " + result + ", using default");
+                        GeneralVariables.launchSupervision = GeneralVariables.DEFAULT_LAUNCH_SUPERVISION;
+                    }
                 }
                 if (name.equalsIgnoreCase("noReplyLimit")) {//
-                    GeneralVariables.noReplyLimit = result.equals("") ? 0 : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.noReplyLimit = result.equals("") ? 0 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid noReplyLimit: " + result + ", using default 0");
+                        GeneralVariables.noReplyLimit = 0;
+                    }
                 }
                 if (name.equalsIgnoreCase("autoFollowCQ")) {//自动关注CQ
-                    GeneralVariables.autoFollowCQ = result.equals("1");
+                    GeneralVariables.autoFollowCQ = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("autoCallFollow")) {//自动呼叫关注
-                    GeneralVariables.autoCallFollow = result.equals("1");
+                    GeneralVariables.autoCallFollow = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("manualTimeslot")) {//手动设置发射时序
                     try {
-                        GeneralVariables.manualTimeslot = result.equals("") ? -1 : Integer.parseInt(result);
+                        GeneralVariables.manualTimeslot = (result == null || result.equals("")) ? -1 : Integer.parseInt(result);
                     } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid manualTimeslot: " + result + ", using default -1");
                         GeneralVariables.manualTimeslot = -1;
                     }
                 }
                 if (name.equalsIgnoreCase("pttDelay")) {//ptt延时设置
-                    GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.pttDelay = result.equals("") ? 100 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid pttDelay: " + result + ", using default 100");
+                        GeneralVariables.pttDelay = 100;
+                    }
                 }
                 if (name.equalsIgnoreCase("icomIp")) {//IcomIp地址
-                    GeneralVariables.icomIp = result.equals("") ? "255.255.255.255" : result;
+                    GeneralVariables.icomIp = (result == null || result.equals("")) ? "255.255.255.255" : result;
                 }
                 if (name.equalsIgnoreCase("icomPort")) {//Icom端口
-                    GeneralVariables.icomUdpPort = result.equals("") ? 50001 : Integer.parseInt(result);
+                    try {
+                        GeneralVariables.icomUdpPort = result.equals("") ? 50001 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid icomPort: " + result + ", using default 50001");
+                        GeneralVariables.icomUdpPort = 50001;
+                    }
                 }
                 if (name.equalsIgnoreCase("icomUserName")) {//Icom用户名
                     GeneralVariables.icomUserName = result.equals("") ? "ic705" : result;
@@ -2272,85 +2377,143 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     GeneralVariables.icomPassword = result;
                 }
                 if (name.equalsIgnoreCase("volumeValue")) {//输出音量大小
-                    GeneralVariables.volumePercent = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
+                    try {
+                        GeneralVariables.volumePercent = result.equals("") ? 0.5f : Float.parseFloat(result) / 100f;
+                        // Clamp volume to valid range [0.0, 1.0]
+                        if (GeneralVariables.volumePercent < 0.0f) {
+                            GeneralVariables.volumePercent = 0.0f;
+                        } else if (GeneralVariables.volumePercent > 1.0f) {
+                            GeneralVariables.volumePercent = 1.0f;
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid volumeValue: " + result + ", using default 0.5");
+                        GeneralVariables.volumePercent = 0.5f;
+                    }
+                }
+                if (name.equalsIgnoreCase("micInputGain")) {//麦克风输入增益
+                    try {
+                        GeneralVariables.micInputGain = result.equals("") ? 1.0f : Float.parseFloat(result) / 100f;
+                        // Clamp gain to valid range [0.25, 2.0] (25% to 200%)
+                        if (GeneralVariables.micInputGain < 0.25f) {
+                            GeneralVariables.micInputGain = 0.25f;
+                        } else if (GeneralVariables.micInputGain > 2.0f) {
+                            GeneralVariables.micInputGain = 2.0f;
+                        }
+                        // Initialize LiveData with the loaded value
+                        GeneralVariables.mutableMicInputGain.postValue(GeneralVariables.micInputGain);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid micInputGain: " + result + ", using default 1.0");
+                        GeneralVariables.micInputGain = 1.0f;
+                        GeneralVariables.mutableMicInputGain.postValue(1.0f);
+                    }
                 }
                 if (name.equalsIgnoreCase("excludedCallsigns")) {//排除的呼号
-                    GeneralVariables.addExcludedCallsigns(result);
+                    GeneralVariables.addExcludedCallsigns(result != null ? result : "");
                 }
-                if (name.equalsIgnoreCase("flexMaxRfPower")) {//指令集
-                    GeneralVariables.flexMaxRfPower = result.equals("") ? 10 : Integer.parseInt(result);
+                if (name.equalsIgnoreCase("flexMaxRfPower")) {//Flex最大发射功率
+                    try {
+                        GeneralVariables.flexMaxRfPower = result.equals("") ? 10 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid flexMaxRfPower: " + result + ", using default 10");
+                        GeneralVariables.flexMaxRfPower = 10;
+                    }
                 }
-                if (name.equalsIgnoreCase("flexMaxTunePower")) {//指令集
-                    GeneralVariables.flexMaxTunePower = result.equals("") ? 10 : Integer.parseInt(result);
+                if (name.equalsIgnoreCase("flexMaxTunePower")) {//Flex最大调谐功率
+                    try {
+                        GeneralVariables.flexMaxTunePower = result.equals("") ? 10 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid flexMaxTunePower: " + result + ", using default 10");
+                        GeneralVariables.flexMaxTunePower = 10;
+                    }
                 }
                 if (name.equalsIgnoreCase("saveSWL")) {//保存解码信息
-                    GeneralVariables.saveSWLMessage = result.equals("1");
+                    GeneralVariables.saveSWLMessage = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("saveSWLQSO")) {//保存解码信息
-                    GeneralVariables.saveSWL_QSO = result.equals("1");
+                    GeneralVariables.saveSWL_QSO = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("audioBits")) {//输出音频是否32位浮点
-                    GeneralVariables.audioOutput32Bit = result.equals("1");
+                    GeneralVariables.audioOutput32Bit = result != null && result.equals("1");
                 }
-                if (name.equalsIgnoreCase("audioRate")) {//输出音频是否32位浮点
-                    GeneralVariables.audioSampleRate =Integer.parseInt( result);
+                if (name.equalsIgnoreCase("audioRate")) {//输出音频采样率
+                    try {
+                        GeneralVariables.audioSampleRate = result.equals("") ? 12000 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid audioRate value: " + result + ", using default 12000");
+                        GeneralVariables.audioSampleRate = 12000;
+                    }
                 }
                 if (name.equalsIgnoreCase("deepMode")) {//是不是深度解码模式
-                    GeneralVariables.deepDecodeMode =result.equals("1");
+                    GeneralVariables.deepDecodeMode = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("dataBits")) {//串口数据位
-                    GeneralVariables.serialDataBits =Integer.parseInt(result);
+                    try {
+                        GeneralVariables.serialDataBits = result.equals("") ? 8 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid dataBits value: " + result + ", using default 8");
+                        GeneralVariables.serialDataBits = 8;
+                    }
                 }
                 if (name.equalsIgnoreCase("stopBits")) {//串口停止位
-                    GeneralVariables.serialStopBits =Integer.parseInt(result);
+                    try {
+                        GeneralVariables.serialStopBits = result.equals("") ? 1 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid stopBits value: " + result + ", using default 1");
+                        GeneralVariables.serialStopBits = 1;
+                    }
                 }
                 if (name.equalsIgnoreCase("parityBits")) {//串口校验位
-                    GeneralVariables.serialParity =Integer.parseInt(result);
+                    try {
+                        GeneralVariables.serialParity = result.equals("") ? 0 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid parityBits value: " + result + ", using default 0");
+                        GeneralVariables.serialParity = 0;
+                    }
                 }
 
                 // cloudlogs
                 if (name.equalsIgnoreCase("enableCloudlog")) {
-                    GeneralVariables.enableCloudlog = result.equals("1");
+                    GeneralVariables.enableCloudlog = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("cloudlogServerAddress")) {
-                    GeneralVariables.cloudlogServerAddress = result;
+                    GeneralVariables.cloudlogServerAddress = result != null ? result : "";
                 }
                 if (name.equalsIgnoreCase("cloudlogApiKey")) {
-                    GeneralVariables.cloudlogApiKey = result;
+                    GeneralVariables.cloudlogApiKey = result != null ? result : "";
                 }
                 if (name.equalsIgnoreCase("cloudlogStationID")) {
-                    GeneralVariables.cloudlogStationID = result;
+                    GeneralVariables.cloudlogStationID = result != null ? result : "";
                 }
 
                 //QRZ
                 if (name.equalsIgnoreCase("enableQRZ")) {
-                    GeneralVariables.enableQRZ = result.equals("1");
+                    GeneralVariables.enableQRZ = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("qrzApiKey")) {
-                    GeneralVariables.qrzApiKey = result;
+                    GeneralVariables.qrzApiKey = result != null ? result : "";
                 }
 
                 if (name.equalsIgnoreCase("swrSwitch")) {
-                    GeneralVariables.swr_switch_on = result.equals("1");
+                    GeneralVariables.swr_switch_on = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("alcSwitch")) {
-                    GeneralVariables.alc_switch_on = result.equals("1");
+                    GeneralVariables.alc_switch_on = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("alwaysShowSwrAlc")) {
                     // Deprecated: No longer used - only alerts are shown, not values
                     GeneralVariables.always_show_swr_alc = false;
                 }
                 if (name.equalsIgnoreCase("decodeOverrunToast")) {
-                    GeneralVariables.decode_overrun_toast = result.equals("1");
+                    GeneralVariables.decode_overrun_toast = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("liveDecodeUpdates")) {
-                    GeneralVariables.live_decode_updates = result.equals("1");
+                    GeneralVariables.live_decode_updates = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("skipMyGridWhenResponding")) {
-                    GeneralVariables.skip_my_grid_when_responding = result.equals("1");
+                    GeneralVariables.skip_my_grid_when_responding = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("callingAddsToFollowList")) {
-                    GeneralVariables.callingAddsToFollowList = result.equals("1");
+                    GeneralVariables.callingAddsToFollowList = result != null && result.equals("1");
                 }
 
             }

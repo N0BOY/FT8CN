@@ -40,6 +40,19 @@
                 app:layout_constraintTop_toBottomOf="@+id/maidenheadTextView"
                 tools:text="123456" />
 
+            <TextView
+                android:id="@+id/micDbLevelTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:textColor="@color/bar_text_view_color"
+                android:textSize="11sp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="@+id/timerImageButton"
+                app:layout_constraintEnd_toStartOf="@+id/timerImageButton"
+                app:layout_constraintTop_toTopOf="@+id/timerImageButton"
+                tools:text="75%" />
+
             <ImageButton
                 android:id="@+id/timerImageButton"
                 android:layout_width="wrap_content"

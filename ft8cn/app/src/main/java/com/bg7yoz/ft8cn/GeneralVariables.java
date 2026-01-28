@@ -46,6 +46,11 @@ public class GeneralVariables {
 
     public static MutableLiveData<Float> mutableVolumePercent = new MutableLiveData<>();
     public static float volumePercent = 0.5f;//播放音频的音量,是百分比
+    
+    public static MutableLiveData<Float> mutableMicDbLevel = new MutableLiveData<>();//麦克风输入电平（dBFS）
+    
+    public static MutableLiveData<Float> mutableMicInputGain = new MutableLiveData<>();//麦克风输入增益
+    public static float micInputGain = 1.0f;//麦克风输入增益,是倍数（范围0.25到2.0，即25%到200%）
 
     public static int flexMaxRfPower = 10;//flex电台的最大发射功率
     public static int flexMaxTunePower = 10;//flex电台的最大调谐功率

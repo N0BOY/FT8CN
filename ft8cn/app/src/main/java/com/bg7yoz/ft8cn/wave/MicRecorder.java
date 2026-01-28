@@ -26,6 +26,10 @@ public class MicRecorder {
     private AudioRecord audioRecord = null;//AudioRecord对象
     private boolean isRunning = false;//是否处于录音的状态。
     private OnDataListener onDataListener;
+    
+    // dB level calculation variables
+    private static final long UPDATE_INTERVAL_MS = 100; // Update dB level every 100ms
+    private long lastUpdateTime = 0;
 
     public interface OnDataListener{
         void onDataReceived(float[] data,int len);
@@ -44,6 +48,7 @@ public class MicRecorder {
         if (isRunning) return;
 
         float[] buffer = new float[bufferSize];
+        lastUpdateTime = 0; // Reset update timer
         try {
             audioRecord.startRecording();//开始录音
         }catch (Exception e){
@@ -68,8 +73,30 @@ public class MicRecorder {
                     //读录音的数据
                     int bufferReadResult = audioRecord.read(buffer, 0, bufferSize,AudioRecord.READ_BLOCKING);
 
+                    // Apply mic input gain to the audio samples
+                    float gain = GeneralVariables.micInputGain;
+                    if (gain != 1.0f && bufferReadResult > 0) {
+                        for (int i = 0; i < bufferReadResult; i++) {
+                            buffer[i] *= gain;
+                            // Clamp to prevent clipping (float PCM range is -1.0 to 1.0)
+                            if (buffer[i] > 1.0f) {
+                                buffer[i] = 1.0f;
+                            } else if (buffer[i] < -1.0f) {
+                                buffer[i] = -1.0f;
+                            }
+                        }
+                    }
+
                     if (onDataListener!=null){
                         onDataListener.onDataReceived(buffer,bufferReadResult);
+                    }
+                    
+                    // Calculate and update dB level periodically (after gain is applied)
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastUpdateTime >= UPDATE_INTERVAL_MS) {
+                        float dBLevel = calculateDbLevel(buffer, bufferReadResult);
+                        GeneralVariables.mutableMicDbLevel.postValue(dBLevel);
+                        lastUpdateTime = currentTime;
                     }
                 }
                 try {
@@ -90,6 +117,8 @@ public class MicRecorder {
      */
     public void stopRecord() {
         isRunning = false;
+        // Clear dB level when recording stops
+        GeneralVariables.mutableMicDbLevel.postValue(Float.NEGATIVE_INFINITY);
     }
 
     public OnDataListener getOnDataListener() {
@@ -98,5 +127,40 @@ public class MicRecorder {
 
     public void setOnDataListener(OnDataListener onDataListener) {
         this.onDataListener = onDataListener;
+    }
+    
+    /**
+     * Calculate dB level (dBFS - decibels relative to full scale) from audio buffer
+     * @param buffer Audio buffer
+     * @param len Length of valid data in buffer
+     * @return dB level (typically ranges from -infinity to 0 dBFS)
+     */
+    private float calculateDbLevel(float[] buffer, int len) {
+        if (len <= 0) {
+            return Float.NEGATIVE_INFINITY;
+        }
+        
+        // Calculate RMS (Root Mean Square)
+        double sumSquares = 0.0;
+        for (int i = 0; i < len; i++) {
+            double sample = buffer[i];
+            sumSquares += sample * sample;
+        }
+        
+        double rms = Math.sqrt(sumSquares / len);
+        
+        // Convert to dBFS (decibels relative to full scale)
+        // For float PCM, full scale is 1.0, so we use that as reference
+        if (rms <= 0.0) {
+            return Float.NEGATIVE_INFINITY;
+        }
+        
+        // dB = 20 * log10(rms / reference)
+        // For dBFS, reference is 1.0 (full scale)
+        double dB = 20.0 * Math.log10(rms);
+        
+        // Clamp to reasonable range (typically -60 to 0 dBFS for practical purposes)
+        // But we'll allow lower values for very quiet signals
+        return (float) Math.max(dB, -120.0);
     }
 }

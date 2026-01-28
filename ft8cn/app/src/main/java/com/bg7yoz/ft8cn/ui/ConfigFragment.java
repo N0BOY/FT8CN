@@ -54,7 +54,9 @@ public class ConfigFragment extends Fragment {
     private SerialDataBitsSpinnerAdapter dataBitsSpinnerAdapter;
     private SerialParityBitsSpinnerAdapter parityBitsSpinnerAdapter;
     private SerialStopBitsSpinnerAdapter stopBitsSpinnerAdapter;
-    private RigNameSpinnerAdapter rigNameSpinnerAdapter;
+    private RigNameSpinnerAdapter rigNameSpinnerAdapter; // Kept for backward compatibility
+    private RigMakeSpinnerAdapter rigMakeSpinnerAdapter;
+    private RigModelSpinnerAdapter rigModelSpinnerAdapter;
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
@@ -364,8 +366,8 @@ public class ConfigFragment extends Fragment {
         //设置停止位
         setStopBitsSpinner();
 
-        //设置电台名称，参数列表
-        setRigNameSpinner();
+        //设置电台名称，参数列表（Make和Model）
+        setRigMakeAndModelSpinners();
 
         //设置解码模式
         setDecodeMode();
@@ -500,8 +502,8 @@ public class ConfigFragment extends Fragment {
         binding.pttDelayOffsetSpinner.setSelection(GeneralVariables.pttDelay / 10);
         //获取操作的波段
         binding.operationBandSpinner.setSelection(GeneralVariables.bandListIndex);
-        //获取电台型号
-        binding.rigNameSpinner.setSelection(GeneralVariables.modelNo);
+        //获取电台型号 - 初始化Make和Model spinners
+        initializeRigSpinnersFromModelNo();
         //串口数据位
         binding.dataBitsSpinner.setSelection(dataBitsSpinnerAdapter.getPosition(GeneralVariables.serialDataBits));
         //串口停止位
@@ -812,22 +814,8 @@ public class ConfigFragment extends Fragment {
                     }
                 });
 
-                binding.rigNameSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        GeneralVariables.modelNo = i;
-                        writeConfig("model", String.valueOf(i));
-                        setAddrAndBauRate(rigNameSpinnerAdapter.getRigName(i));
-
-                        //指令集
-                        GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
-                        writeConfig("instruction", String.valueOf(GeneralVariables.instructionSet));
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-                    }
-                });
+                // Set up rig spinner listeners (delayed to avoid triggering during initialization)
+                setRigSpinnerListeners();
 
 
                 binding.baudRateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -1165,18 +1153,135 @@ public class ConfigFragment extends Fragment {
     }
 
     /**
-     * 设置电台名称，参数列表
+     * 设置电台名称，参数列表（Make和Model）
      */
-    private void setRigNameSpinner() {
+    private void setRigMakeAndModelSpinners() {
+        // Create adapters
+        rigMakeSpinnerAdapter = new RigMakeSpinnerAdapter(requireContext());
+        rigModelSpinnerAdapter = new RigModelSpinnerAdapter(requireContext());
+        
+        // Keep old adapter for backward compatibility (not used in UI)
         rigNameSpinnerAdapter = new RigNameSpinnerAdapter(requireContext());
-        binding.rigNameSpinner.setAdapter(rigNameSpinnerAdapter);
+        
+        // Set adapters
+        binding.rigMakeSpinner.setAdapter(rigMakeSpinnerAdapter);
+        binding.rigNameSpinner.setAdapter(rigModelSpinnerAdapter);
+        
         requireActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                rigNameSpinnerAdapter.notifyDataSetChanged();
+                rigMakeSpinnerAdapter.notifyDataSetChanged();
+                rigModelSpinnerAdapter.notifyDataSetChanged();
             }
         });
+    }
 
+    /**
+     * Initialize Make and Model spinners from the current modelNo.
+     * Extracts make from the current rig and sets both spinners accordingly.
+     */
+    private void initializeRigSpinnersFromModelNo() {
+        RigNameList rigNameList = RigNameList.getInstance(requireContext());
+        RigNameList.RigName currentRig = rigNameList.getRigNameByIndex(GeneralVariables.modelNo);
+        
+        // Disable listeners during initialization
+        binding.rigMakeSpinner.setOnItemSelectedListener(null);
+        binding.rigNameSpinner.setOnItemSelectedListener(null);
+        
+        if (currentRig == null || currentRig.modelName.isEmpty()) {
+            // Empty selection
+            binding.rigMakeSpinner.setSelection(0);
+            rigModelSpinnerAdapter.updateFilter("");
+            binding.rigNameSpinner.setSelection(0);
+            
+            // Re-enable listeners after a delay
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    setRigSpinnerListeners();
+                }
+            }, 1000);
+            return;
+        }
+        
+        // Extract make from current rig
+        String make = RigNameList.extractMake(currentRig.modelName);
+        int makePosition = rigMakeSpinnerAdapter.getPosition(make);
+        
+        // Set make spinner
+        binding.rigMakeSpinner.setSelection(makePosition);
+        
+        // Update model filter
+        rigModelSpinnerAdapter.updateFilter(make);
+        
+        // Find the model position in the filtered list
+        int modelPosition = rigModelSpinnerAdapter.getPositionForFullIndex(GeneralVariables.modelNo);
+        
+        // Set model spinner
+        binding.rigNameSpinner.setSelection(modelPosition);
+        
+        // Re-enable listeners after a delay
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                setRigSpinnerListeners();
+            }
+        }, 1000);
+    }
+
+    /**
+     * Set up the listeners for Make and Model spinners.
+     */
+    private void setRigSpinnerListeners() {
+        // Model spinner selection - updates the full rig index (define first so it can be referenced)
+        final AdapterView.OnItemSelectedListener modelSpinnerListener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                // Get the full list index from the filtered model adapter
+                int fullListIndex = rigModelSpinnerAdapter.getFullListIndex(i);
+                GeneralVariables.modelNo = fullListIndex;
+                writeConfig("model", String.valueOf(fullListIndex));
+                
+                RigNameList.RigName rigName = rigModelSpinnerAdapter.getRigName(i);
+                setAddrAndBauRate(rigName);
+
+                //指令集
+                GeneralVariables.instructionSet = rigName.instructionSet;
+                writeConfig("instruction", String.valueOf(GeneralVariables.instructionSet));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        };
+        
+        // Make spinner selection - filters model spinner
+        binding.rigMakeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                String selectedMake = rigMakeSpinnerAdapter.getMake(i);
+                rigModelSpinnerAdapter.updateFilter(selectedMake);
+                
+                // Temporarily disable model spinner listener to avoid triggering during filter update
+                binding.rigNameSpinner.setOnItemSelectedListener(null);
+                
+                // If a make is selected, auto-select first model (or empty if none)
+                if (!selectedMake.isEmpty() && rigModelSpinnerAdapter.getCount() > 1) {
+                    binding.rigNameSpinner.setSelection(1); // Skip empty entry
+                } else {
+                    binding.rigNameSpinner.setSelection(0); // Empty entry
+                }
+                
+                // Re-enable model spinner listener
+                binding.rigNameSpinner.setOnItemSelectedListener(modelSpinnerListener);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+        
+        binding.rigNameSpinner.setOnItemSelectedListener(modelSpinnerListener);
     }
 
     /**

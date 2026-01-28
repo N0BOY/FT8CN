@@ -156,6 +156,104 @@ public class RigNameList {
 
     }
 
+    /**
+     * Extract make (brand) from a model name.
+     * @param modelName Full model name (e.g., "ICOM IC-705")
+     * @return Make/brand name (e.g., "ICOM") or empty string if not found
+     */
+    public static String extractMake(String modelName) {
+        if (modelName == null || modelName.trim().isEmpty()) {
+            return "";
+        }
+        String[] parts = modelName.trim().split("\\s+", 2);
+        return parts.length > 0 ? parts[0] : "";
+    }
+
+    /**
+     * Extract model name from a full model name (without make).
+     * @param modelName Full model name (e.g., "ICOM IC-705")
+     * @return Model name without make (e.g., "IC-705") or full name if no make found
+     */
+    public static String extractModel(String modelName) {
+        if (modelName == null || modelName.trim().isEmpty()) {
+            return "";
+        }
+        String[] parts = modelName.trim().split("\\s+", 2);
+        return parts.length > 1 ? parts[1] : modelName.trim();
+    }
+
+    /**
+     * Get list of unique makes (brands) from the rig list.
+     * @return ArrayList of unique make names, with empty string as first entry
+     */
+    public ArrayList<String> getUniqueMakes() {
+        ArrayList<String> makes = new ArrayList<>();
+        makes.add(""); // Empty entry first
+        
+        for (int i = 1; i < rigList.size(); i++) {
+            String make = extractMake(rigList.get(i).modelName);
+            if (!make.isEmpty() && !makes.contains(make)) {
+                makes.add(make);
+            }
+        }
+        
+        // Sort makes (keep empty at index 0)
+        Collections.sort(makes.subList(1, makes.size()));
+        return makes;
+    }
+
+    /**
+     * Get list of rig indices that match the given make.
+     * @param make The make/brand to filter by (empty string returns all)
+     * @return ArrayList of indices in rigList that match the make
+     */
+    public ArrayList<Integer> getRigIndicesByMake(String make) {
+        ArrayList<Integer> indices = new ArrayList<>();
+        
+        if (make == null || make.isEmpty()) {
+            // Return all indices (including empty at 0)
+            for (int i = 0; i < rigList.size(); i++) {
+                indices.add(i);
+            }
+            return indices;
+        }
+        
+        // Add empty entry first
+        indices.add(0);
+        
+        // Add all rigs matching the make
+        for (int i = 1; i < rigList.size(); i++) {
+            String rigMake = extractMake(rigList.get(i).modelName);
+            if (make.equals(rigMake)) {
+                indices.add(i);
+            }
+        }
+        
+        return indices;
+    }
+
+    /**
+     * Find the full rig list index for a model name within a filtered list.
+     * @param make The make/brand
+     * @param modelName The model name (without make, e.g., "IC-705")
+     * @return The index in the full rigList, or -1 if not found
+     */
+    public int findRigIndexByMakeAndModel(String make, String modelName) {
+        if (make == null || make.isEmpty() || modelName == null || modelName.isEmpty()) {
+            return 0; // Return empty entry
+        }
+        
+        String fullModelName = make + " " + modelName;
+        
+        for (int i = 0; i < rigList.size(); i++) {
+            if (rigList.get(i).modelName.equals(fullModelName)) {
+                return i;
+            }
+        }
+        
+        return -1; // Not found
+    }
+
 
     public static class RigName {
         public String modelName;

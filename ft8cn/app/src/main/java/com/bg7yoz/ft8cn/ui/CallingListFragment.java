@@ -190,6 +190,38 @@ public class CallingListFragment extends Fragment {
             }
         });
 
+        //观察麦克风输入电平（百分比）
+        GeneralVariables.mutableMicDbLevel.observe(getViewLifecycleOwner(), new Observer<Float>() {
+            @SuppressLint("DefaultLocale")
+            @Override
+            public void onChanged(Float dBLevel) {
+                if (dBLevel != null && !Float.isInfinite(dBLevel)) {
+                    // Convert dBFS to percentage
+                    // Map -60 dBFS to 0% and 0 dBFS to 100%
+                    float percentage = ((dBLevel + 60.0f) / 60.0f) * 100.0f;
+                    // Clamp to 0-100%
+                    if (percentage < 0.0f) percentage = 0.0f;
+                    if (percentage > 100.0f) percentage = 100.0f;
+                    
+                    binding.micDbLevelTextView.setText(String.format("%.0f%%", percentage));
+                    
+                    // Change text color to red when above 80%
+                    if (percentage > 80.0f) {
+                        binding.micDbLevelTextView.setTextColor(Color.RED);
+                    } else {
+                        // Use the default bar text color
+                        binding.micDbLevelTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.bar_text_view_color));
+                    }
+                    
+                    // Show the text view when we have a valid level
+                    binding.micDbLevelTextView.setVisibility(View.VISIBLE);
+                } else {
+                    // Hide when no valid level (e.g., mic not active or no signal)
+                    binding.micDbLevelTextView.setVisibility(View.GONE);
+                }
+            }
+        });
+
         //切换精简模式和标准模式
         binding.callingListToolsBar.setOnClickListener(new View.OnClickListener() {
             @Override
