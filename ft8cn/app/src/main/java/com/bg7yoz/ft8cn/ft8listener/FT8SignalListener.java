@@ -99,7 +99,7 @@ public class FT8SignalListener {
         Log.d(TAG, "开始录音...");
 
         if (onWaveDataListener != null) {
-            onWaveDataListener.getVoiceData(FT8Common.FT8_SLOT_TIME_MILLISECOND, true
+            onWaveDataListener.getVoiceData(13000, true
                     , new OnGetVoiceDataDone() {
                         @Override
                         public void onGetDone(float[] data) {
