@@ -1,5 +1,27 @@
 # FT8CN Release Notes
 
+## Version 0.93.154 (January 27, 2026)
+
+### 🐛 Bug Fixes
+
+#### Calling Screen Message Display
+- **Fixed messages not appearing on calling screen**: Resolved issue where decoded messages appeared on the decode screen but not on the calling screen
+  - Removed early return condition in `findIncludedCallsigns()` that was preventing messages from being added to the calling screen during TX cycles
+  - Messages are now always added to the calling screen regardless of transmission state
+  - Users can now see who's calling them even during active transmission cycles
+  - Fixes issue where stations calling the user would only appear on decode screen but not calling screen
+
+### 🔧 Configuration Changes
+
+#### Audio Capture Duration
+- **Changed audio capture duration**: Modified audio capture from 15 seconds to 13 seconds
+  - Decode cycle still triggers every 15 seconds (FT8 protocol requirement)
+  - Audio capture now captures 13 seconds of audio per cycle
+  - Decode starts 13 seconds after each timer trigger
+  - **Note**: This change may affect decode reliability as FT8 messages are 12.64 seconds long and require full cycle context
+
+---
+
 ## Version 0.93.153 (January 27, 2026)
 
 ### 🎤 Audio Input Monitoring & Control

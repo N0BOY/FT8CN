@@ -11,7 +11,18 @@ package com.bg7yoz.ft8cn.timer;
  */
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 
+import androidx.core.app.ActivityCompat;
+
+import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
 
 import org.apache.commons.net.ntp.NTPUDPClient;
@@ -24,8 +35,10 @@ import java.util.Date;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 
 public class UtcTimer {
@@ -263,39 +276,306 @@ public class UtcTimer {
     }
 
     /**
-     * 使用微软的时间服务器同步时间
+     * 同步时间：优先使用GPS时间，如果GPS失败则回退到NTP时间服务器
+     * Time synchronization: Try GPS first, fall back to NTP if GPS fails
      */
     public static void syncTime(AfterSyncTime afterSyncTime) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                NTPUDPClient timeClient = new NTPUDPClient();
-                InetAddress inetAddress = null;
-                TimeInfo timeInfo = null;
-                try {
-                    inetAddress = InetAddress.getByName("time.windows.com");
-                    timeInfo = timeClient.getTime(inetAddress);
-                    long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
-                    int trueDelay = (int) ((serverTime - System.currentTimeMillis()));
-                    UtcTimer.delay = trueDelay % 15000;//延迟的周期
+                // Try GPS time sync first
+                SyncResult gpsResult = syncTimeFromGPS(afterSyncTime);
+                
+                // If GPS failed, fall back to NTP
+                if (!gpsResult.success) {
                     if (afterSyncTime != null) {
-                        afterSyncTime.doAfterSyncTimer(trueDelay);
+                        afterSyncTime.gpsFailedFallingBackToNTP(gpsResult.failureReason);
                     }
-                } catch (IOException e) {
-                    if (afterSyncTime != null) {
-                        afterSyncTime.syncFailed(e);
-                    }
+                    syncTimeFromNTP(afterSyncTime);
                 }
-
-                //long localDeviceTime = timeInfo.getReturnTime();
-
             }
         }).start();
     }
+    
+    /**
+     * Result of a sync operation
+     */
+    private static class SyncResult {
+        boolean success;
+        String failureReason;
+        
+        SyncResult(boolean success, String failureReason) {
+            this.success = success;
+            this.failureReason = failureReason;
+        }
+    }
+
+    /**
+     * 从GPS获取时间同步
+     * Get time synchronization from GPS
+     * 
+     * @param afterSyncTime Callback interface
+     * @return SyncResult with success status and failure reason
+     */
+    @SuppressLint("MissingPermission")
+    private static SyncResult syncTimeFromGPS(AfterSyncTime afterSyncTime) {
+        Context context = GeneralVariables.getMainContext();
+        if (context == null) {
+            return new SyncResult(false, "Context not available");
+        }
+
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager == null) {
+            return new SyncResult(false, "Location service not available");
+        }
+
+        // Check if GPS provider is available
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            return new SyncResult(false, "GPS provider disabled");
+        }
+
+        // Check location permissions
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) 
+                != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) 
+                != PackageManager.PERMISSION_GRANTED) {
+            return new SyncResult(false, "Location permission denied");
+        }
+
+        // First try to get last known location (fast, synchronous)
+        try {
+            @SuppressLint("MissingPermission")
+            Location lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            if (lastLocation != null && lastLocation.getTime() > 0) {
+                long gpsTime = lastLocation.getTime();
+                long currentTime = System.currentTimeMillis();
+                long timeDiff = Math.abs(gpsTime - currentTime);
+                
+                // Use last known location if it's recent (within 5 minutes)
+                // GPS time is very accurate, so even slightly stale is OK for time sync
+                if (timeDiff < 5 * 60 * 1000) { // Within 5 minutes
+                    int trueDelay = (int) (gpsTime - currentTime);
+                    UtcTimer.delay = trueDelay % 15000; // Modulo 15000ms to keep within one FT8 cycle
+                    if (afterSyncTime != null) {
+                        afterSyncTime.doAfterSyncTimer(trueDelay, "GPS", "GPS");
+                    }
+                    return new SyncResult(true, null);
+                } else {
+                    // Last known location is too stale
+                    return new SyncResult(false, "Last GPS location too old (" + (timeDiff / 1000) + " seconds)");
+                }
+            } else {
+                return new SyncResult(false, "No GPS location available");
+            }
+        } catch (Exception e) {
+            // Continue to request fresh location
+            // Don't return failure yet, try requesting fresh location
+        }
+
+        // If last known location is stale or unavailable, request fresh location update
+        final CountDownLatch latch = new CountDownLatch(1);
+        final boolean[] success = {false};
+        final long[] gpsTime = {0};
+
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (location != null && location.getTime() > 0) {
+                    // GPS time is in UTC milliseconds
+                    gpsTime[0] = location.getTime();
+                    long currentTime = System.currentTimeMillis();
+                    int trueDelay = (int) (gpsTime[0] - currentTime);
+                    
+                    // GPS time is always valid (it's UTC time from satellites)
+                    UtcTimer.delay = trueDelay % 15000; // Modulo 15000ms to keep within one FT8 cycle
+                    success[0] = true;
+                }
+                latch.countDown();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            @Override
+            public void onProviderEnabled(String provider) {}
+
+            @Override
+            public void onProviderDisabled(String provider) {
+                latch.countDown();
+            }
+        };
+
+        try {
+            // Request location updates using main thread's looper
+            locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER,
+                    0, // minTime - 0 means get update as soon as possible
+                    0, // minDistance - 0 means no distance requirement
+                    locationListener,
+                    Looper.getMainLooper());
+
+            // Wait up to 10 seconds for GPS fix
+            boolean received = latch.await(10, TimeUnit.SECONDS);
+            
+            // Remove listener to prevent memory leaks
+            locationManager.removeUpdates(locationListener);
+
+            if (received && success[0]) {
+                // GPS sync succeeded
+                if (afterSyncTime != null) {
+                    int trueDelay = (int) (gpsTime[0] - System.currentTimeMillis());
+                    afterSyncTime.doAfterSyncTimer(trueDelay, "GPS", "GPS");
+                }
+                return new SyncResult(true, null);
+            } else if (received) {
+                // Received but no valid location
+                return new SyncResult(false, "GPS location received but invalid");
+            } else {
+                // Timeout
+                return new SyncResult(false, "GPS timeout (10 seconds)");
+            }
+        } catch (InterruptedException e) {
+            // Timeout or interrupted - fall back to NTP
+            try {
+                locationManager.removeUpdates(locationListener);
+            } catch (Exception ex) {
+                // Ignore
+            }
+            return new SyncResult(false, "GPS interrupted");
+        } catch (Exception e) {
+            // Any other error - fall back to NTP
+            try {
+                locationManager.removeUpdates(locationListener);
+            } catch (Exception ex) {
+                // Ignore
+            }
+            return new SyncResult(false, "GPS error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 使用配置的NTP服务器同步时间（带重试逻辑和指数退避）
+     * Synchronize time using configured NTP server with retry logic and exponential backoff
+     */
+    private static void syncTimeFromNTP(AfterSyncTime afterSyncTime) {
+        String ntpServer = GeneralVariables.ntpServer;
+        if (ntpServer == null || ntpServer.isEmpty()) {
+            ntpServer = "time.windows.com";
+        }
+        
+        final int MAX_RETRIES = 3;
+        final int[] backoffDelays = {2000, 4000, 8000}; // Exponential backoff: 2s, 4s, 8s
+        Exception lastException = null;
+        
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            NTPUDPClient timeClient = new NTPUDPClient();
+            // Set timeout to 10 seconds per attempt
+            timeClient.setDefaultTimeout(10000);
+            
+            try {
+                InetAddress inetAddress = InetAddress.getByName(ntpServer);
+                TimeInfo timeInfo = timeClient.getTime(inetAddress);
+                long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
+                int trueDelay = (int) ((serverTime - System.currentTimeMillis()));
+                UtcTimer.delay = trueDelay % 15000;//延迟的周期
+                
+                // Success - close client and return
+                try {
+                    timeClient.close();
+                } catch (Exception e) {
+                    // Ignore close errors
+                }
+                
+                if (afterSyncTime != null) {
+                    afterSyncTime.doAfterSyncTimer(trueDelay, "NTP", ntpServer);
+                }
+                return; // Success - exit retry loop
+                
+            } catch (IOException e) {
+                lastException = e;
+                // Close client before retry
+                try {
+                    timeClient.close();
+                } catch (Exception ex) {
+                    // Ignore close errors
+                }
+                
+                // If this is not the last attempt, wait before retrying
+                if (attempt < MAX_RETRIES) {
+                    try {
+                        Thread.sleep(backoffDelays[attempt - 1]);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        if (afterSyncTime != null) {
+                            afterSyncTime.syncFailed("NTP", ntpServer, "Interrupted during retry");
+                        }
+                        return;
+                    }
+                    // Continue to next retry attempt
+                }
+            } catch (Exception e) {
+                lastException = e;
+                // Close client before retry
+                try {
+                    timeClient.close();
+                } catch (Exception ex) {
+                    // Ignore close errors
+                }
+                
+                // If this is not the last attempt, wait before retrying
+                if (attempt < MAX_RETRIES) {
+                    try {
+                        Thread.sleep(backoffDelays[attempt - 1]);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        if (afterSyncTime != null) {
+                            afterSyncTime.syncFailed("NTP", ntpServer, "Interrupted during retry");
+                        }
+                        return;
+                    }
+                    // Continue to next retry attempt
+                }
+            }
+        }
+        
+        // All retries failed
+        if (afterSyncTime != null) {
+            String reason = "Failed after " + MAX_RETRIES + " attempts";
+            if (lastException != null) {
+                String errorMsg = lastException.getMessage();
+                if (errorMsg != null && !errorMsg.isEmpty()) {
+                    if (errorMsg.contains("timeout") || errorMsg.contains("Timeout") || errorMsg.contains("timed out")) {
+                        reason = "NTP timeout after " + MAX_RETRIES + " attempts (10s per attempt)";
+                    } else {
+                        reason = errorMsg + " (after " + MAX_RETRIES + " attempts)";
+                    }
+                }
+            }
+            afterSyncTime.syncFailed("NTP", ntpServer, reason);
+        }
+    }
 
     public interface AfterSyncTime {
-        void doAfterSyncTimer(int secTime);
+        /**
+         * Called when time sync succeeds
+         * @param secTime Time difference in milliseconds
+         * @param method Sync method used ("GPS" or "NTP")
+         * @param server Server used (GPS: "GPS", NTP: server address)
+         */
+        void doAfterSyncTimer(int secTime, String method, String server);
 
-        void syncFailed(IOException e);
+        /**
+         * Called when time sync fails
+         * @param method Sync method that failed ("GPS" or "NTP")
+         * @param server Server that failed (GPS: "GPS", NTP: server address)
+         * @param reason Failure reason
+         */
+        void syncFailed(String method, String server, String reason);
+        
+        /**
+         * Called when GPS fails and we're falling back to NTP
+         * @param reason Reason GPS failed
+         */
+        void gpsFailedFallingBackToNTP(String reason);
     }
 }

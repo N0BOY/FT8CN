@@ -92,6 +92,7 @@ import com.bg7yoz.ft8cn.spectrum.SpectrumListener;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.wave.HamRecorder;
 import com.bg7yoz.ft8cn.wave.OnGetVoiceDataDone;
 import com.bg7yoz.ft8cn.x6100.X6100Radio;
@@ -286,7 +287,52 @@ public class MainViewModel extends ViewModel {
         utcTimer.start();//启动计时器
 
         //同步一下时间。microsoft的NTP服务器
-        UtcTimer.syncTime(null);
+        UtcTimer.syncTime(new UtcTimer.AfterSyncTime() {
+            @Override
+            public void doAfterSyncTimer(int secTime, String method, String server) {
+                // Build success message with method and server info
+                String methodInfo;
+                if ("GPS".equals(method)) {
+                    methodInfo = getStringFromResource(R.string.time_sync_method_gps);
+                } else {
+                    methodInfo = String.format(getStringFromResource(R.string.time_sync_method_ntp), server);
+                }
+                
+                String timeDiffInfo;
+                if (Math.abs(secTime) > 100) {
+                    // Show difference if significant
+                    if (secTime > 0) {
+                        timeDiffInfo = String.format(getStringFromResource(R.string.time_sync_delay_slow), secTime);
+                    } else {
+                        timeDiffInfo = String.format(getStringFromResource(R.string.time_sync_delay_fast), -secTime);
+                    }
+                } else {
+                    timeDiffInfo = getStringFromResource(R.string.time_sync_accurate);
+                }
+                
+                ToastMessage.show(String.format(getStringFromResource(R.string.time_sync_success), 
+                        methodInfo, timeDiffInfo));
+            }
+
+            @Override
+            public void syncFailed(String method, String server, String reason) {
+                String methodInfo;
+                if ("GPS".equals(method)) {
+                    methodInfo = getStringFromResource(R.string.time_sync_method_gps);
+                } else {
+                    methodInfo = String.format(getStringFromResource(R.string.time_sync_method_ntp), server);
+                }
+                
+                ToastMessage.show(String.format(getStringFromResource(R.string.time_sync_failed), 
+                        methodInfo, reason));
+            }
+            
+            @Override
+            public void gpsFailedFallingBackToNTP(String reason) {
+                ToastMessage.show(String.format(getStringFromResource(R.string.time_sync_gps_failed_fallback), 
+                        reason));
+            }
+        });
 
         mutableFt8MessageList.setValue(ft8Messages);
 

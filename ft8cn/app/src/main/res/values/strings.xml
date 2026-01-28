@@ -36,6 +36,9 @@
     <string name="tran_delay">Tx delay</string>
 
     <string name="timeOffset">Time offset</string>
+    <string name="ntp_server">NTP Server</string>
+    <string name="ntp_server_custom">Custom...</string>
+    <string name="ntp_server_custom_hint">Custom NTP server</string>
     <string name="help">Help</string>
     <string name="scroll_down">▾</string>
     <string name="about_me">About FT8CN</string>
@@ -459,6 +462,16 @@
     <string name="utc_time_sync_delay_slow">Synced . Local clock is %d milliseconds behind</string>
     <string name="utc_time_sync_delay_faster">Synced. Local clock is %d milliseconds ahead</string>
     <string name="config_clock_is_accurate">Local clock is exact!</string>
+    <string name="time_sync_method_gps">GPS</string>
+    <string name="time_sync_method_ntp">NTP (%1$s)</string>
+    <string name="time_sync_delay_slow">Offset: %1$d ms (system clock behind)</string>
+    <string name="time_sync_delay_fast">Offset: %1$d ms (system clock ahead)</string>
+    <string name="time_sync_accurate">Offset: 0 ms (system clock accurate)</string>
+    <string name="time_sync_success">Time sync: %1$s - %2$s. Offset applied to app calculations.</string>
+    <string name="time_sync_failed">Time sync failed (%1$s): %2$s</string>
+    <string name="time_sync_gps_failed_fallback">GPS sync failed (%1$s), falling back to NTP</string>
+    <string name="grid_location_success">Grid square retrieved: %1$s</string>
+    <string name="grid_location_failed">Grid location failed: %1$s</string>
     <string name="html_start_date_swl_message">Start date</string>
     <string name="html_end_date_swl_message">End date</string>
     <string name="html_query_qso_swl">Query the QSOs of SWL</string>

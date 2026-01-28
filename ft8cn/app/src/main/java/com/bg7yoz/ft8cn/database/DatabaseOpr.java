@@ -2492,6 +2492,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("qrzApiKey")) {
                     GeneralVariables.qrzApiKey = result != null ? result : "";
                 }
+                if (name.equalsIgnoreCase("ntpServer")) {
+                    GeneralVariables.ntpServer = (result != null && !result.isEmpty()) ? result : "time.windows.com";
+                }
 
                 if (name.equalsIgnoreCase("swrSwitch")) {
                     GeneralVariables.swr_switch_on = result != null && result.equals("1");
