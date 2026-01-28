@@ -1089,8 +1089,43 @@
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
+                            app:layout_constraintEnd_toStartOf="@+id/parkNumberText"
                             app:layout_constraintStart_toEndOf="@+id/modifierText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
+                        <TextView
+                            android:id="@+id/parkNumberText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/park_number_editor"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
+                            app:layout_constraintStart_toEndOf="@+id/modifierEdit"
+                            app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+                        <EditText
+                            android:id="@+id/parkNumberEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="2dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="2dp"
+                            android:layout_marginBottom="6dp"
+                            android:autofillHints=""
+                            android:background="@drawable/editor_style"
+                            android:ems="10"
+                            android:hint="@string/pl_input_park_number"
+                            android:inputType="text"
+                            android:minHeight="32dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/parkNumberText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
 

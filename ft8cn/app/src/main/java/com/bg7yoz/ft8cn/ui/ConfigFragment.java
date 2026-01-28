@@ -290,6 +290,25 @@ public class ConfigFragment extends Fragment {
         }
     };
 
+    //公园编号
+    private final TextWatcher onParkNumberEditorChanged = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            GeneralVariables.parkNumber = editable.toString().trim();
+            writeConfig("parkNumber", GeneralVariables.parkNumber);
+        }
+    };
+
     //CI-V地址
     private final TextWatcher onCIVAddressEditorChanged = new TextWatcher() {
         @Override
@@ -443,6 +462,11 @@ public class ConfigFragment extends Fragment {
         binding.modifierEdit.removeTextChangedListener(onModifierEditorChanged);
         binding.modifierEdit.setText(GeneralVariables.toModifier);
         binding.modifierEdit.addTextChangedListener(onModifierEditorChanged);
+
+        //公园编号
+        binding.parkNumberEdit.removeTextChangedListener(onParkNumberEditorChanged);
+        binding.parkNumberEdit.setText(GeneralVariables.parkNumber);
+        binding.parkNumberEdit.addTextChangedListener(onParkNumberEditorChanged);
 
         //发射频率
         binding.inputFreqEditor.removeTextChangedListener(onFreqEditorChanged);

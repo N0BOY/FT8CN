@@ -23,30 +23,50 @@ public class ShareLogs {
     private static final String TAG = "ShareLogs";
     private boolean isCancel=false;
 
-    private String makeSQL(int queryFilter) {
-        String filterStr;
-        switch (queryFilter) {
+    private String makeSQL(int qrzFilter, String commentFilter, String startDate, String endDate) {
+        StringBuilder filterStr = new StringBuilder();
+        
+        // Comment Text Filter
+        if (commentFilter != null && !commentFilter.isEmpty()) {
+            filterStr.append("and(q.comment LIKE ?)\n");
+        }
+        
+        // QRZ Upload Status Filter
+        switch (qrzFilter) {
             case 1:
-                filterStr = "and((q.isQSL =1)or(q.isLotW_QSL =1))\n";
+                filterStr.append("and(q.isQRZ_uploaded =1)\n");
                 break;
             case 2:
-                filterStr = "and((q.isQSL =0)and(q.isLotW_QSL =0))\n";
+                filterStr.append("and((q.isQRZ_uploaded =0)or(q.isQRZ_uploaded IS NULL))\n");
                 break;
-            default:
-                filterStr = "";
         }
+        
+        // Date Range Filter
+        if (startDate != null && !startDate.isEmpty()) {
+            filterStr.append(String.format("and(SUBSTR(q.qso_date_off,1,8)>=\"%s\")\n", startDate));
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            filterStr.append(String.format("and(SUBSTR(q.qso_date_off,1,8)<=\"%s\")\n", endDate));
+        }
+        
         return " FROM QSLTable AS q \n" +
                 "WHERE ((CALL LIKE ?)OR(station_callsign LIKE ?))\n" +
-                filterStr;
+                filterStr.toString();
 
     }
 
 
     @SuppressLint("Range")
-    private int getCount(SQLiteDatabase db, String queryKey, int queryFilter) {
-        String sql = makeSQL(queryFilter);
+    private int getCount(SQLiteDatabase db, String queryKey, int qrzFilter, String commentFilter, String startDate, String endDate) {
+        String sql = makeSQL(qrzFilter, commentFilter, startDate, endDate);
         String key = "%" + queryKey + "%";
-        Cursor cursor = db.rawQuery("SELECT COUNT(*) AS C " + sql, new String[]{key, key});
+        String[] queryParams;
+        if (commentFilter != null && !commentFilter.isEmpty()) {
+            queryParams = new String[]{key, key, "%" + commentFilter + "%"};
+        } else {
+            queryParams = new String[]{key, key};
+        }
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) AS C " + sql, queryParams);
         cursor.moveToFirst();
         int count = cursor.getInt(cursor.getColumnIndex("C"));
 
@@ -54,10 +74,16 @@ public class ShareLogs {
         return count;
     }
 
-    private Cursor getData(SQLiteDatabase db, String queryKey, int queryFilter) {
-        String sql = makeSQL(queryFilter);
+    private Cursor getData(SQLiteDatabase db, String queryKey, int qrzFilter, String commentFilter, String startDate, String endDate) {
+        String sql = makeSQL(qrzFilter, commentFilter, startDate, endDate);
         String key = "%" + queryKey + "%";
-        return db.rawQuery("SELECT * " + sql, new String[]{key, key});
+        String[] queryParams;
+        if (commentFilter != null && !commentFilter.isEmpty()) {
+            queryParams = new String[]{key, key, "%" + commentFilter + "%"};
+        } else {
+            queryParams = new String[]{key, key};
+        }
+        return db.rawQuery("SELECT * " + sql, queryParams);
     }
 
     /**
@@ -65,23 +91,26 @@ public class ShareLogs {
      *
      * @param db             数据库
      * @param queryKey       关键词
-     * @param queryFilter    过滤条件
+     * @param qrzFilter      QRZ上传过滤条件
+     * @param commentFilter  评论文本过滤条件
+     * @param startDate      开始日期
+     * @param endDate        结束日期
      * @param adiFile        临时文件
      * @param isSWL          是否是swl模式
      * @param onGetShareLogs 回调
      */
     @SuppressLint({"DefaultLocale", "Range"})
-    private void downQSLTableToFile(SQLiteDatabase db, String queryKey, int queryFilter, File adiFile
+    private void downQSLTableToFile(SQLiteDatabase db, String queryKey, int qrzFilter, String commentFilter, String startDate, String endDate, File adiFile
             , boolean isSWL
             , OnShareLogEvents onGetShareLogs) {
-        final int count = getCount(db, queryKey, queryFilter);
+        final int count = getCount(db, queryKey, qrzFilter, commentFilter, startDate, endDate);
 
         if (onGetShareLogs != null) {
             onGetShareLogs.onShareStart(count, String.format(
                     GeneralVariables.getStringFromResource(R.string.total_logs)
                     , count));
         }
-        Cursor cursor = getData(db, queryKey, queryFilter);
+        Cursor cursor = getData(db, queryKey, qrzFilter, commentFilter, startDate, endDate);
         FileOutputStream fileOutputStream = null;
         int position = 0;
         try {
@@ -238,13 +267,13 @@ public class ShareLogs {
      * @param title   标题
      */
     public void doShareLogs(Context context, File file, String title
-            , SQLiteDatabase db, String queryKey, int queryFilter, File adiFile
+            , SQLiteDatabase db, String queryKey, int qrzFilter, String commentFilter, String startDate, String endDate, File adiFile
             , boolean isSWL
             , OnShareLogEvents onGetShareLogs) {
 
         isCancel=false;
 
-        downQSLTableToFile(db, queryKey, queryFilter, adiFile, false, new OnShareLogEvents() {
+        downQSLTableToFile(db, queryKey, qrzFilter, commentFilter, startDate, endDate, adiFile, false, new OnShareLogEvents() {
             @Override
             public void onPreparing(String info) {
                 if (onGetShareLogs!=null){

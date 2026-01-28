@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/help_dialog_style"
     android:minWidth="300dp"
-    android:minHeight="200dp">
+    android:minHeight="400dp">
 
     <ImageView
         android:id="@+id/image"
@@ -20,50 +20,145 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ft8cn_icon" />
 
-    <RadioGroup
-        android:id="@+id/filterRadioGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ScrollView
+        android:id="@+id/filterScrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/filterTextView">
+        app:layout_constraintTop_toBottomOf="@+id/image">
 
-        <RadioButton
-            android:id="@+id/filterAllRadioButton"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:buttonTint="@color/white"
-            android:text="@string/filter_all"
-            android:textColor="@color/help_dialog_text_color" />
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/filterIsQSLRadioButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/white"
-            android:text="@string/filter_is_qsl"
-            android:textColor="@color/help_dialog_text_color" />
+            <!-- Comment Text Filter -->
+            <TextView
+                android:id="@+id/commentFilterLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/filter_comment"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-        <RadioButton
-            android:id="@+id/filterNoneQSLRadioButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:buttonTint="@color/white"
-            android:text="@string/filter_none_qsl"
-            android:textColor="@color/help_dialog_text_color" />
-    </RadioGroup>
+            <EditText
+                android:id="@+id/commentFilterEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:hint="@string/filter_comment_hint"
+                android:inputType="text"
+                android:textColor="@color/help_dialog_text_color"
+                android:textColorHint="@color/help_dialog_text_color" />
 
-    <TextView
-        android:id="@+id/filterTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/pl_filter"
-        android:textColor="@color/help_dialog_text_color"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/image" />
+            <!-- QRZ Upload Status Filter -->
+            <TextView
+                android:id="@+id/qrzFilterLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_qrz_uploaded"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
+            <RadioGroup
+                android:id="@+id/qrzFilterRadioGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp">
+
+                <RadioButton
+                    android:id="@+id/filterQRZAllRadioButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/white"
+                    android:text="@string/filter_all"
+                    android:textColor="@color/help_dialog_text_color" />
+
+                <RadioButton
+                    android:id="@+id/filterQRZUploadedRadioButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/white"
+                    android:text="@string/filter_qrz_uploaded"
+                    android:textColor="@color/help_dialog_text_color" />
+
+                <RadioButton
+                    android:id="@+id/filterQRZMissingRadioButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/white"
+                    android:text="@string/filter_qrz_missing"
+                    android:textColor="@color/help_dialog_text_color" />
+            </RadioGroup>
+
+            <!-- Date Range Filter -->
+            <TextView
+                android:id="@+id/dateRangeLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_date_range"
+                android:textColor="@color/help_dialog_text_color"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/startDateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/filter_start_date"
+                    android:textColor="@color/help_dialog_text_color"
+                    android:textSize="14sp" />
+
+                <EditText
+                    android:id="@+id/startDateEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:hint="@string/filter_date_format_hint"
+                    android:inputType="number"
+                    android:maxLength="8"
+                    android:textColor="@color/help_dialog_text_color"
+                    android:textColorHint="@color/help_dialog_text_color" />
+
+                <TextView
+                    android:id="@+id/endDateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/filter_end_date"
+                    android:textColor="@color/help_dialog_text_color"
+                    android:textSize="14sp" />
+
+                <EditText
+                    android:id="@+id/endDateEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:hint="@string/filter_date_format_hint"
+                    android:inputType="number"
+                    android:maxLength="8"
+                    android:textColor="@color/help_dialog_text_color"
+                    android:textColorHint="@color/help_dialog_text_color" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

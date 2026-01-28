@@ -20,6 +20,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -372,6 +373,223 @@ public class ThirdPartyService {
         }
     }
     
+    /**
+     * Upload multiple QSOs to QRZ in a single API call
+     * @param qslRecords List of QSO records to upload
+     * @return BulkUploadResult indicating success/failure and count of uploaded records
+     */
+    public static BulkUploadResult UploadMultipleToQRZ(ArrayList<QSLRecord> qslRecords) {
+        String apikey = GeneralVariables.getQrzApiKey();
+        
+        if (apikey == null || apikey.isEmpty()) {
+            Log.e(TAG, "QRZ API key is not set");
+            return new BulkUploadResult(false, 0, "QRZ API key is not set");
+        }
+
+        if (qslRecords == null || qslRecords.isEmpty()) {
+            return new BulkUploadResult(false, 0, "No QSO records to upload");
+        }
+
+        // Build combined ADIF string with multiple records
+        StringBuilder combinedAdif = new StringBuilder();
+        for (QSLRecord qslRecord : qslRecords) {
+            // Check for duplicate upload
+            String qsoKey = generateQSOKey(qslRecord);
+            if (shouldSkipUpload(qsoKey)) {
+                continue; // Skip this QSO if recently uploaded
+            }
+            String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
+            combinedAdif.append(logStr);
+        }
+
+        if (combinedAdif.length() == 0) {
+            return new BulkUploadResult(false, 0, "All QSOs were skipped (recently uploaded)");
+        }
+
+        // Retry logic: up to 3 attempts with exponential backoff (3s, 6s, 12s)
+        final int MAX_RETRIES = 3;
+        final int INITIAL_BACKOFF_MS = 3000; // 3 seconds
+        String lastError = null;
+        
+        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                Log.d(TAG, String.format("QRZ bulk upload attempt %d/%d (%d QSOs)", attempt, MAX_RETRIES, qslRecords.size()));
+                
+                BulkUploadResult result = attemptBulkQRZUpload(combinedAdif.toString(), apikey);
+                
+                if (result.success) {
+                    // Mark all QSOs as uploaded
+                    for (QSLRecord qslRecord : qslRecords) {
+                        String qsoKey = generateQSOKey(qslRecord);
+                        markAsUploaded(qsoKey);
+                        // Mark QSO as uploaded to QRZ in database
+                        com.bg7yoz.ft8cn.database.DatabaseOpr.getInstance(
+                                GeneralVariables.getMainContext(), "data.db")
+                                .setQSLTableIsQRZUploadedByRecord(qslRecord, true);
+                    }
+                    Log.d(TAG, String.format("QRZ bulk upload succeeded on attempt %d: %d QSOs uploaded", attempt, result.count));
+                    return result;
+                } else {
+                    lastError = result.errorMessage;
+                    Log.w(TAG, String.format("QRZ bulk upload attempt %d failed: %s", attempt, lastError));
+                    
+                    // If this was the last attempt, don't wait
+                    if (attempt < MAX_RETRIES) {
+                        // Calculate exponential backoff: 3s, 6s, 12s
+                        long backoffMs = INITIAL_BACKOFF_MS * (1L << (attempt - 1)); // 2^(attempt-1) * 3000
+                        Log.d(TAG, String.format("Waiting %d ms before retry...", backoffMs));
+                        try {
+                            Thread.sleep(backoffMs);
+                        } catch (InterruptedException e) {
+                            Log.e(TAG, "Retry backoff interrupted", e);
+                            Thread.currentThread().interrupt();
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                lastError = e.getMessage();
+                if (lastError == null || lastError.isEmpty()) {
+                    lastError = e.toString();
+                }
+                Log.e(TAG, "QRZ bulk upload exception: " + lastError, e);
+                
+                // If this was the last attempt, don't wait
+                if (attempt < MAX_RETRIES) {
+                    long backoffMs = INITIAL_BACKOFF_MS * (1L << (attempt - 1));
+                    try {
+                        Thread.sleep(backoffMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // All retries failed
+        return new BulkUploadResult(false, 0, lastError != null ? lastError : "Unknown error after " + MAX_RETRIES + " attempts");
+    }
+
+    /**
+     * Attempt a bulk QRZ upload with multiple ADIF records
+     * @param combinedAdif The combined ADIF formatted log string with multiple records
+     * @param apikey The QRZ API key
+     * @return BulkUploadResult indicating success or failure with error message and count
+     */
+    private static BulkUploadResult attemptBulkQRZUpload(String combinedAdif, String apikey) {
+        try {
+            // URL encode the ADIF data to handle special characters
+            String encodedAdif = URLEncoder.encode(combinedAdif, StandardCharsets.UTF_8.toString());
+            // Use INSERT action - it can handle multiple ADIF records
+            String url = String.format("https://logbook.qrz.com/api?KEY=%s&ACTION=INSERT&ADIF=%s", apikey, encodedAdif);
+            Log.d(TAG, "QRZ bulk upload URL: " + url.replace(apikey, "***")); // Log URL with masked API key
+            
+            String result = sendGetRequestWithUserAgent(url);
+            if (result != null) {
+                Log.d(TAG, "QRZ API response: " + result);
+                
+                // Parse response to check if upload was successful
+                HashMap<String,String> response = new HashMap<>();
+                for (String s : result.split("&")) {
+                    String[] split = s.split("=");
+                    if (split.length > 1) {
+                        // URL decode the value
+                        try {
+                            String key = split[0];
+                            String value = java.net.URLDecoder.decode(split[1], StandardCharsets.UTF_8.toString());
+                            response.put(key, value);
+                        } catch (Exception e) {
+                            // If decoding fails, use raw value
+                            response.put(split[0], split[1]);
+                        }
+                    }
+                }
+                
+                // Check if upload was successful: RESULT=OK (new), RESULT=REPLACE (duplicate overwritten),
+                // or status=fail with reason containing "duplicate" (duplicates detected)
+                String resultValue = response.get("RESULT");
+                // Check both lowercase and uppercase field names (QRZ may return either)
+                String status = response.get("status");
+                if (status == null) status = response.get("STATUS");
+                String reason = response.get("reason");
+                if (reason == null) reason = response.get("REASON");
+                
+                // Check for duplicate case: status=fail with reason containing "duplicate" (anywhere in the string)
+                boolean isDuplicateFailure = status != null && status.equalsIgnoreCase("fail") 
+                        && reason != null && reason.toLowerCase().contains("duplicate");
+                
+                boolean success = false;
+                if (isDuplicateFailure) {
+                    // Treat duplicate failures as success - QSOs were already uploaded
+                    success = true;
+                } else if (resultValue != null && (resultValue.equals("OK") || resultValue.equals("REPLACE"))) {
+                    // Standard success cases
+                    success = true;
+                }
+                
+                if (success) {
+                    // Extract COUNT from response (show count for OK, REPLACE, and duplicate failures)
+                    int count = 0;
+                    try {
+                        String countStr = response.get("COUNT");
+                        if (countStr != null && !countStr.isEmpty()) {
+                            count = Integer.parseInt(countStr);
+                        }
+                    } catch (NumberFormatException e) {
+                        Log.w(TAG, "Could not parse COUNT from response: " + response.get("COUNT"));
+                    }
+                    
+                    if (isDuplicateFailure) {
+                        Log.d(TAG, "QRZ bulk upload: status=fail, reason contains duplicate, COUNT=" + count + " - marking QSOs as uploaded");
+                    } else if (resultValue != null && resultValue.equals("REPLACE")) {
+                        Log.d(TAG, "QRZ bulk upload: RESULT=REPLACE (duplicates), COUNT=" + count + " - marking QSOs as uploaded");
+                    }
+                    return new BulkUploadResult(true, count, null);
+                } else {
+                    // Upload failed - extract error message and include full response for debugging
+                    String errorMsg = response.get("ERROR");
+                    if (errorMsg == null || errorMsg.isEmpty()) {
+                        errorMsg = response.get("REASON");
+                    }
+                    if (errorMsg == null || errorMsg.isEmpty()) {
+                        errorMsg = response.get("RESULT");
+                    }
+                    if (errorMsg == null || errorMsg.isEmpty()) {
+                        errorMsg = "Unknown error";
+                    }
+                    // Include full response for debugging
+                    String fullErrorMsg = errorMsg + " (Full response: " + result + ")";
+                    return new BulkUploadResult(false, 0, fullErrorMsg);
+                }
+            } else {
+                // No response - network error or HTTP error
+                return new BulkUploadResult(false, 0, "No response from server");
+            }
+        } catch (Exception e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg == null || errorMsg.isEmpty()) {
+                errorMsg = e.toString();
+            }
+            return new BulkUploadResult(false, 0, errorMsg);
+        }
+    }
+
+    /**
+     * Result class for bulk upload operations
+     */
+    public static class BulkUploadResult {
+        public final boolean success;
+        public final int count;
+        public final String errorMessage;
+
+        public BulkUploadResult(boolean success, int count, String errorMessage) {
+            this.success = success;
+            this.count = count;
+            this.errorMessage = errorMessage;
+        }
+    }
+
     /**
      * Attempt a single QRZ upload
      * @param qslRecord The QSO record to upload

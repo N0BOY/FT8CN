@@ -216,8 +216,14 @@ public class MainViewModel extends ViewModel {
     //*********日志查询需要的变量********************
     public boolean logListShowCallsign = false;//在日志查询列表的表现形式
     public String queryKey = "";//查询的关键字
-    public int queryFilter = 0;//过滤，0全部，1，确认，2，未确认
-    public MutableLiveData<Integer> mutableQueryFilter = new MutableLiveData<>();
+    public String queryCommentFilter = "";//评论文本过滤
+    public MutableLiveData<String> mutableQueryCommentFilter = new MutableLiveData<>("");
+    public int queryQRZFilter = 0;//QRZ上传过滤，0全部，1已上传，2未上传
+    public MutableLiveData<Integer> mutableQueryQRZFilter = new MutableLiveData<>();
+    public String queryStartDate = "";//日期范围开始日期 (格式: YYYYMMDD)
+    public String queryEndDate = "";//日期范围结束日期 (格式: YYYYMMDD)
+    public MutableLiveData<String> mutableQueryStartDate = new MutableLiveData<>("");
+    public MutableLiveData<String> mutableQueryEndDate = new MutableLiveData<>("");
     public ArrayList<QSLCallsignRecord> callsignRecords = new ArrayList<>();
     //public ArrayList<QSLRecordStr> qslRecords=new ArrayList<>();
     //********************************************

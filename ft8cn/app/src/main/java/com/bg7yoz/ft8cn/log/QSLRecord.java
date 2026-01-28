@@ -110,6 +110,16 @@ public class QSLRecord {
         this.comment =
                 distance.equals("") ? "QSO by FT8CN"
                         : String.format("Distance: %s, QSO by FT8CN", distance);
+        
+        // Append CQ modifier if present
+        if (GeneralVariables.toModifier != null && !GeneralVariables.toModifier.trim().isEmpty()) {
+            this.comment += ", " + GeneralVariables.toModifier.trim();
+        }
+        
+        // Append park number if present (after CQ modifier)
+        if (GeneralVariables.parkNumber != null && !GeneralVariables.parkNumber.trim().isEmpty()) {
+            this.comment += ", " + GeneralVariables.parkNumber.trim();
+        }
     }
 
     public void update(QSLRecord record) {

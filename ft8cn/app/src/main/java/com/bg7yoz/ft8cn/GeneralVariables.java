@@ -168,6 +168,7 @@ public class GeneralVariables {
 
     public static String myCallsign = "";//我的呼号
     public static String toModifier = "";//呼叫的修饰符
+    public static String parkNumber = "";//公园编号，用于QSO注释
     private static float baseFrequency = 1000;//声音频率
 
     public static boolean simpleCallItemMode = false;//紧凑型消息

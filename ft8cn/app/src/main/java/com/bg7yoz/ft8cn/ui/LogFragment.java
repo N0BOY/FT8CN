@@ -26,6 +26,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,6 +53,12 @@ import com.bg7yoz.ft8cn.log.OnQueryQSLRecordCallsign;
 import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.log.OnShareLogEvents;
+import com.bg7yoz.ft8cn.log.QSLRecord;
+import com.bg7yoz.ft8cn.log.ThirdPartyService;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
+import com.bg7yoz.ft8cn.ui.ActionsSpinnerAdapter;
+
+import java.util.HashMap;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -98,22 +106,94 @@ public class LogFragment extends Fragment {
 
         initRecyclerViewAction();//设置列表滑动动作
 
-
-        //设置显示统计页面按钮
-        binding.countImageButton.setOnClickListener(new View.OnClickListener() {
+        // Set up Actions spinner
+        ActionsSpinnerAdapter actionsAdapter = new ActionsSpinnerAdapter(requireContext());
+        binding.actionsSpinner.setAdapter(actionsAdapter);
+        // Set initial selection to prompt (position 0)
+        binding.actionsSpinner.setSelection(0, false);
+        
+        // Handle action selection - execute immediately
+        // Track if this is the initial selection to avoid executing on spinner creation
+        final boolean[] isInitialSelection = {true};
+        binding.actionsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onClick(View view) {
-                showCountFragment();
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                // Skip the initial selection (when spinner is first created)
+                if (isInitialSelection[0]) {
+                    isInitialSelection[0] = false;
+                    return;
+                }
+                
+                // Skip if "Actions" prompt is selected (position 0)
+                if (position == 0) {
+                    return;
+                }
+                
+                // Get and execute the action
+                try {
+                    ActionsSpinnerAdapter.Action action = actionsAdapter.getAction(position);
+                    if (action != null) {
+                        executeAction(action);
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e(TAG, "Error handling action selection: " + e.getMessage(), e);
+                }
+                
+                // Reset spinner to first position (prompt) so same action can be selected again
+                // Use post to avoid interfering with the selection event
+                binding.actionsSpinner.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            binding.actionsSpinner.setSelection(0, false);
+                        } catch (Exception e) {
+                            android.util.Log.e(TAG, "Error resetting spinner: " + e.getMessage(), e);
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
             }
         });
 
         binding.inputMycallEdit.setText(mainViewModel.queryKey);
         queryByCallsign(mainViewModel.queryKey, 0);
+        
+        // Initialize filter indicator
+        updateFilterIndicator();
 
-        mainViewModel.mutableQueryFilter.observe(getViewLifecycleOwner(), new Observer<Integer>() {
+        mainViewModel.mutableQueryCommentFilter.observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                queryByCallsign(mainViewModel.queryKey, 0);
+                updateFilterIndicator();
+            }
+        });
+
+        mainViewModel.mutableQueryQRZFilter.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
                 queryByCallsign(mainViewModel.queryKey, 0);
+                updateFilterIndicator();
+            }
+        });
+
+        mainViewModel.mutableQueryStartDate.observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                queryByCallsign(mainViewModel.queryKey, 0);
+                updateFilterIndicator();
+            }
+        });
+
+        mainViewModel.mutableQueryEndDate.observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                queryByCallsign(mainViewModel.queryKey, 0);
+                updateFilterIndicator();
             }
         });
 
@@ -133,60 +213,6 @@ public class LogFragment extends Fragment {
             public void afterTextChanged(Editable editable) {
                 mainViewModel.queryKey = editable.toString();
                 queryByCallsign(mainViewModel.queryKey, 0);
-            }
-        });
-
-        //过滤条件按钮
-        binding.filterImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new FilterDialog(requireContext(), mainViewModel).show();
-            }
-        });
-
-        //导出按钮
-        binding.exportImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (getLocalIp() == null) {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , GeneralVariables.getStringFromResource(R.string.export_null)
-                            , false).show();
-                } else {
-                    new HelpDialog(requireContext(), requireActivity()
-                            , String.format(GeneralVariables.getStringFromResource(R.string.export_info)
-                            , getLocalIp(), LogHttpServer.DEFAULT_PORT)
-                            , false).show();
-                }
-
-            }
-        });
-
-        //分享日志按钮
-        binding.shareLogImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                buildShareLogs();
-            }
-        });
-
-        binding.logViewStyleimageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mainViewModel.logListShowCallsign = !mainViewModel.logListShowCallsign;
-                setShowStyle();
-                queryByCallsign(binding.inputMycallEdit.getText().toString(), 0);//偏移量0，就是重新查询
-            }
-        });
-
-        //定位按钮的动作
-        binding.locationInMapImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(requireContext(), GridTrackerMainActivity.class);
-                intent.putExtra("qslAll", mainViewModel.queryKey);
-                intent.putExtra("queryFilter", mainViewModel.queryFilter);
-                startActivity(intent);
             }
         });
 
@@ -237,7 +263,10 @@ public class LogFragment extends Fragment {
                         , GeneralVariables.getStringFromResource(R.string.share_logs)
                         , mainViewModel.databaseOpr.getDb()
                         , mainViewModel.queryKey
-                        , mainViewModel.queryFilter
+                        , mainViewModel.queryQRZFilter
+                        , mainViewModel.queryCommentFilter
+                        , mainViewModel.queryStartDate
+                        , mainViewModel.queryEndDate
                         , adiFile
                         , false
                         , new OnShareLogEvents() {
@@ -464,15 +493,11 @@ public class LogFragment extends Fragment {
     private void setShowStyle() {
 
         if (mainViewModel.logListShowCallsign) {
-            binding.logViewStyleimageButton.setImageResource(R.drawable.ic_baseline_assignment_ind_24);
             binding.logRecyclerView.setAdapter(logCallsignAdapter);
             logCallsignAdapter.notifyDataSetChanged();
-            binding.locationInMapImageButton.setVisibility(View.GONE);//隐藏定位按钮
         } else {
-            binding.logViewStyleimageButton.setImageResource(R.drawable.ic_baseline_assignment_24);
             binding.logRecyclerView.setAdapter(logQSLAdapter);
             logQSLAdapter.notifyDataSetChanged();
-            binding.locationInMapImageButton.setVisibility(View.VISIBLE);//显示定位按钮
         }
 
     }
@@ -490,7 +515,8 @@ public class LogFragment extends Fragment {
                 logCallsignAdapter.clearRecords();//清空记录
             }
 
-            mainViewModel.databaseOpr.getQSLCallsignsByCallsign(false, offset, callsign, mainViewModel.queryFilter
+            mainViewModel.databaseOpr.getQSLCallsignsByCallsign(false, offset, callsign, mainViewModel.queryQRZFilter
+                    , mainViewModel.queryCommentFilter, mainViewModel.queryStartDate, mainViewModel.queryEndDate
                     , new OnQueryQSLCallsign() {
                         @Override
                         public void afterQuery(ArrayList<QSLCallsignRecord> records) {
@@ -507,7 +533,8 @@ public class LogFragment extends Fragment {
             if (offset == 0) {//说明是新增记录
                 logQSLAdapter.clearRecords();
             }
-            mainViewModel.databaseOpr.getQSLRecordByCallsign(false, offset, callsign, mainViewModel.queryFilter
+            mainViewModel.databaseOpr.getQSLRecordByCallsign(false, offset, callsign, mainViewModel.queryQRZFilter
+                    , mainViewModel.queryCommentFilter, mainViewModel.queryStartDate, mainViewModel.queryEndDate
                     , new OnQueryQSLRecordCallsign() {
                         @Override
                         public void afterQuery(ArrayList<QSLRecordStr> records) {
@@ -524,6 +551,96 @@ public class LogFragment extends Fragment {
         }
     }
 
+
+    /**
+     * Update the filter indicator to show which filters are active
+     */
+    private void updateFilterIndicator() {
+        ArrayList<String> activeFilters = new ArrayList<>();
+        
+        // Check comment filter
+        if (mainViewModel.queryCommentFilter != null && !mainViewModel.queryCommentFilter.trim().isEmpty()) {
+            activeFilters.add(GeneralVariables.getStringFromResource(R.string.filter_indicator_comment));
+        }
+        
+        // Check QRZ filter
+        if (mainViewModel.queryQRZFilter == 1) {
+            activeFilters.add(GeneralVariables.getStringFromResource(R.string.filter_indicator_qrz_uploaded));
+        } else if (mainViewModel.queryQRZFilter == 2) {
+            activeFilters.add(GeneralVariables.getStringFromResource(R.string.filter_indicator_qrz_missing));
+        }
+        
+        // Check date range filter
+        boolean hasStartDate = mainViewModel.queryStartDate != null && !mainViewModel.queryStartDate.trim().isEmpty();
+        boolean hasEndDate = mainViewModel.queryEndDate != null && !mainViewModel.queryEndDate.trim().isEmpty();
+        if (hasStartDate || hasEndDate) {
+            activeFilters.add(GeneralVariables.getStringFromResource(R.string.filter_indicator_date_range));
+        }
+        
+        // Show or hide indicator based on active filters
+        if (!activeFilters.isEmpty()) {
+            String filterText = GeneralVariables.getStringFromResource(R.string.filters_active) + " " 
+                    + String.join(", ", activeFilters);
+            binding.filterIndicatorTextView.setText(filterText);
+            binding.filterIndicatorTextView.setVisibility(View.VISIBLE);
+        } else {
+            binding.filterIndicatorTextView.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Execute the selected action from the Actions spinner
+     */
+    private void executeAction(ActionsSpinnerAdapter.Action action) {
+        try {
+            switch (action) {
+                case EXPORT:
+                    if (getLocalIp() == null) {
+                        new HelpDialog(requireContext(), requireActivity()
+                                , GeneralVariables.getStringFromResource(R.string.export_null)
+                                , false).show();
+                    } else {
+                        new HelpDialog(requireContext(), requireActivity()
+                                , String.format(GeneralVariables.getStringFromResource(R.string.export_info)
+                                , getLocalIp(), LogHttpServer.DEFAULT_PORT)
+                                , false).show();
+                    }
+                    break;
+                    
+                case SHARE_LOGS:
+                    buildShareLogs();
+                    break;
+                    
+                case MAP_LOCATION:
+                    Intent intent = new Intent(requireContext(), GridTrackerMainActivity.class);
+                    intent.putExtra("qslAll", mainViewModel.queryKey);
+                    // Note: GridTrackerMainActivity may need to be updated to use new filters
+                    startActivity(intent);
+                    break;
+                    
+                case VIEW_STYLE:
+                    mainViewModel.logListShowCallsign = !mainViewModel.logListShowCallsign;
+                    setShowStyle();
+                    queryByCallsign(binding.inputMycallEdit.getText().toString(), 0);
+                    break;
+                    
+                case UPLOAD_QRZ:
+                    uploadUnuploadedQSOsToQRZ();
+                    break;
+                    
+                case FILTER:
+                    new FilterDialog(requireContext(), mainViewModel).show();
+                    break;
+                    
+                case STATISTICS:
+                    showCountFragment();
+                    break;
+            }
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "Error executing action: " + e.getMessage(), e);
+            ToastMessage.show("Error: " + e.getMessage());
+        }
+    }
 
     /**
      * 显示统计页面
@@ -550,6 +667,167 @@ public class LogFragment extends Fragment {
         navHostFragment.getNavController().navigate(R.id.QRZ_Fragment, bundle);
     }
 
+
+    /**
+     * 上传未上传到QRZ.com的QSO记录
+     * Upload unuploaded QSO records to QRZ.com
+     */
+    private void uploadUnuploadedQSOsToQRZ() {
+        String apiKey = GeneralVariables.getQrzApiKey();
+        if (apiKey == null || apiKey.isEmpty()) {
+            ToastMessage.show(GeneralVariables.getStringFromResource(R.string.qrz_api_key_not_set));
+            return;
+        }
+
+        // Show progress message
+        ToastMessage.show(GeneralVariables.getStringFromResource(R.string.upload_qrz_uploading));
+
+        // Get all unuploaded QSOs
+        mainViewModel.databaseOpr.getUnuploadedQSOs(new OnQueryQSLRecordCallsign() {
+            @Override
+            public void afterQuery(ArrayList<QSLRecordStr> records) {
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (records.isEmpty()) {
+                            ToastMessage.show(GeneralVariables.getStringFromResource(R.string.upload_qrz_no_unuploaded));
+                            return;
+                        }
+
+                        // Convert all QSLRecordStr to QSLRecord and upload in bulk
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ArrayList<QSLRecord> qslRecords = new ArrayList<>();
+                                
+                                // Convert all records
+                                for (QSLRecordStr recordStr : records) {
+                                    try {
+                                        QSLRecord qslRecord = convertQSLRecordStrToQSLRecord(recordStr);
+                                        if (qslRecord != null) {
+                                            qslRecords.add(qslRecord);
+                                        }
+                                    } catch (Exception e) {
+                                        android.util.Log.e(TAG, "Error converting QSO: " + e.getMessage());
+                                    }
+                                }
+
+                                if (qslRecords.isEmpty()) {
+                                    requireActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ToastMessage.show(GeneralVariables.getStringFromResource(R.string.upload_qrz_no_unuploaded));
+                                        }
+                                    });
+                                    return;
+                                }
+
+                                // Upload all QSOs in a single bulk API call
+                                ThirdPartyService.BulkUploadResult result = ThirdPartyService.UploadMultipleToQRZ(qslRecords);
+
+                                // Show result toast using COUNT from API response
+                                final int uploadedCount = result.count;
+                                final boolean success = result.success;
+                                final String errorMsg = result.errorMessage;
+                                
+                                requireActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (success) {
+                                            // Use COUNT from API response
+                                            ToastMessage.show(String.format(
+                                                    GeneralVariables.getStringFromResource(R.string.upload_qrz_complete),
+                                                    uploadedCount));
+                                        } else {
+                                            // Show error message
+                                            ToastMessage.show(String.format(
+                                                    GeneralVariables.getStringFromResource(R.string.upload_qrz_failed),
+                                                    errorMsg != null ? errorMsg : "Unknown error"));
+                                        }
+                                        // Refresh the log list to show updated upload status
+                                        queryByCallsign(mainViewModel.queryKey, 0);
+                                    }
+                                });
+                            }
+                        }).start();
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Convert QSLRecordStr to QSLRecord for QRZ upload
+     */
+    private QSLRecord convertQSLRecordStrToQSLRecord(QSLRecordStr recordStr) {
+        try {
+            // Parse time_on to get date and time separately
+            String[] timeOnParts = recordStr.getTime_on().split("-");
+            if (timeOnParts.length != 2) {
+                return null;
+            }
+            String qsoDate = timeOnParts[0];
+            String timeOn = timeOnParts[1];
+
+            // Parse time_off to get date and time separately
+            String[] timeOffParts = recordStr.getTime_off().split("-");
+            String qsoDateOff = timeOffParts.length == 2 ? timeOffParts[0] : qsoDate;
+            String timeOff = timeOffParts.length == 2 ? timeOffParts[1] : timeOn;
+
+            // Build HashMap for QSLRecord constructor (similar to ADIF import)
+            HashMap<String, String> map = new HashMap<>();
+            map.put("CALL", recordStr.getCall());
+            if (recordStr.getGridsquare() != null && !recordStr.getGridsquare().isEmpty()) {
+                map.put("GRIDSQUARE", recordStr.getGridsquare());
+            }
+            if (recordStr.getMode() != null && !recordStr.getMode().isEmpty()) {
+                map.put("MODE", recordStr.getMode());
+            } else {
+                map.put("MODE", "FT8");
+            }
+            if (recordStr.getRst_sent() != null && !recordStr.getRst_sent().isEmpty()) {
+                map.put("RST_SENT", recordStr.getRst_sent());
+            }
+            if (recordStr.getRst_rcvd() != null && !recordStr.getRst_rcvd().isEmpty()) {
+                map.put("RST_RCVD", recordStr.getRst_rcvd());
+            }
+            map.put("QSO_DATE", qsoDate);
+            map.put("TIME_ON", timeOn);
+            map.put("QSO_DATE_OFF", qsoDateOff);
+            map.put("TIME_OFF", timeOff);
+            if (recordStr.getBand() != null && !recordStr.getBand().isEmpty()) {
+                map.put("BAND", recordStr.getBand());
+            }
+            if (recordStr.getFreq() != null && !recordStr.getFreq().isEmpty()) {
+                map.put("FREQ", recordStr.getFreq());
+            }
+            if (recordStr.getStation_callsign() != null && !recordStr.getStation_callsign().isEmpty()) {
+                map.put("STATION_CALLSIGN", recordStr.getStation_callsign());
+            } else {
+                map.put("STATION_CALLSIGN", GeneralVariables.myCallsign);
+            }
+            if (recordStr.getMy_gridsquare() != null && !recordStr.getMy_gridsquare().isEmpty()) {
+                map.put("MY_GRIDSQUARE", recordStr.getMy_gridsquare());
+            }
+            if (recordStr.getComment() != null && !recordStr.getComment().isEmpty()) {
+                map.put("COMMENT", recordStr.getComment());
+            }
+
+            // Create QSLRecord using HashMap constructor
+            QSLRecord qslRecord = new QSLRecord(map);
+
+            // Set flags
+            qslRecord.isQSL = recordStr.isQSL;
+            qslRecord.isLotW_import = recordStr.isLotW_import;
+            qslRecord.isLotW_QSL = recordStr.isLotW_QSL;
+            qslRecord.isQRZ_uploaded = recordStr.isQRZ_uploaded;
+
+            return qslRecord;
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "Error converting QSLRecordStr to QSLRecord: " + e.getMessage());
+            return null;
+        }
+    }
 
     /**
      * 获取本机IP地址
