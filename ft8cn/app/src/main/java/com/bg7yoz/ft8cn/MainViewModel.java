@@ -573,15 +573,18 @@ public class MainViewModel extends ViewModel {
         for (Ft8Message msg : messages) {
             //与我的呼号有关，与关注的呼号有关
             //if (msg.getCallsignFrom().equals(GeneralVariables.myCallsign)
+            boolean isTargetingMe = GeneralVariables.checkIsMyCallsign(msg.getCallsignTo());
             if (GeneralVariables.checkIsMyCallsign(msg.getCallsignFrom())
                     //|| msg.getCallsignTo().equals(GeneralVariables.myCallsign)
-                    || GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
+                    || isTargetingMe
                     || GeneralVariables.callsignInFollow(msg.getCallsignFrom())
                     || (GeneralVariables.callsignInFollow(msg.getCallsignTo()) && (msg.getCallsignTo() != null))
                     || (GeneralVariables.autoFollowCQ && msg.checkIsCQ())) {//是CQ，并且允许关注CQ
                 //看不是通联成功的呼号的消息
                 msg.isQSL_Callsign = GeneralVariables.checkQSLCallsign(msg.getCallsignFrom());
-                if (!GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom)) {//不在排除呼号前缀的，才加入列表
+                // Messages targeting the user should always be shown, bypass exclusion check
+                // Other messages (CQ, follow callsigns) should respect exclusion list
+                if (isTargetingMe || !GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom)) {
                     // Check for duplicates before adding
                     if (!isMessageInTransmitList(msg)) {
                         count++;

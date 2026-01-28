@@ -1,0 +1,110 @@
+# Database Column Migration Rule
+
+## Overview
+When adding a new column to an existing database table, **always** ensure the column is checked and added in the `onOpen()` method to prevent crashes on existing databases that don't have the column yet.
+
+## Problem
+When adding a new column to a database table:
+- **New databases**: `onCreate()` creates the table with the new column ✓
+- **Upgraded databases**: `onUpgrade()` calls `createQSLTable()` which adds the column ✓
+- **Existing databases (no version change)**: `onOpen()` must check and add the column ✗
+
+If `onOpen()` doesn't check for the column, existing databases will crash when trying to insert/update records that reference the new column.
+
+## Rule: Always Update `onOpen()` When Adding Columns
+
+### When Adding a New Column
+
+1. **Add column to `CREATE TABLE` statement** in `createQSLTable()`:
+   ```java
+   sqLiteDatabase.execSQL("CREATE TABLE QSLTable (\n" +
+       // ... existing columns ...
+       "park_number TEXT)");  // New column
+   ```
+
+2. **Add column migration in `createQSLTable()`** (for existing tables):
+   ```java
+   if (checkTableExists(sqLiteDatabase, "QSLTable")) {
+       // ... existing alterTable calls ...
+       alterTable(sqLiteDatabase, "QSLTable", "park_number", "park_number TEXT");
+   }
+   ```
+
+3. **CRITICAL: Add column check in `onOpen()` method**:
+   ```java
+   @Override
+   public void onOpen(SQLiteDatabase sqLiteDatabase) {
+       super.onOpen(sqLiteDatabase);
+       if (checkTableExists(sqLiteDatabase, "QSLTable")) {
+           alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+           alterTable(sqLiteDatabase, "QSLTable", "park_number", "park_number TEXT");  // ADD THIS
+       }
+   }
+   ```
+
+### Why `onOpen()` is Critical
+
+- `onCreate()` only runs for **new databases**
+- `onUpgrade()` only runs when the **database version changes**
+- `onOpen()` runs **every time** the database is opened, ensuring columns exist even if:
+  - The database was created before the column was added
+  - The database version hasn't changed
+  - The app was updated without a database version bump
+
+### Example: Adding `park_number` Column
+
+**Before (Incorrect)**:
+```java
+@Override
+public void onOpen(SQLiteDatabase sqLiteDatabase) {
+    super.onOpen(sqLiteDatabase);
+    if (checkTableExists(sqLiteDatabase, "QSLTable")) {
+        alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+        // Missing park_number check - will crash on existing databases!
+    }
+}
+```
+
+**After (Correct)**:
+```java
+@Override
+public void onOpen(SQLiteDatabase sqLiteDatabase) {
+    super.onOpen(sqLiteDatabase);
+    if (checkTableExists(sqLiteDatabase, "QSLTable")) {
+        alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+        alterTable(sqLiteDatabase, "QSLTable", "park_number", "park_number TEXT");
+    }
+}
+```
+
+## Checklist When Adding a Database Column
+
+When adding a new column to any table, verify:
+
+- [ ] Column added to `CREATE TABLE` statement in `createQSLTable()` (or appropriate create method)
+- [ ] `alterTable()` call added in `createQSLTable()` for existing tables
+- [ ] **`alterTable()` call added in `onOpen()` method** ← CRITICAL
+- [ ] Column type matches in all three locations
+- [ ] Column name is consistent across all locations
+- [ ] Tested on existing database (not just new database)
+
+## Related Files
+
+- **Database Operations**: `ft8cn/app/src/main/java/com/bg7yoz/ft8cn/database/DatabaseOpr.java`
+  - `onCreate()` - Creates new databases
+  - `onUpgrade()` - Upgrades existing databases
+  - `onOpen()` - **Ensures columns exist on every open** ← Most important for migrations
+  - `createQSLTable()` - Creates/updates QSLTable structure
+  - `alterTable()` - Safely adds columns if they don't exist
+
+## Notes
+
+- The `alterTable()` method uses `sqlite_master` to check if a column exists before adding it
+- This prevents errors if the column already exists
+- Always use the same column definition (type, constraints) in all three locations
+- Keep `onOpen()` checks in the same order as they were added (chronological)
+
+## Related Documentation
+
+- See `DATABASE_SAFETY_IMPROVEMENTS.md` for general database safety practices
+- See `SETTINGS_DIALOG_UPDATES.md` for UI-related database changes

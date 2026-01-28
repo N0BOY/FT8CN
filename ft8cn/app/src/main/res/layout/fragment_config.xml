@@ -1073,23 +1073,22 @@
 
                         <EditText
                             android:id="@+id/modifierEdit"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="2dp"
                             android:layout_marginTop="6dp"
-                            android:layout_marginEnd="2dp"
+                            android:layout_marginEnd="8dp"
                             android:layout_marginBottom="6dp"
                             android:autofillHints=""
                             android:background="@drawable/editor_style"
-                            android:ems="10"
+                            android:ems="5"
                             android:hint="@string/pl_input_modifier"
-
                             android:inputType="textEmailAddress|textCapWords"
                             android:minHeight="32dp"
+                            android:maxWidth="80dp"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/parkNumberText"
                             app:layout_constraintStart_toEndOf="@+id/modifierText"
                             app:layout_constraintTop_toTopOf="parent"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
@@ -1109,24 +1108,25 @@
 
                         <EditText
                             android:id="@+id/parkNumberEdit"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="2dp"
                             android:layout_marginTop="6dp"
-                            android:layout_marginEnd="2dp"
+                            android:layout_marginEnd="8dp"
                             android:layout_marginBottom="6dp"
                             android:autofillHints=""
                             android:background="@drawable/editor_style"
-                            android:ems="10"
+                            android:ems="8"
                             android:hint="@string/pl_input_park_number"
                             android:inputType="text"
                             android:minHeight="32dp"
+                            android:maxWidth="120dp"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintBottom_toBottomOf="@+id/parkNumberText"
                             app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
                             app:layout_constraintStart_toEndOf="@+id/parkNumberText"
-                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintTop_toTopOf="@+id/parkNumberText"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
 
                         <ImageButton

@@ -131,9 +131,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase sqLiteDatabase) {
         super.onOpen(sqLiteDatabase);
-        // Ensure isQRZ_uploaded column exists (for older databases that haven't been upgraded)
+        // Ensure columns exist (for older databases that haven't been upgraded)
         if (checkTableExists(sqLiteDatabase, "QSLTable")) {
             alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+            alterTable(sqLiteDatabase, "QSLTable", "park_number", "park_number TEXT");
         }
     }
 
@@ -248,6 +249,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "isLotW_QSL INTEGER DEFAULT 0");
             alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded"
                     , "isQRZ_uploaded INTEGER DEFAULT 0");
+            alterTable(sqLiteDatabase, "QSLTable", "park_number"
+                    , "park_number TEXT");
 
         } else {
             sqLiteDatabase.execSQL("CREATE TABLE QSLTable (\n" +
@@ -271,7 +274,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "freq TEXT,\n" +
                     "station_callsign TEXT,\n" +
                     "my_gridsquare TEXT,\n" +
-                    "comment TEXT)");
+                    "comment TEXT,\n" +
+                    "park_number TEXT)");
         }
 
 
@@ -1257,7 +1261,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (!checkIsQSL(record)) {//如果不存在日志数据就添加
             querySQL = "INSERT INTO QSLTable(call, isQSL,isLotW_import,isLotW_QSL,isQRZ_uploaded,gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
                     "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
-                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "comment, park_number)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             db.execSQL(querySQL, new String[]{record.getToCallsign()
                     , String.valueOf(record.isQSL ? 1 : 0)
@@ -1277,7 +1281,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , BaseRigOperation.getFrequencyFloat(record.getBandFreq())
                     , record.getMyCallsign()
                     , record.getMyMaidenGrid()
-                    , record.getComment()});
+                    , record.getComment()
+                    , record.getParkNumber() != null ? record.getParkNumber() : ""});
             if (afterInsertQSLData!=null){
                 afterInsertQSLData.doAfterInsert(false,true);//说明是新的QSL
             }

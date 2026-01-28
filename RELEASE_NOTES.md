@@ -1,5 +1,60 @@
 # FT8CN Release Notes
 
+## Version 0.93.171 (January 28, 2026)
+
+### 🎨 UI Improvements
+
+#### QSO Log Filtering Enhancements
+- **QRZ Upload Status Filter**: Added filter option to show all QSOs, only uploaded QSOs, or only missing QSOs
+  - Filter options: "Show all", "QRZ uploaded", "QRZ missing"
+  - Helps identify which QSOs still need to be uploaded to QRZ.com
+  - Filter is applied to both log display and ADIF export/share
+- **Date Range Filter**: Added start date and end date filtering for QSO logs
+  - Format: YYYYMMDD (e.g., "20240101" for January 1, 2024)
+  - Filter QSOs by QSO end date (`qso_date_off`)
+  - Empty fields mean no date filtering applied
+  - Enables time-based log analysis and export
+- **Comment Text Filter**: Added ability to search QSOs by text content in comment field
+  - Case-insensitive partial matching (LIKE search)
+  - Useful for searching by location, distance, or other information stored in comments
+  - Works together with other filters
+- **Filter Visual Indicator**: Added visual indicator showing which filters are currently active
+  - Displays below the action bar when filters are active
+  - Shows comma-separated list of active filters
+  - Updates automatically when filters change
+  - Makes it clear when the log display is filtered
+- **Removed QSL Status Filter**: Removed confirmed/unconfirmed QSL status filter to simplify UI
+  - Focus is now on QRZ upload status instead
+
+#### Share Logs Filename Customization
+- **Custom filename dialog**: Added dialog to specify custom filename when sharing/exporting logs
+  - Default filename is "FT8CN" but can be customized
+  - Filename sanitization removes invalid characters (/ \ : * ? " < > |)
+  - Makes it easier to organize exported log files
+
+### 🔧 Technical Improvements
+
+#### ADIF Export Enhancements
+- **POTA Support**: Added POTA (Parks on the Air) fields to ADIF export
+  - Automatically includes `MY_SIG: POTA` and `MY_SIG_INFO: [park_number]` when park number is present
+  - Band name converted to uppercase for POTA compliance (e.g., "20m" → "20M")
+  - Enables proper POTA log submission
+
+#### Filter Integration
+- **Unified Filter System**: All filters (callsign, comment, QRZ status, date range) work together seamlessly
+  - Filters are combined with SQL AND clauses
+  - Share ADIF respects all filter settings
+  - Filter state persists during app session via MainViewModel
+  - Database queries optimized with dynamic parameter building
+
+### 📚 Documentation
+- **Filter Improvements Documentation**: Added comprehensive documentation in `wiki/FILTER_IMPROVEMENTS.md`
+  - Documents all filter types and their implementation
+  - Includes usage examples and technical details
+  - Explains filter combination logic
+
+---
+
 ## Version 0.93.154 (January 27, 2026)
 
 ### 🐛 Bug Fixes

@@ -21,13 +21,18 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.Spinner;
+
+import java.io.File;
+import java.io.IOException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -245,7 +250,56 @@ public class LogFragment extends Fragment {
      * 创建共享日志的数据文件
      */
     private void buildShareLogs() {
+        // Show filename dialog first
+        showFilenameDialog();
+    }
 
+    /**
+     * Show dialog to get filename from user
+     */
+    private void showFilenameDialog() {
+        final EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint(GeneralVariables.getStringFromResource(R.string.share_logs_filename_hint));
+        input.setText("FT8CN"); // Default value
+        input.selectAll(); // Select default text for easy replacement
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle(GeneralVariables.getStringFromResource(R.string.share_logs_filename_dialog_title))
+                .setMessage(GeneralVariables.getStringFromResource(R.string.share_logs_filename_dialog_message))
+                .setView(input)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String filename = sanitizeFilename(input.getText().toString().trim());
+                        if (filename.isEmpty()) {
+                            filename = "FT8CN"; // Default if empty
+                        }
+                        createAndShareLogs(filename);
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /**
+     * Sanitize filename by removing invalid characters
+     * @param filename Original filename
+     * @return Sanitized filename
+     */
+    private String sanitizeFilename(String filename) {
+        if (filename == null) {
+            return "";
+        }
+        // Remove invalid characters: / \ : * ? " < > |
+        return filename.replaceAll("[\\\\/:*?\"<>|]", "");
+    }
+
+    /**
+     * Create and share logs with the specified filename
+     * @param filename Filename (without extension)
+     */
+    private void createAndShareLogs(String filename) {
         //先显示生成log的对话框
         showShareDialog();
 
@@ -253,10 +307,34 @@ public class LogFragment extends Fragment {
             @Override
             public void run() {
 
-                File adiFile = GeneralVariables.writeToTempFile(requireContext()
-                        , "FT8CN"
-                        , ".txt"
-                        , "");
+                // Create file with custom filename
+                File tempDir = requireContext().getExternalCacheDir();
+                File adiFile = null;
+                if (tempDir != null) {
+                    try {
+                        // Create file with custom name
+                        adiFile = new File(tempDir, filename + ".txt");
+                        // Delete file if it exists to ensure clean start
+                        if (adiFile.exists()) {
+                            adiFile.delete();
+                        }
+                        // Create empty file
+                        adiFile.createNewFile();
+                    } catch (IOException e) {
+                        android.util.Log.e(TAG, "Error creating file: " + e.getMessage());
+                        // Fallback to temp file if custom name fails
+                        adiFile = GeneralVariables.writeToTempFile(requireContext()
+                                , filename
+                                , ".txt"
+                                , "");
+                    }
+                } else {
+                    // Fallback to temp file if cache dir unavailable
+                    adiFile = GeneralVariables.writeToTempFile(requireContext()
+                            , filename
+                            , ".txt"
+                            , "");
+                }
 
 
                 new ShareLogs().doShareLogs(requireContext(), adiFile

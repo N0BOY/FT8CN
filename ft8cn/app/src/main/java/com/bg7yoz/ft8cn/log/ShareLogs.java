@@ -193,9 +193,12 @@ public class ShareLogs {
                 }
 
                 if (cursor.getString(cursor.getColumnIndex("band")) != null) {
+                    // Convert band to uppercase for POTA compliance (e.g., "20m" -> "20M")
+                    String band = cursor.getString(cursor.getColumnIndex("band"));
+                    String bandUpper = band.toUpperCase();
                     fileOutputStream.write(String.format("<band:%d>%s "
-                            , cursor.getString(cursor.getColumnIndex("band")).length()
-                            , cursor.getString(cursor.getColumnIndex("band"))).getBytes());
+                            , bandUpper.length()
+                            , bandUpper).getBytes());
                 }
 
                 if (cursor.getString(cursor.getColumnIndex("freq")) != null) {
@@ -223,6 +226,21 @@ public class ShareLogs {
                                 , cursor.getString(cursor.getColumnIndex("operator"))).getBytes());
                     }
                 }
+                
+                // Add POTA fields if park number is present
+                int parkNumberIndex = cursor.getColumnIndex("park_number");
+                if (parkNumberIndex != -1) {
+                    String parkNumber = cursor.getString(parkNumberIndex);
+                    if (parkNumber != null && !parkNumber.trim().isEmpty()) {
+                        // MY_SIG: Always "POTA" for POTA activations
+                        fileOutputStream.write("<MY_SIG:4>POTA ".getBytes());
+                        // MY_SIG_INFO: Park reference number (e.g., "US-0005", "K-1234")
+                        fileOutputStream.write(String.format("<MY_SIG_INFO:%d>%s "
+                                , parkNumber.length()
+                                , parkNumber).getBytes());
+                    }
+                }
+                
                 String comment = cursor.getString(cursor.getColumnIndex("comment"));
 
                 //<comment:15>Distance: 99 mi <eor>

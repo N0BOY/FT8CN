@@ -587,6 +587,9 @@
     <string name="serial_setting_help">serial_help_en.txt</string>
     <string name="tcp_connect_closed">The network connection has been disconnected.</string>
     <string name="share_logs">Share logs</string>
+    <string name="share_logs_filename_dialog_title">Share Logs</string>
+    <string name="share_logs_filename_dialog_message">Enter filename for the log file:</string>
+    <string name="share_logs_filename_hint">Enter filename (default: FT8CN)</string>
     <string name="config_clear_share_data">Delete cache files</string>
     <string name="preparing_log_data">Preparing log data…</string>
     <string name="total_logs">There are a total of %d logs.</string>

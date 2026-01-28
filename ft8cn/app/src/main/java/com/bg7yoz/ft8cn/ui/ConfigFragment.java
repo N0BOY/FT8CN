@@ -304,8 +304,13 @@ public class ConfigFragment extends Fragment {
 
         @Override
         public void afterTextChanged(Editable editable) {
-            GeneralVariables.parkNumber = editable.toString().trim();
-            writeConfig("parkNumber", GeneralVariables.parkNumber);
+            if (editable != null) {
+                String text = editable.toString();
+                GeneralVariables.parkNumber = text != null ? text.trim() : "";
+                writeConfig("parkNumber", GeneralVariables.parkNumber);
+            } else {
+                GeneralVariables.parkNumber = "";
+            }
         }
     };
 
@@ -465,7 +470,7 @@ public class ConfigFragment extends Fragment {
 
         //公园编号
         binding.parkNumberEdit.removeTextChangedListener(onParkNumberEditorChanged);
-        binding.parkNumberEdit.setText(GeneralVariables.parkNumber);
+        binding.parkNumberEdit.setText(GeneralVariables.parkNumber != null ? GeneralVariables.parkNumber : "");
         binding.parkNumberEdit.addTextChangedListener(onParkNumberEditorChanged);
 
         //发射频率
