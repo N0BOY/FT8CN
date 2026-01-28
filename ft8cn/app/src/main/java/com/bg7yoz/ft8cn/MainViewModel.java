@@ -515,9 +515,8 @@ public class MainViewModel extends ViewModel {
      */
     private synchronized void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
         Log.d(TAG, "findIncludedCallsigns: 查找关注的呼号");
-        if (ft8TransmitSignal.isActivated() && ft8TransmitSignal.sequential != UtcTimer.getNowSequential()) {
-            return;
-        }
+        // Removed early return - messages should always be added to calling screen
+        // so users can see who's calling them, even during TX cycles
         int count = 0;
         for (Ft8Message msg : messages) {
             //与我的呼号有关，与关注的呼号有关
