@@ -277,20 +277,26 @@ public class UtcTimer {
 
     /**
      * 同步时间：优先使用GPS时间，如果GPS失败则回退到NTP时间服务器
-     * Time synchronization: Try GPS first, fall back to NTP if GPS fails
+     * Time synchronization: Try GPS first (if enabled), fall back to NTP if GPS fails or is disabled
      */
     public static void syncTime(AfterSyncTime afterSyncTime) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // Try GPS time sync first
-                SyncResult gpsResult = syncTimeFromGPS(afterSyncTime);
-                
-                // If GPS failed, fall back to NTP
-                if (!gpsResult.success) {
-                    if (afterSyncTime != null) {
-                        afterSyncTime.gpsFailedFallingBackToNTP(gpsResult.failureReason);
+                // Try GPS time sync first only if enabled
+                SyncResult gpsResult;
+                if (GeneralVariables.enableGpsTimeSync) {
+                    gpsResult = syncTimeFromGPS(afterSyncTime);
+                    
+                    // If GPS failed, fall back to NTP
+                    if (!gpsResult.success) {
+                        if (afterSyncTime != null) {
+                            afterSyncTime.gpsFailedFallingBackToNTP(gpsResult.failureReason);
+                        }
+                        syncTimeFromNTP(afterSyncTime);
                     }
+                } else {
+                    // GPS sync is disabled, go directly to NTP
                     syncTimeFromNTP(afterSyncTime);
                 }
             }

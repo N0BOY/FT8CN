@@ -480,6 +480,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void doOnAfterQueryConfig(String KeyName, String Value) {
                 mainViewModel.configIsLoaded = true;
+                
+                // Ensure enableGpsTimeSync setting exists in database (write default if missing)
+                if (KeyName == null && Value == null) {
+                    // This is the final callback after all configs are loaded
+                    // Check if enableGpsTimeSync exists, if not write default
+                    mainViewModel.databaseOpr.getConfigByKey("enableGpsTimeSync", new OnAfterQueryConfig() {
+                        @Override
+                        public void doOnBeforeQueryConfig(String KeyName) {
+                        }
+
+                        @Override
+                        public void doOnAfterQueryConfig(String KeyName, String Value) {
+                            // If Value is empty, the config doesn't exist, so write default
+                            if (Value == null || Value.isEmpty()) {
+                                mainViewModel.databaseOpr.writeConfig("enableGpsTimeSync", "0", null);
+                            }
+                        }
+                    });
+                }
+                
                 //此处梅登海德已经通过数据库得到了，但是如果GPS能获取到，还是用GPS的
                 // Use callback-based method but silently (no toast) for startup
                 MaidenheadGrid.getMyMaidenheadGrid(getApplicationContext(), new MaidenheadGrid.AfterGetGridLocation() {

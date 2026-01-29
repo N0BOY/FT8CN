@@ -491,6 +491,7 @@
     <string name="time_sync_success">Time sync: %1$s - %2$s. Offset applied to app calculations.</string>
     <string name="time_sync_failed">Time sync failed (%1$s): %2$s</string>
     <string name="time_sync_gps_failed_fallback">GPS sync failed (%1$s), falling back to NTP</string>
+    <string name="config_enable_gps_time_sync">GPS time sync (experimental)</string>
     <string name="grid_location_success">Grid square retrieved: %1$s</string>
     <string name="grid_location_failed">Grid location failed: %1$s</string>
     <string name="html_start_date_swl_message">Start date</string>

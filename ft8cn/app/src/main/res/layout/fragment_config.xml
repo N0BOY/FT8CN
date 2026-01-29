@@ -406,6 +406,21 @@
                             app:layout_constraintStart_toEndOf="@+id/utcTimeOffsetSpinner"
                             app:layout_constraintTop_toTopOf="parent" />
 
+                        <Switch
+                            android:id="@+id/enableGpsTimeSyncSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:checked="false"
+                            android:text="@string/config_enable_gps_time_sync"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            android:thumbTint="?attr/colorPrimary"
+                            android:thumbTintMode="multiply"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/synTImeButton"
+                            app:layout_constraintTop_toTopOf="parent" />
+
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout

@@ -2089,6 +2089,21 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        // GPS Time Sync Switch (Experimental)
+        binding.enableGpsTimeSyncSwitch.setOnCheckedChangeListener(null);
+        binding.enableGpsTimeSyncSwitch.setChecked(GeneralVariables.enableGpsTimeSync);
+        binding.enableGpsTimeSyncSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                GeneralVariables.enableGpsTimeSync = isChecked;
+                if (isChecked) {
+                    mainViewModel.databaseOpr.writeConfig("enableGpsTimeSync", "1", null);
+                } else {
+                    mainViewModel.databaseOpr.writeConfig("enableGpsTimeSync", "0", null);
+                }
+            }
+        });
+
     }
 
     /**

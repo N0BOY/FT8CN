@@ -1,5 +1,31 @@
 # FT8CN Release Notes
 
+## Version 0.93.176 (January 28, 2026)
+
+### 🎉 New Features
+
+#### Settings & Configuration
+- **GPS Time Sync Setting (Experimental)**: Added toggle to enable/disable GPS time synchronization
+  - Located in Settings → UTC Time Offset section
+  - Disabled by default (experimental feature)
+  - When enabled, time sync attempts GPS first, then falls back to NTP if GPS fails
+  - When disabled, time sync uses NTP only (previous behavior)
+  - Setting is stored in database and persists across app restarts
+  - Default value is automatically written to database on first startup if missing
+  - Provides users with control over GPS time sync behavior
+
+### 🔧 Technical Improvements
+
+#### Time Synchronization
+- **Configurable GPS sync**: GPS time sync is now optional and controlled by user setting
+  - `UtcTimer.syncTime()` checks `GeneralVariables.enableGpsTimeSync` before attempting GPS
+  - If GPS sync is disabled, goes directly to NTP synchronization
+  - Maintains backward compatibility (default behavior unchanged)
+  - GPS sync advantages: More accurate, works without internet, typically accurate to milliseconds
+  - NTP fallback: Still available if GPS fails or is disabled
+
+---
+
 ## Version 0.93.171 (January 28, 2026)
 
 ### 🎨 UI Improvements
