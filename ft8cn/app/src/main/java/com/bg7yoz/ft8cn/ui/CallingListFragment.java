@@ -38,6 +38,7 @@ import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.databinding.FragmentCallingListBinding;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
+import com.bg7yoz.ft8cn.ui.LogViewer;
 
 import java.util.ArrayList;
 

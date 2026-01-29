@@ -27,6 +27,7 @@ import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.ft8transmit.TransmitCallsign;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -320,13 +321,24 @@ public class CallingListAdapter extends RecyclerView.Adapter<CallingListAdapter.
 //        }
 
         if (holder.ft8Message.freq_hz <= 0.01f) {//这是发射界面
+            // Show "TX" in dB column and audio frequency (0-3000 Hz) in freq column
             holder.callingListIdBTextView.setVisibility(View.GONE);
-            holder.callListDtTextView.setVisibility(View.GONE);
-            holder.callingListFreqTextView.setText("TX");
+            holder.callListDtTextView.setVisibility(View.VISIBLE);
+            holder.callListDtTextView.setText("TX");
+            // Get audio frequency from current transmission (0-3000 Hz range)
+            // Use toCallsign frequency if available, otherwise use baseFrequency
+            float audioFreq = GeneralVariables.getBaseFrequency();
+            TransmitCallsign currentTx = mainViewModel.ft8TransmitSignal.mutableToCallsign.getValue();
+            if (currentTx != null && currentTx.frequency > 0) {
+                audioFreq = currentTx.frequency;
+            }
+            // Format for display
+            holder.callingListFreqTextView.setText(String.format("%04.0f", audioFreq));
             holder.bandItemTextView.setVisibility(View.GONE);
-            holder.callingListDistTextView.setVisibility(View.GONE);
+            holder.callingListDistTextView.setVisibility(View.GONE); // Hide miles/distance
             holder.callingListCommandIInfoTextView.setVisibility(View.GONE);
-            holder.callingUtcTextView.setVisibility(View.GONE);
+            // Keep callingUtcTextView visible to show time in bottom row
+            holder.callingUtcTextView.setVisibility(View.VISIBLE);
             holder.callingListCallsignToTextView.setVisibility(View.GONE);
             holder.callingListCallsignFromTextView.setVisibility(View.GONE);
             holder.dxccToImageView.setVisibility(View.GONE);
