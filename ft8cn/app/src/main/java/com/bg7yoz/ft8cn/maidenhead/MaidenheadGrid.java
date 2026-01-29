@@ -7,14 +7,22 @@ package com.bg7yoz.ft8cn.maidenhead;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Looper;
+
+import androidx.core.app.ActivityCompat;
 
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class MaidenheadGrid {
     private static final String TAG = "MaidenheadGrid";
@@ -368,10 +376,28 @@ public class MaidenheadGrid {
 
 
     /**
-     * 获取本机的梅登海德网格数据。需要定位的权限。
+     * Callback interface for grid location retrieval
+     */
+    public interface AfterGetGridLocation {
+        /**
+         * Called when grid location is successfully retrieved
+         * @param gridSquare The 4-character Maidenhead grid square
+         */
+        void onGridLocationSuccess(String gridSquare);
+        
+        /**
+         * Called when grid location retrieval fails
+         * @param reason Reason for failure
+         */
+        void onGridLocationFailed(String reason);
+    }
+
+    /**
+     * 获取本机的梅登海德网格数据（旧版本，仅使用缓存位置）
+     * Get Maidenhead grid square using cached location only (legacy method)
      *
      * @param context context
-     * @return String 返回6字符的梅登海德网格。
+     * @return String 返回4字符的梅登海德网格，失败返回空字符串
      */
     public static String getMyMaidenheadGrid(Context context) {
         LatLng latLng = getLocalLocation(context);
@@ -379,8 +405,170 @@ public class MaidenheadGrid {
         if (latLng != null) {
             return getGridSquare(latLng);
         } else {
-            //ToastMessage.show("无法定位，请确认是否有定位的权限。");
             return "";
+        }
+    }
+
+    /**
+     * 获取本机的梅登海德网格数据（新版本，带回调、超时和错误处理）
+     * Get Maidenhead grid square with callback, timeout, and error handling
+     *
+     * @param context context
+     * @param callback Callback for success/failure notification
+     */
+    @SuppressLint("MissingPermission")
+    public static void getMyMaidenheadGrid(Context context, AfterGetGridLocation callback) {
+        if (context == null) {
+            if (callback != null) {
+                callback.onGridLocationFailed("Context not available");
+            }
+            return;
+        }
+
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager == null) {
+            if (callback != null) {
+                callback.onGridLocationFailed("Location service not available");
+            }
+            return;
+        }
+
+        // Check location permissions
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) 
+                != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) 
+                != PackageManager.PERMISSION_GRANTED) {
+            if (callback != null) {
+                callback.onGridLocationFailed("Location permission denied");
+            }
+            return;
+        }
+
+        // First try to get last known location (fast, synchronous)
+        try {
+            List<String> providers = locationManager.getProviders(true);
+            Location bestLocation = null;
+            for (String provider : providers) {
+                Location location = locationManager.getLastKnownLocation(provider);
+                if (location != null) {
+                    if (bestLocation == null || location.getAccuracy() < bestLocation.getAccuracy()) {
+                        bestLocation = location;
+                    }
+                }
+            }
+
+            if (bestLocation != null) {
+                long locationAge = System.currentTimeMillis() - bestLocation.getTime();
+                // Use last known location if it's recent (within 5 minutes)
+                if (locationAge < 5 * 60 * 1000) { // Within 5 minutes
+                    LatLng latLng = new LatLng(bestLocation.getLatitude(), bestLocation.getLongitude());
+                    String gridSquare = getGridSquare(latLng);
+                    if (callback != null) {
+                        callback.onGridLocationSuccess(gridSquare);
+                    }
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            // Continue to request fresh location
+        }
+
+        // If last known location is stale or unavailable, request fresh location update
+        final CountDownLatch latch = new CountDownLatch(1);
+        final boolean[] success = {false};
+        final LatLng[] resultLocation = {null};
+
+        LocationListener locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (location != null) {
+                    resultLocation[0] = new LatLng(location.getLatitude(), location.getLongitude());
+                    success[0] = true;
+                }
+                latch.countDown();
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+
+            @Override
+            public void onProviderEnabled(String provider) {}
+
+            @Override
+            public void onProviderDisabled(String provider) {
+                latch.countDown();
+            }
+        };
+
+        try {
+            // Try GPS provider first (most accurate)
+            String provider = LocationManager.GPS_PROVIDER;
+            if (!locationManager.isProviderEnabled(provider)) {
+                // Fall back to network provider if GPS is disabled
+                provider = LocationManager.NETWORK_PROVIDER;
+                if (!locationManager.isProviderEnabled(provider)) {
+                    if (callback != null) {
+                        callback.onGridLocationFailed("GPS and network location providers disabled");
+                    }
+                    return;
+                }
+            }
+
+            // Request location updates using main thread's looper
+            locationManager.requestLocationUpdates(
+                    provider,
+                    0, // minTime - 0 means get update as soon as possible
+                    0, // minDistance - 0 means no distance requirement
+                    locationListener,
+                    Looper.getMainLooper());
+
+            // Wait up to 10 seconds for location fix
+            boolean received = latch.await(10, TimeUnit.SECONDS);
+            
+            // Remove listener to prevent memory leaks
+            locationManager.removeUpdates(locationListener);
+
+            if (received && success[0] && resultLocation[0] != null) {
+                // Location retrieval succeeded
+                String gridSquare = getGridSquare(resultLocation[0]);
+                if (callback != null) {
+                    callback.onGridLocationSuccess(gridSquare);
+                }
+            } else if (received) {
+                // Received but no valid location
+                if (callback != null) {
+                    callback.onGridLocationFailed("Location received but invalid");
+                }
+            } else {
+                // Timeout
+                if (callback != null) {
+                    callback.onGridLocationFailed("Location timeout (10 seconds)");
+                }
+            }
+        } catch (InterruptedException e) {
+            // Timeout or interrupted
+            try {
+                locationManager.removeUpdates(locationListener);
+            } catch (Exception ex) {
+                // Ignore
+            }
+            if (callback != null) {
+                callback.onGridLocationFailed("Location request interrupted");
+            }
+        } catch (Exception e) {
+            // Any other error
+            try {
+                locationManager.removeUpdates(locationListener);
+            } catch (Exception ex) {
+                // Ignore
+            }
+            String errorMsg = e.getMessage();
+            if (errorMsg == null || errorMsg.isEmpty()) {
+                errorMsg = "Unknown error";
+            }
+            if (callback != null) {
+                callback.onGridLocationFailed("Location error: " + errorMsg);
+            }
         }
     }
 

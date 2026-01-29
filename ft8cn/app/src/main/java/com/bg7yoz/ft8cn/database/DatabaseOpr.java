@@ -131,9 +131,10 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     @Override
     public void onOpen(SQLiteDatabase sqLiteDatabase) {
         super.onOpen(sqLiteDatabase);
-        // Ensure isQRZ_uploaded column exists (for older databases that haven't been upgraded)
+        // Ensure columns exist (for older databases that haven't been upgraded)
         if (checkTableExists(sqLiteDatabase, "QSLTable")) {
             alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded", "isQRZ_uploaded INTEGER DEFAULT 0");
+            alterTable(sqLiteDatabase, "QSLTable", "park_number", "park_number TEXT");
         }
     }
 
@@ -248,6 +249,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , "isLotW_QSL INTEGER DEFAULT 0");
             alterTable(sqLiteDatabase, "QSLTable", "isQRZ_uploaded"
                     , "isQRZ_uploaded INTEGER DEFAULT 0");
+            alterTable(sqLiteDatabase, "QSLTable", "park_number"
+                    , "park_number TEXT");
 
         } else {
             sqLiteDatabase.execSQL("CREATE TABLE QSLTable (\n" +
@@ -271,7 +274,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     "freq TEXT,\n" +
                     "station_callsign TEXT,\n" +
                     "my_gridsquare TEXT,\n" +
-                    "comment TEXT)");
+                    "comment TEXT,\n" +
+                    "park_number TEXT)");
         }
 
 
@@ -721,8 +725,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      * @param callsign           呼号
      * @param onQueryQSLCallsign 回调
      */
-    public void getQSLCallsignsByCallsign(boolean showAll,int offset,String callsign, int filter, OnQueryQSLCallsign onQueryQSLCallsign) {
-        new GetQLSCallsignByCallsign(showAll,offset,db, callsign, filter, onQueryQSLCallsign).execute();
+    public void getQSLCallsignsByCallsign(boolean showAll,int offset,String callsign, int qrzFilter, String commentFilter, String startDate, String endDate, OnQueryQSLCallsign onQueryQSLCallsign) {
+        new GetQLSCallsignByCallsign(showAll,offset,db, callsign, qrzFilter, commentFilter, startDate, endDate, onQueryQSLCallsign).execute();
     }
 
     /**
@@ -741,8 +745,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      * @param callsign                 呼号
      * @param onQueryQSLRecordCallsign 回调
      */
-    public void getQSLRecordByCallsign(boolean showAll,int offset,String callsign, int filter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
-        new GetQSLByCallsign(showAll,offset,db, callsign, filter, onQueryQSLRecordCallsign).execute();
+    public void getQSLRecordByCallsign(boolean showAll,int offset,String callsign, int qrzFilter, String commentFilter, String startDate, String endDate, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+        new GetQSLByCallsign(showAll,offset,db, callsign, qrzFilter, commentFilter, startDate, endDate, onQueryQSLRecordCallsign).execute();
     }
 
     /**
@@ -795,6 +799,16 @@ public class DatabaseOpr extends SQLiteOpenHelper {
      */
     public void setQSLTableIsQRZUploadedByRecord(QSLRecord record, boolean isQRZ_uploaded) {
         new SetQSLTableIsQRZUploadedByRecord(db, record, isQRZ_uploaded).execute();
+    }
+
+    /**
+     * 获取所有未上传到QRZ.com的QSO记录
+     * Get all QSO records that have not been uploaded to QRZ.com
+     *
+     * @param onQueryQSLRecordCallsign Callback interface for query results
+     */
+    public void getUnuploadedQSOs(OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+        new GetUnuploadedQSOs(db, onQueryQSLRecordCallsign).execute();
     }
 
     /**
@@ -1247,7 +1261,7 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         if (!checkIsQSL(record)) {//如果不存在日志数据就添加
             querySQL = "INSERT INTO QSLTable(call, isQSL,isLotW_import,isLotW_QSL,isQRZ_uploaded,gridsquare, mode, rst_sent, rst_rcvd, qso_date, " +
                     "time_on, qso_date_off, time_off, band, freq, station_callsign, my_gridsquare," +
-                    "comment)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "comment, park_number)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
             db.execSQL(querySQL, new String[]{record.getToCallsign()
                     , String.valueOf(record.isQSL ? 1 : 0)
@@ -1267,7 +1281,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     , BaseRigOperation.getFrequencyFloat(record.getBandFreq())
                     , record.getMyCallsign()
                     , record.getMyMaidenGrid()
-                    , record.getComment()});
+                    , record.getComment()
+                    , record.getParkNumber() != null ? record.getParkNumber() : ""});
             if (afterInsertQSLData!=null){
                 afterInsertQSLData.doAfterInsert(false,true);//说明是新的QSL
             }
@@ -1817,42 +1832,74 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         int offset;
         SQLiteDatabase db;
         String callsign;
-        int filter;
+        int qrzFilter;
+        String commentFilter;
+        String startDate;
+        String endDate;
         OnQueryQSLRecordCallsign onQueryQSLRecordCallsign;
 
-        public GetQSLByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+        public GetQSLByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int qrzFilter, String commentFilter, String startDate, String endDate, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
             this.showAll=showAll;
             this.offset=offset;
             this.db = db;
             this.callsign = callsign;
-            this.filter = queryFilter;
+            this.qrzFilter = qrzFilter;
+            this.commentFilter = commentFilter != null ? commentFilter : "";
+            this.startDate = startDate != null ? startDate : "";
+            this.endDate = endDate != null ? endDate : "";
             this.onQueryQSLRecordCallsign = onQueryQSLRecordCallsign;
         }
 
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-            String filterStr;
-            switch (filter) {
+            StringBuilder filterStr = new StringBuilder();
+            
+            // Comment Text Filter
+            if (!commentFilter.isEmpty()) {
+                filterStr.append("and(comment LIKE ?)\n");
+            }
+            
+            // QRZ Upload Status Filter
+            switch (qrzFilter) {
                 case 1:
-                    filterStr = "and((isQSL =1)or(isLotW_QSL =1))\n";
+                    filterStr.append("and(isQRZ_uploaded =1)\n");
                     break;
                 case 2:
-                    filterStr = "and((isQSL =0)and(isLotW_QSL =0))\n";
+                    filterStr.append("and((isQRZ_uploaded =0)or(isQRZ_uploaded IS NULL))\n");
                     break;
-                default:
-                    filterStr = "";
             }
+            
+            // Date Range Filter
+            if (!startDate.isEmpty()) {
+                filterStr.append(String.format("and(SUBSTR(qso_date_off,1,8)>=\"%s\")\n", startDate));
+            }
+            if (!endDate.isEmpty()) {
+                filterStr.append(String.format("and(SUBSTR(qso_date_off,1,8)<=\"%s\")\n", endDate));
+            }
+            
             String limitStr="";
             if (!showAll){
                 limitStr="limit 100 offset "+offset;
             }
-            String querySQL = "select * from QSLTable where ([call] like ?) \n" +
-                    filterStr +
-                    " ORDER BY qso_date DESC, time_off DESC\n"+
-                    //" order by ID desc\n"+
-                    limitStr;
-            Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
+            
+            // Build query parameters
+            String querySQL;
+            String[] queryParams;
+            if (!commentFilter.isEmpty()) {
+                querySQL = "select * from QSLTable where ([call] like ?) \n" +
+                        filterStr.toString() +
+                        " ORDER BY qso_date DESC, time_off DESC\n"+
+                        limitStr;
+                queryParams = new String[]{"%" + callsign + "%", "%" + commentFilter + "%"};
+            } else {
+                querySQL = "select * from QSLTable where ([call] like ?) \n" +
+                        filterStr.toString() +
+                        " ORDER BY qso_date DESC, time_off DESC\n"+
+                        limitStr;
+                queryParams = new String[]{"%" + callsign + "%"};
+            }
+            Cursor cursor = db.rawQuery(querySQL, queryParams);
             ArrayList<QSLRecordStr> records = new ArrayList<>();
             while (cursor.moveToNext()) {
                 QSLRecordStr record = new QSLRecordStr();
@@ -1902,49 +1949,89 @@ public class DatabaseOpr extends SQLiteOpenHelper {
     static class GetQLSCallsignByCallsign extends AsyncTask<Void, Void, Void> {
         SQLiteDatabase db;
         String callsign;
-        int filter;
+        int qrzFilter;
+        String commentFilter;
+        String startDate;
+        String endDate;
         OnQueryQSLCallsign onQueryQSLCallsign;
         int offset;
         boolean showAll;
 
-        public GetQLSCallsignByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int queryFilter, OnQueryQSLCallsign onQueryQSLCallsign) {
+        public GetQLSCallsignByCallsign(boolean showAll,int offset,SQLiteDatabase db, String callsign, int qrzFilter, String commentFilter, String startDate, String endDate, OnQueryQSLCallsign onQueryQSLCallsign) {
             this.showAll=showAll;
             this.offset=offset;
             this.db = db;
             this.callsign = callsign;
-            this.filter = queryFilter;
+            this.qrzFilter = qrzFilter;
+            this.commentFilter = commentFilter != null ? commentFilter : "";
+            this.startDate = startDate != null ? startDate : "";
+            this.endDate = endDate != null ? endDate : "";
             this.onQueryQSLCallsign = onQueryQSLCallsign;
         }
 
         @SuppressLint("Range")
         @Override
         protected Void doInBackground(Void... voids) {
-            String filterStr;
-            switch (filter) {
+            StringBuilder filterStr = new StringBuilder();
+            
+            // Comment Text Filter
+            if (!commentFilter.isEmpty()) {
+                filterStr.append("and(q.comment LIKE ?)\n");
+            }
+            
+            // QRZ Upload Status Filter
+            switch (qrzFilter) {
                 case 1:
-                    filterStr = "and((q.isQSL =1)or(q.isLotW_QSL =1))\n";
+                    filterStr.append("and(q.isQRZ_uploaded =1)\n");
                     break;
                 case 2:
-                    filterStr = "and((q.isQSL =0)and(q.isLotW_QSL =0))\n";
+                    filterStr.append("and((q.isQRZ_uploaded =0)or(q.isQRZ_uploaded IS NULL))\n");
                     break;
-                default:
-                    filterStr = "";
             }
+            
+            // Date Range Filter
+            if (!startDate.isEmpty()) {
+                filterStr.append(String.format("and(SUBSTR(q.qso_date_off,1,8)>=\"%s\")\n", startDate));
+            }
+            if (!endDate.isEmpty()) {
+                filterStr.append(String.format("and(SUBSTR(q.qso_date_off,1,8)<=\"%s\")\n", endDate));
+            }
+            
             String limitStr="";
             if (!showAll){
                 limitStr="limit 100 offset "+offset;
             }
-            String querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
-                    ",q.band||\"(\"||q.freq||\" MHz)\" as band \n" +
-                    ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
-                    "from QSLTable q inner join QSLTable q2 ON q.id =q2.id \n" +
-                    "where (q.[call] like ?)\n" +
-                    filterStr +
-                    "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.band\n" +
-                    ",q.mode,q.isQSL,q.isLotW_QSL\n" +
-                    "HAVING q.qso_date =MAX(q2.qso_date) \n" +
-                    "order by q.qso_date desc\n"+
-                    limitStr;
+            
+            // Build query parameters
+            String querySQL;
+            String[] queryParams;
+            if (!commentFilter.isEmpty()) {
+                querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
+                        ",q.band||\"(\"||q.freq||\" MHz)\" as band \n" +
+                        ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
+                        "from QSLTable q inner join QSLTable q2 ON q.id =q2.id \n" +
+                        "where (q.[call] like ?)\n" +
+                        filterStr.toString() +
+                        "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.band\n" +
+                        ",q.mode,q.isQSL,q.isLotW_QSL\n" +
+                        "HAVING q.qso_date =MAX(q2.qso_date) \n" +
+                        "order by q.qso_date desc\n"+
+                        limitStr;
+                queryParams = new String[]{"%" + callsign + "%", "%" + commentFilter + "%"};
+            } else {
+                querySQL = "select q.[call] as callsign ,q.gridsquare as grid" +
+                        ",q.band||\"(\"||q.freq||\" MHz)\" as band \n" +
+                        ",q.qso_date as last_time ,q.mode ,q.isQSL,q.isLotW_QSL\n" +
+                        "from QSLTable q inner join QSLTable q2 ON q.id =q2.id \n" +
+                        "where (q.[call] like ?)\n" +
+                        filterStr.toString() +
+                        "group by q.[call] ,q.gridsquare,q.freq ,q.qso_date,q.band\n" +
+                        ",q.mode,q.isQSL,q.isLotW_QSL\n" +
+                        "HAVING q.qso_date =MAX(q2.qso_date) \n" +
+                        "order by q.qso_date desc\n"+
+                        limitStr;
+                queryParams = new String[]{"%" + callsign + "%"};
+            }
 
 
             Cursor cursor = db.rawQuery(querySQL, new String[]{"%" + callsign + "%"});
@@ -2147,6 +2234,71 @@ public class DatabaseOpr extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * 获取所有未上传到QRZ.com的QSO记录
+     * Get all QSO records that have not been uploaded to QRZ.com
+     */
+    static class GetUnuploadedQSOs extends AsyncTask<Void, Void, Void> {
+        private final SQLiteDatabase db;
+        private final OnQueryQSLRecordCallsign onQueryQSLRecordCallsign;
+
+        public GetUnuploadedQSOs(SQLiteDatabase db, OnQueryQSLRecordCallsign onQueryQSLRecordCallsign) {
+            this.db = db;
+            this.onQueryQSLRecordCallsign = onQueryQSLRecordCallsign;
+        }
+
+        @SuppressLint("Range")
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Query for QSOs where isQRZ_uploaded is 0 or NULL
+            // Check if column exists first
+            String querySQL = "SELECT * FROM QSLTable WHERE " +
+                    "(isQRZ_uploaded = 0 OR isQRZ_uploaded IS NULL) " +
+                    "ORDER BY qso_date DESC, time_off DESC";
+            
+            Cursor cursor = db.rawQuery(querySQL, null);
+            ArrayList<QSLRecordStr> records = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                QSLRecordStr record = new QSLRecordStr();
+                record.id = cursor.getInt(cursor.getColumnIndex("id"));
+                record.setCall(getStringSafely(cursor, "call", ""));
+                record.isQSL = cursor.getInt(cursor.getColumnIndex("isQSL")) == 1;
+                record.isLotW_import = cursor.getInt(cursor.getColumnIndex("isLotW_import")) == 1;
+                record.isLotW_QSL = cursor.getInt(cursor.getColumnIndex("isLotW_QSL")) == 1;
+                // Check if isQRZ_uploaded column exists (for older databases)
+                int qrzUploadedIndex = cursor.getColumnIndex("isQRZ_uploaded");
+                if (qrzUploadedIndex >= 0) {
+                    record.isQRZ_uploaded = cursor.getInt(qrzUploadedIndex) == 1;
+                } else {
+                    record.isQRZ_uploaded = false; // Default to false if column doesn't exist
+                }
+                record.setGridsquare(cursor.getString(cursor.getColumnIndex("gridsquare")));
+                record.setMode(cursor.getString(cursor.getColumnIndex("mode")));
+                record.setRst_sent(cursor.getString(cursor.getColumnIndex("rst_sent")));
+                record.setRst_rcvd(cursor.getString(cursor.getColumnIndex("rst_rcvd")));
+                // Safe string access with null checks
+                String qsoDate = getStringSafely(cursor, "qso_date", "");
+                String timeOn = getStringSafely(cursor, "time_on", "");
+                record.setTime_on(String.format("%s-%s", qsoDate, timeOn));
+
+                String qsoDateOff = getStringSafely(cursor, "qso_date_off", "");
+                String timeOff = getStringSafely(cursor, "time_off", "");
+                record.setTime_off(String.format("%s-%s", qsoDateOff, timeOff));
+                // Safe string access - handle null values
+                record.setBand(getStringSafely(cursor, "band", ""));//波长
+                record.setFreq(getStringSafely(cursor, "freq", ""));//频率
+                record.setStation_callsign(getStringSafely(cursor, "station_callsign", ""));
+                record.setMy_gridsquare(getStringSafely(cursor, "my_gridsquare", ""));
+                record.setComment(getStringSafely(cursor, "comment", ""));
+                records.add(record);
+            }
+            cursor.close();
+            if (onQueryQSLRecordCallsign != null) {
+                onQueryQSLRecordCallsign.afterQuery(records);
+            }
+            return null;
+        }
+    }
 
     /**
      * 查询全部通联成功的呼号，以通联时的频段为条件
@@ -2228,6 +2380,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 }
                 if (name.equalsIgnoreCase("toModifier")) {
                     GeneralVariables.toModifier = result != null ? result : "";
+                }
+                if (name.equalsIgnoreCase("parkNumber")) {
+                    GeneralVariables.parkNumber = result != null ? result : "";
                 }
                 if (name.equalsIgnoreCase("freq")) {
                     float freq = 1000;
@@ -2491,6 +2646,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 }
                 if (name.equalsIgnoreCase("qrzApiKey")) {
                     GeneralVariables.qrzApiKey = result != null ? result : "";
+                }
+                if (name.equalsIgnoreCase("ntpServer")) {
+                    GeneralVariables.ntpServer = (result != null && !result.isEmpty()) ? result : "time.windows.com";
                 }
 
                 if (name.equalsIgnoreCase("swrSwitch")) {

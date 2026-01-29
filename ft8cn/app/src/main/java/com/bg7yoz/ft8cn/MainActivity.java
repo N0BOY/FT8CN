@@ -481,12 +481,27 @@ public class MainActivity extends AppCompatActivity {
             public void doOnAfterQueryConfig(String KeyName, String Value) {
                 mainViewModel.configIsLoaded = true;
                 //此处梅登海德已经通过数据库得到了，但是如果GPS能获取到，还是用GPS的
-                String grid = MaidenheadGrid.getMyMaidenheadGrid(getApplicationContext());
-                if (!grid.equals("")) {//说明获取到了GPS数据
-                    GeneralVariables.setMyMaidenheadGrid(grid);
-                    //写到数据库中
-                    mainViewModel.databaseOpr.writeConfig("grid", grid, null);
-                }
+                // Use callback-based method but silently (no toast) for startup
+                MaidenheadGrid.getMyMaidenheadGrid(getApplicationContext(), new MaidenheadGrid.AfterGetGridLocation() {
+                    @Override
+                    public void onGridLocationSuccess(String gridSquare) {
+                        // Update on main thread
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                GeneralVariables.setMyMaidenheadGrid(gridSquare);
+                                //写到数据库中
+                                mainViewModel.databaseOpr.writeConfig("grid", gridSquare, null);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onGridLocationFailed(String reason) {
+                        // Silently fail on startup - don't show toast
+                        // Grid square from database will be used instead
+                    }
+                });
 
                 mainViewModel.ft8TransmitSignal.setTimer_sec(GeneralVariables.transmitDelay);
                 //如果呼号、网格为空，就进入设置界面

@@ -105,10 +105,14 @@ public class GridTrackerMainActivity extends AppCompatActivity {
         }
         //画日志界面查询出的全部消息
         String queryKey = intentGet.getStringExtra("qslAll");
-        int queryFilter = intentGet.getIntExtra("queryFilter", 0);
+        // Note: QSL filter removed, using default values for other filters
+        int queryQRZFilter = 0;
+        String queryCommentFilter = "";
+        String queryStartDate = "";
+        String queryEndDate = "";
         if (queryKey != null) {
             ToastMessage.show(GeneralVariables.getStringFromResource(R.string.tracker_query_qso_info));
-            mainViewModel.databaseOpr.getQSLRecordByCallsign(true, 0, queryKey, queryFilter
+            mainViewModel.databaseOpr.getQSLRecordByCallsign(true, 0, queryKey, queryQRZFilter, queryCommentFilter, queryStartDate, queryEndDate
                     , new OnQueryQSLRecordCallsign() {
                         @Override
                         public void afterQuery(ArrayList<QSLRecordStr> records) {

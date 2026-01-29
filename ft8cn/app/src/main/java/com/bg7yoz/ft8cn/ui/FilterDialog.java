@@ -8,8 +8,11 @@ package com.bg7yoz.ft8cn.ui;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.RadioButton;
 
 import com.bg7yoz.ft8cn.MainViewModel;
@@ -19,77 +22,136 @@ public class FilterDialog extends Dialog {
     private static final String TAG = "FilterDialog";
 
     private MainViewModel mainViewModel;
-    private RadioButton filterAllButton,filterIsQslButton,filterNoneQslButton;
+    private RadioButton filterQRZAllButton, filterQRZUploadedButton, filterQRZMissingButton;
+    private EditText startDateEditText, endDateEditText, commentFilterEditText;
 
-    public FilterDialog(Context  context,MainViewModel mainViewModel) {
+    public FilterDialog(Context context, MainViewModel mainViewModel) {
         super(context, R.style.HelpDialog);
-        this.mainViewModel=mainViewModel;
-
+        this.mainViewModel = mainViewModel;
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.filter_dialog_layout);
-        filterAllButton= (RadioButton) findViewById(R.id.filterAllRadioButton);
-        filterIsQslButton= (RadioButton) findViewById(R.id.filterIsQSLRadioButton);
-        filterNoneQslButton= (RadioButton) findViewById(R.id.filterNoneQSLRadioButton);
+        
+        // Comment Text Filter
+        commentFilterEditText = findViewById(R.id.commentFilterEditText);
+        
+        // QRZ Upload Status Filter
+        filterQRZAllButton = findViewById(R.id.filterQRZAllRadioButton);
+        filterQRZUploadedButton = findViewById(R.id.filterQRZUploadedRadioButton);
+        filterQRZMissingButton = findViewById(R.id.filterQRZMissingRadioButton);
+        
+        // Date Range Filter
+        startDateEditText = findViewById(R.id.startDateEditText);
+        endDateEditText = findViewById(R.id.endDateEditText);
 
-        View.OnClickListener onClickListener=new View.OnClickListener() {
+        // Comment Text Filter listener
+        TextWatcher commentWatcher = new TextWatcher() {
             @Override
-            public void onClick(View view) {
-                //Log.e(TAG, "onClick: ---------------->" );
-                if (filterAllButton.isChecked()){
-                    mainViewModel.queryFilter=0;
-                    mainViewModel.mutableQueryFilter.postValue(0);
-                }
-                if (filterIsQslButton.isChecked()){
-                    mainViewModel.queryFilter=1;
-                    mainViewModel.mutableQueryFilter.postValue(1);
-                }
-                if (filterNoneQslButton.isChecked()){
-                    mainViewModel.queryFilter=2;
-                    mainViewModel.mutableQueryFilter.postValue(2);
-                }
-                FilterDialog.this.dismiss();
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String comment = s.toString().trim();
+                mainViewModel.queryCommentFilter = comment;
+                mainViewModel.mutableQueryCommentFilter.postValue(comment);
             }
         };
-        filterAllButton.setOnClickListener(onClickListener);
-        filterIsQslButton.setOnClickListener(onClickListener);
-        filterNoneQslButton.setOnClickListener(onClickListener);
-    }
+        commentFilterEditText.addTextChangedListener(commentWatcher);
 
+        // QRZ Upload Status Filter listeners
+        View.OnClickListener qrzFilterListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (filterQRZAllButton.isChecked()) {
+                    mainViewModel.queryQRZFilter = 0;
+                    mainViewModel.mutableQueryQRZFilter.postValue(0);
+                } else if (filterQRZUploadedButton.isChecked()) {
+                    mainViewModel.queryQRZFilter = 1;
+                    mainViewModel.mutableQueryQRZFilter.postValue(1);
+                } else if (filterQRZMissingButton.isChecked()) {
+                    mainViewModel.queryQRZFilter = 2;
+                    mainViewModel.mutableQueryQRZFilter.postValue(2);
+                }
+            }
+        };
+        filterQRZAllButton.setOnClickListener(qrzFilterListener);
+        filterQRZUploadedButton.setOnClickListener(qrzFilterListener);
+        filterQRZMissingButton.setOnClickListener(qrzFilterListener);
+
+        // Date Range Filter listeners
+        TextWatcher dateWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Update start date
+                if (s == startDateEditText.getEditableText()) {
+                    String date = s.toString().trim();
+                    mainViewModel.queryStartDate = date;
+                    mainViewModel.mutableQueryStartDate.postValue(date);
+                }
+                // Update end date
+                else if (s == endDateEditText.getEditableText()) {
+                    String date = s.toString().trim();
+                    mainViewModel.queryEndDate = date;
+                    mainViewModel.mutableQueryEndDate.postValue(date);
+                }
+            }
+        };
+        startDateEditText.addTextChangedListener(dateWatcher);
+        endDateEditText.addTextChangedListener(dateWatcher);
+    }
 
     @Override
     public void show() {
         super.show();
         WindowManager.LayoutParams params = getWindow().getAttributes();
         //设置对话框的大小，以百分比0.6
-        int height=getWindow().getWindowManager().getDefaultDisplay().getHeight();
-        int width=getWindow().getWindowManager().getDefaultDisplay().getWidth();
-        params.height = (int) (height * 0.6);
-        if (width>height) {
+        int height = getWindow().getWindowManager().getDefaultDisplay().getHeight();
+        int width = getWindow().getWindowManager().getDefaultDisplay().getWidth();
+        params.height = (int) (height * 0.7);
+        if (width > height) {
             params.width = (int) (width * 0.6);
-            params.height = (int) (height * 0.6);
-        }else {
-            params.width= (int) (width * 0.8);
-            params.height = (int) (height * 0.5);
+            params.height = (int) (height * 0.7);
+        } else {
+            params.width = (int) (width * 0.9);
+            params.height = (int) (height * 0.7);
         }
         getWindow().setAttributes(params);
-        switch (mainViewModel.queryFilter){
+        
+        // Set Comment Text Filter
+        if (mainViewModel.queryCommentFilter != null && !mainViewModel.queryCommentFilter.isEmpty()) {
+            commentFilterEditText.setText(mainViewModel.queryCommentFilter);
+        }
+        
+        // Set QRZ Upload Status Filter
+        switch (mainViewModel.queryQRZFilter) {
             case 1:
-                filterIsQslButton.setChecked(true);//只显示QSL的
+                filterQRZUploadedButton.setChecked(true);
                 break;
             case 2:
-                filterNoneQslButton.setChecked(true);//只显示没有QSL的
+                filterQRZMissingButton.setChecked(true);
                 break;
             default:
-                filterAllButton.setChecked(true);//显示全部
+                filterQRZAllButton.setChecked(true);
+        }
+        
+        // Set Date Range Filter
+        if (mainViewModel.queryStartDate != null && !mainViewModel.queryStartDate.isEmpty()) {
+            startDateEditText.setText(mainViewModel.queryStartDate);
+        }
+        if (mainViewModel.queryEndDate != null && !mainViewModel.queryEndDate.isEmpty()) {
+            endDateEditText.setText(mainViewModel.queryEndDate);
         }
     }
-
-
-
-
 }

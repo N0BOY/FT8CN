@@ -408,6 +408,68 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/ntpServerLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/utcDelayLayout">
+
+                        <TextView
+                            android:id="@+id/ntpServerText"
+                            android:layout_width="75dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/ntp_server"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Spinner
+                            android:id="@+id/ntpServerSpinner"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/editor_style"
+                            android:dropDownWidth="match_parent"
+                            android:popupBackground="@drawable/spinner_style"
+                            android:prompt="@string/ntp_server"
+                            android:spinnerMode="dropdown"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toStartOf="@+id/ntpServerCustomEdit"
+                            app:layout_constraintStart_toEndOf="@+id/ntpServerText"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck,DuplicateSpeakableTextCheck"
+                            tools:listitem="@layout/ntp_server_spinner_item" />
+
+                        <EditText
+                            android:id="@+id/ntpServerCustomEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/editor_style"
+                            android:hint="@string/ntp_server_custom_hint"
+                            android:inputType="textUri"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:textColor="@color/text_view_color"
+                            android:textColorHint="@android:color/darker_gray"
+                            android:textSize="12sp"
+                            android:visibility="gone"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/pttDelayLayout"
@@ -417,7 +479,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/utcDelayLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/ntpServerLayout">
 
                         <TextView
                             android:id="@+id/pttDelayText"
@@ -1011,25 +1073,60 @@
 
                         <EditText
                             android:id="@+id/modifierEdit"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="2dp"
                             android:layout_marginTop="6dp"
-                            android:layout_marginEnd="2dp"
+                            android:layout_marginEnd="8dp"
                             android:layout_marginBottom="6dp"
                             android:autofillHints=""
                             android:background="@drawable/editor_style"
-                            android:ems="10"
+                            android:ems="5"
                             android:hint="@string/pl_input_modifier"
-
                             android:inputType="textEmailAddress|textCapWords"
                             android:minHeight="32dp"
+                            android:maxWidth="80dp"
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
                             app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
                             app:layout_constraintStart_toEndOf="@+id/modifierText"
                             app:layout_constraintTop_toTopOf="parent"
+                            tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
+
+                        <TextView
+                            android:id="@+id/parkNumberText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/park_number_editor"
+                            android:textAlignment="textEnd"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
+                            app:layout_constraintStart_toEndOf="@+id/modifierEdit"
+                            app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+                        <EditText
+                            android:id="@+id/parkNumberEdit"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="2dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginBottom="6dp"
+                            android:autofillHints=""
+                            android:background="@drawable/editor_style"
+                            android:ems="8"
+                            android:hint="@string/pl_input_park_number"
+                            android:inputType="text"
+                            android:minHeight="32dp"
+                            android:maxWidth="120dp"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="@+id/parkNumberText"
+                            app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
+                            app:layout_constraintStart_toEndOf="@+id/parkNumberText"
+                            app:layout_constraintTop_toTopOf="@+id/parkNumberText"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
 
                         <ImageButton

@@ -37,6 +37,7 @@ import com.bg7yoz.ft8cn.log.ThirdPartyService;
 import com.bg7yoz.ft8cn.maidenhead.MaidenheadGrid;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +61,7 @@ public class ConfigFragment extends Fragment {
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
+    private NtpServerSpinnerAdapter ntpServerSpinnerAdapter;
     // Follow callsign list management moved to ClearCacheDataDialog
     //private SerialPortSpinnerAdapter serialPortSpinnerAdapter;
 
@@ -288,6 +290,30 @@ public class ConfigFragment extends Fragment {
         }
     };
 
+    //公园编号
+    private final TextWatcher onParkNumberEditorChanged = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            if (editable != null) {
+                String text = editable.toString();
+                GeneralVariables.parkNumber = text != null ? text.trim() : "";
+                writeConfig("parkNumber", GeneralVariables.parkNumber);
+            } else {
+                GeneralVariables.parkNumber = "";
+            }
+        }
+    };
+
     //CI-V地址
     private final TextWatcher onCIVAddressEditorChanged = new TextWatcher() {
         @Override
@@ -347,6 +373,9 @@ public class ConfigFragment extends Fragment {
 
         //设置时间偏移
         setUtcTimeOffsetSpinner();
+
+        //设置NTP服务器
+        setNtpServerSpinner();
 
         //设置PTT延时
         setPttDelaySpinner();
@@ -438,6 +467,11 @@ public class ConfigFragment extends Fragment {
         binding.modifierEdit.removeTextChangedListener(onModifierEditorChanged);
         binding.modifierEdit.setText(GeneralVariables.toModifier);
         binding.modifierEdit.addTextChangedListener(onModifierEditorChanged);
+
+        //公园编号
+        binding.parkNumberEdit.removeTextChangedListener(onParkNumberEditorChanged);
+        binding.parkNumberEdit.setText(GeneralVariables.parkNumber != null ? GeneralVariables.parkNumber : "");
+        binding.parkNumberEdit.addTextChangedListener(onParkNumberEditorChanged);
 
         //发射频率
         binding.inputFreqEditor.removeTextChangedListener(onFreqEditorChanged);
@@ -738,10 +772,34 @@ public class ConfigFragment extends Fragment {
         binding.configGetGridImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String grid = MaidenheadGrid.getMyMaidenheadGrid(getContext());
-                if (!grid.equals("")) {
-                    binding.inputMyGridEdit.setText(grid);
-                }
+                MaidenheadGrid.getMyMaidenheadGrid(getContext(), new MaidenheadGrid.AfterGetGridLocation() {
+                    @Override
+                    public void onGridLocationSuccess(String gridSquare) {
+                        // Update UI on main thread
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                binding.inputMyGridEdit.setText(gridSquare);
+                                ToastMessage.show(String.format(
+                                        GeneralVariables.getStringFromResource(R.string.grid_location_success),
+                                        gridSquare));
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onGridLocationFailed(String reason) {
+                        // Show error toast on main thread
+                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                            @Override
+                            public void run() {
+                                ToastMessage.show(String.format(
+                                        GeneralVariables.getStringFromResource(R.string.grid_location_failed),
+                                        reason));
+                            }
+                        });
+                    }
+                });
             }
         });
 
@@ -1041,6 +1099,80 @@ public class ConfigFragment extends Fragment {
             public void onNothingSelected(AdapterView<?> adapterView) {
 
             }
+        });
+    }
+
+    /**
+     * 设置NTP服务器spinner
+     * Set NTP server spinner
+     */
+    private void setNtpServerSpinner() {
+        ntpServerSpinnerAdapter = new NtpServerSpinnerAdapter(requireContext());
+        
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                binding.ntpServerSpinner.setAdapter(ntpServerSpinnerAdapter);
+                ntpServerSpinnerAdapter.notifyDataSetChanged();
+                
+                // Set selection based on current server
+                int position = ntpServerSpinnerAdapter.findServerPosition(GeneralVariables.ntpServer);
+                binding.ntpServerSpinner.setSelection(position);
+                
+                // Show/hide custom server input based on selection
+                if (position == ntpServerSpinnerAdapter.getCount() - 1) {
+                    // Custom option selected
+                    binding.ntpServerCustomEdit.setVisibility(View.VISIBLE);
+                    binding.ntpServerCustomEdit.setText(GeneralVariables.ntpServer);
+                } else {
+                    binding.ntpServerCustomEdit.setVisibility(View.GONE);
+                }
+            }
+        });
+        
+        // Set up custom server input text watcher
+        binding.ntpServerCustomEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String customServer = s.toString().trim();
+                if (!customServer.isEmpty()) {
+                    GeneralVariables.ntpServer = customServer;
+                    writeConfig("ntpServer", customServer);
+                }
+            }
+        });
+        
+        binding.ntpServerSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedServer = ntpServerSpinnerAdapter.getServerAddress(position);
+                
+                if (selectedServer.isEmpty()) {
+                    // Custom option selected
+                    binding.ntpServerCustomEdit.setVisibility(View.VISIBLE);
+                    // Keep existing custom server value if set, otherwise clear
+                    if (binding.ntpServerCustomEdit.getText().toString().trim().isEmpty() 
+                            && !GeneralVariables.ntpServer.isEmpty()
+                            && ntpServerSpinnerAdapter.findServerPosition(GeneralVariables.ntpServer) == ntpServerSpinnerAdapter.getCount() - 1) {
+                        // Current server is custom, keep it
+                        binding.ntpServerCustomEdit.setText(GeneralVariables.ntpServer);
+                    }
+                } else {
+                    // Predefined server selected
+                    binding.ntpServerCustomEdit.setVisibility(View.GONE);
+                    GeneralVariables.ntpServer = selectedServer;
+                    writeConfig("ntpServer", selectedServer);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
@@ -1907,23 +2039,50 @@ public class ConfigFragment extends Fragment {
             public void onClick(View view) {
                 UtcTimer.syncTime(new UtcTimer.AfterSyncTime() {
                     @Override
-                    public void doAfterSyncTimer(int secTime) {
+                    public void doAfterSyncTimer(int secTime, String method, String server) {
                         setUtcTimeOffsetSpinner();
-                        if (secTime>100) {//正数时慢了
-                            ToastMessage.show(String.format(GeneralVariables
-                                    .getStringFromResource(R.string.utc_time_sync_delay_slow), secTime));
-                        }else if (secTime<-100){
-                            ToastMessage.show(String.format(GeneralVariables
-                                    .getStringFromResource(R.string.utc_time_sync_delay_faster), -secTime));
-                        }else {
-                            ToastMessage.show(GeneralVariables
-                                    .getStringFromResource(R.string.config_clock_is_accurate));
+                        
+                        // Build success message with method and server info
+                        String methodInfo;
+                        if ("GPS".equals(method)) {
+                            methodInfo = GeneralVariables.getStringFromResource(R.string.time_sync_method_gps);
+                        } else {
+                            methodInfo = String.format(GeneralVariables.getStringFromResource(R.string.time_sync_method_ntp), server);
                         }
+                        
+                        String timeDiffInfo;
+                        if (secTime > 100) {
+                            // Clock is slow (positive delay)
+                            timeDiffInfo = String.format(GeneralVariables.getStringFromResource(R.string.time_sync_delay_slow), secTime);
+                        } else if (secTime < -100) {
+                            // Clock is fast (negative delay)
+                            timeDiffInfo = String.format(GeneralVariables.getStringFromResource(R.string.time_sync_delay_fast), -secTime);
+                        } else {
+                            // Clock is accurate
+                            timeDiffInfo = GeneralVariables.getStringFromResource(R.string.time_sync_accurate);
+                        }
+                        
+                        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.time_sync_success), 
+                                methodInfo, timeDiffInfo));
                     }
 
                     @Override
-                    public void syncFailed(IOException e) {
-                        ToastMessage.show(e.getMessage());
+                    public void syncFailed(String method, String server, String reason) {
+                        String methodInfo;
+                        if ("GPS".equals(method)) {
+                            methodInfo = GeneralVariables.getStringFromResource(R.string.time_sync_method_gps);
+                        } else {
+                            methodInfo = String.format(GeneralVariables.getStringFromResource(R.string.time_sync_method_ntp), server);
+                        }
+                        
+                        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.time_sync_failed), 
+                                methodInfo, reason));
+                    }
+                    
+                    @Override
+                    public void gpsFailedFallingBackToNTP(String reason) {
+                        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.time_sync_gps_failed_fallback), 
+                                reason));
                     }
                 });
 

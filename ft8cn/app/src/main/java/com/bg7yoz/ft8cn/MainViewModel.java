@@ -92,6 +92,7 @@ import com.bg7yoz.ft8cn.spectrum.SpectrumListener;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
 import com.bg7yoz.ft8cn.ui.ToastMessage;
+import com.bg7yoz.ft8cn.ui.ToastMessage;
 import com.bg7yoz.ft8cn.wave.HamRecorder;
 import com.bg7yoz.ft8cn.wave.OnGetVoiceDataDone;
 import com.bg7yoz.ft8cn.x6100.X6100Radio;
@@ -215,8 +216,14 @@ public class MainViewModel extends ViewModel {
     //*********日志查询需要的变量********************
     public boolean logListShowCallsign = false;//在日志查询列表的表现形式
     public String queryKey = "";//查询的关键字
-    public int queryFilter = 0;//过滤，0全部，1，确认，2，未确认
-    public MutableLiveData<Integer> mutableQueryFilter = new MutableLiveData<>();
+    public String queryCommentFilter = "";//评论文本过滤
+    public MutableLiveData<String> mutableQueryCommentFilter = new MutableLiveData<>("");
+    public int queryQRZFilter = 0;//QRZ上传过滤，0全部，1已上传，2未上传
+    public MutableLiveData<Integer> mutableQueryQRZFilter = new MutableLiveData<>();
+    public String queryStartDate = "";//日期范围开始日期 (格式: YYYYMMDD)
+    public String queryEndDate = "";//日期范围结束日期 (格式: YYYYMMDD)
+    public MutableLiveData<String> mutableQueryStartDate = new MutableLiveData<>("");
+    public MutableLiveData<String> mutableQueryEndDate = new MutableLiveData<>("");
     public ArrayList<QSLCallsignRecord> callsignRecords = new ArrayList<>();
     //public ArrayList<QSLRecordStr> qslRecords=new ArrayList<>();
     //********************************************
@@ -286,7 +293,52 @@ public class MainViewModel extends ViewModel {
         utcTimer.start();//启动计时器
 
         //同步一下时间。microsoft的NTP服务器
-        UtcTimer.syncTime(null);
+        UtcTimer.syncTime(new UtcTimer.AfterSyncTime() {
+            @Override
+            public void doAfterSyncTimer(int secTime, String method, String server) {
+                // Build success message with method and server info
+                String methodInfo;
+                if ("GPS".equals(method)) {
+                    methodInfo = getStringFromResource(R.string.time_sync_method_gps);
+                } else {
+                    methodInfo = String.format(getStringFromResource(R.string.time_sync_method_ntp), server);
+                }
+                
+                String timeDiffInfo;
+                if (Math.abs(secTime) > 100) {
+                    // Show difference if significant
+                    if (secTime > 0) {
+                        timeDiffInfo = String.format(getStringFromResource(R.string.time_sync_delay_slow), secTime);
+                    } else {
+                        timeDiffInfo = String.format(getStringFromResource(R.string.time_sync_delay_fast), -secTime);
+                    }
+                } else {
+                    timeDiffInfo = getStringFromResource(R.string.time_sync_accurate);
+                }
+                
+                ToastMessage.show(String.format(getStringFromResource(R.string.time_sync_success), 
+                        methodInfo, timeDiffInfo));
+            }
+
+            @Override
+            public void syncFailed(String method, String server, String reason) {
+                String methodInfo;
+                if ("GPS".equals(method)) {
+                    methodInfo = getStringFromResource(R.string.time_sync_method_gps);
+                } else {
+                    methodInfo = String.format(getStringFromResource(R.string.time_sync_method_ntp), server);
+                }
+                
+                ToastMessage.show(String.format(getStringFromResource(R.string.time_sync_failed), 
+                        methodInfo, reason));
+            }
+            
+            @Override
+            public void gpsFailedFallingBackToNTP(String reason) {
+                ToastMessage.show(String.format(getStringFromResource(R.string.time_sync_gps_failed_fallback), 
+                        reason));
+            }
+        });
 
         mutableFt8MessageList.setValue(ft8Messages);
 
@@ -521,15 +573,18 @@ public class MainViewModel extends ViewModel {
         for (Ft8Message msg : messages) {
             //与我的呼号有关，与关注的呼号有关
             //if (msg.getCallsignFrom().equals(GeneralVariables.myCallsign)
+            boolean isTargetingMe = GeneralVariables.checkIsMyCallsign(msg.getCallsignTo());
             if (GeneralVariables.checkIsMyCallsign(msg.getCallsignFrom())
                     //|| msg.getCallsignTo().equals(GeneralVariables.myCallsign)
-                    || GeneralVariables.checkIsMyCallsign(msg.getCallsignTo())
+                    || isTargetingMe
                     || GeneralVariables.callsignInFollow(msg.getCallsignFrom())
                     || (GeneralVariables.callsignInFollow(msg.getCallsignTo()) && (msg.getCallsignTo() != null))
                     || (GeneralVariables.autoFollowCQ && msg.checkIsCQ())) {//是CQ，并且允许关注CQ
                 //看不是通联成功的呼号的消息
                 msg.isQSL_Callsign = GeneralVariables.checkQSLCallsign(msg.getCallsignFrom());
-                if (!GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom)) {//不在排除呼号前缀的，才加入列表
+                // Messages targeting the user should always be shown, bypass exclusion check
+                // Other messages (CQ, follow callsigns) should respect exclusion list
+                if (isTargetingMe || !GeneralVariables.checkIsExcludeCallsign(msg.callsignFrom)) {
                     // Check for duplicates before adding
                     if (!isMessageInTransmitList(msg)) {
                         count++;

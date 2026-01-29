@@ -99,9 +99,188 @@ Sequential:    0 (Odd)       1 (Even)       0 (Odd)
 
 ### Time Synchronization
 
-- Initial NTP sync on startup: `UtcTimer.syncTime(null)`
-- Continuous monitoring of UTC offset
-- Time offset compensation in all operations
+FT8 requires precise time synchronization because all stations worldwide must operate in synchronized 15-second cycles. Even small time errors (hundreds of milliseconds) can prevent successful decoding and transmission.
+
+#### Overview
+
+**Location**: `UtcTimer.java`
+
+The application uses a two-tier time synchronization strategy: **GPS time is tried first** (most accurate), and if GPS is unavailable or fails, it **falls back to Network Time Protocol (NTP)**. The time offset is calculated and stored as a static delay value that adjusts all time calculations throughout the application.
+
+#### Time Synchronization Strategy
+
+**Method**: `UtcTimer.syncTime(AfterSyncTime afterSyncTime)`
+
+**Priority Order**:
+1. **GPS Time** (Primary) - Most accurate, works without internet
+2. **NTP Time** (Fallback) - Requires internet connection
+
+#### GPS Synchronization Process
+
+**Method**: `syncTimeFromGPS(AfterSyncTime afterSyncTime)`
+
+**Process**:
+1. Checks if GPS provider is enabled
+2. Verifies location permissions are granted
+3. Attempts to get last known GPS location (fast, synchronous)
+   - If location is recent (< 5 minutes old), uses GPS time immediately
+4. If last known location is stale, requests fresh GPS location update
+   - Waits up to 10 seconds for GPS fix
+   - Uses `Location.getTime()` which provides UTC time from GPS satellites
+5. Calculates time difference: `trueDelay = gpsTime - System.currentTimeMillis()`
+6. Sets global delay: `UtcTimer.delay = trueDelay % 15000`
+   - Modulo 15000ms ensures delay stays within one FT8 cycle (15 seconds)
+7. Calls success callback: `afterSyncTime.doAfterSyncTimer(trueDelay)`
+8. On failure or timeout: Returns `false` to trigger NTP fallback
+
+**GPS Advantages**:
+- More accurate than NTP (direct satellite time)
+- Works without internet connection
+- No network latency
+- Typically accurate to within milliseconds
+
+**GPS Limitations**:
+- Requires GPS signal (may not work indoors)
+- May take time to get fix (up to 10 seconds timeout)
+- Requires location permissions
+
+#### NTP Synchronization Process (Fallback)
+
+**Method**: `syncTimeFromNTP(AfterSyncTime afterSyncTime)`
+
+**Process**:
+1. Uses configured NTP server (defaults to `time.windows.com` if not set)
+2. **Retry Logic**: Attempts up to 3 times with exponential backoff
+   - **Attempt 1**: Immediate
+   - **Attempt 2**: Wait 2 seconds after first failure
+   - **Attempt 3**: Wait 4 seconds after second failure
+   - **Total maximum time**: ~26 seconds (10s timeout × 3 attempts + 2s + 4s backoff)
+3. Each attempt:
+   - Creates new NTP client with 10-second timeout
+   - Connects to configured NTP server
+   - Retrieves server time via `NTPUDPClient`
+   - On success: Calculates delay and exits retry loop
+   - On failure: Waits with exponential backoff before next attempt
+4. After all retries:
+   - Calculates time difference: `trueDelay = serverTime - System.currentTimeMillis()`
+   - Sets global delay: `UtcTimer.delay = trueDelay % 15000`
+     - Modulo 15000ms ensures delay stays within one FT8 cycle (15 seconds)
+5. Calls success callback: `afterSyncTime.doAfterSyncTimer(trueDelay, "NTP", server)`
+6. On failure after all retries: Calls `afterSyncTime.syncFailed("NTP", server, reason)`
+   - Error message includes retry count: "Failed after 3 attempts" or "NTP timeout after 3 attempts"
+
+**NTP Advantages**:
+- Works indoors (no GPS signal needed)
+- Usually fast (< 1 second)
+- Works when GPS is disabled
+- **Retry logic handles transient network issues**
+
+**NTP Limitations**:
+- Requires internet connection
+- Network latency can affect accuracy
+- Server availability dependency
+- **Timeout**: 10 seconds per attempt (prevents indefinite hangs)
+
+**Retry Strategy**:
+- **Maximum retries**: 3 attempts
+- **Timeout per attempt**: 10 seconds
+- **Backoff delays**: 2s, 4s, 8s (exponential)
+- **Total maximum duration**: ~26 seconds (worst case)
+- **Resource cleanup**: NTP client closed after each attempt
+
+**Sync Points**:
+- **Startup**: Called automatically in `MainViewModel` constructor (line 289)
+  - Uses `null` callback (no user feedback needed)
+  - Tries GPS first, falls back to NTP if GPS fails
+  - **Frequency**: Only once when the application starts
+- **Manual Sync**: Called from `ConfigFragment` when user clicks sync button
+  - Tries GPS first, falls back to NTP if GPS fails
+  - Provides user feedback via toast messages:
+    - Shows delay amount if >100ms difference
+    - Shows "clock is accurate" if within ±100ms
+  - **Frequency**: Only when user explicitly requests it
+
+**Important**: There is **no automatic periodic time synchronization**. The time offset (`UtcTimer.delay`) is set once at startup (or when manually synced) and persists for the entire application session. The timers in `UtcTimer` are used for cycle detection and heartbeat callbacks, not for time synchronization.
+
+**Time Sync Frequency Summary**:
+- **At startup**: Once automatically
+- **Manual sync**: On-demand via user action
+- **Periodic sync**: None (not implemented)
+- **Delay persistence**: The calculated delay persists until the next sync or manual adjustment
+
+#### Time Offset Mechanism
+
+**Global Delay**: `UtcTimer.delay` (static int, milliseconds)
+- Applied to all time calculations via `getSystemTime()`
+- Formula: `delay + System.currentTimeMillis()`
+- Adjusted during NTP sync
+- Can be manually adjusted via ConfigFragment spinner (-7500ms to +7500ms in 500ms steps)
+
+**Per-Timer Offset**: `time_sec` (instance variable, milliseconds)
+- Used for fine-tuning individual timer instances
+- Applied in cycle detection: `(utc - time_sec) / 100) % 600) % sec == 0`
+- Used for transmission timing adjustments
+
+#### Time Calculation Flow
+
+```
+System.currentTimeMillis()
+    +
+UtcTimer.delay (from NTP sync or manual adjustment)
+    =
+UtcTimer.getSystemTime() → Used throughout application
+```
+
+**Usage Examples**:
+- `UtcTimer.getSystemTime()` - Returns adjusted UTC time
+- `UtcTimer.sequential(utc)` - Calculates odd/even timeslot (0 or 1)
+- `UtcTimer.getTimeStr(time)` - Formats UTC time for display
+- All cycle triggers use adjusted time to ensure synchronization
+
+#### Manual Time Offset
+
+Users can manually adjust time offset when:
+- NTP sync fails (no internet connection)
+- Fine-tuning is needed for specific conditions
+- Testing or calibration is required
+
+**Location**: `ConfigFragment.java` → UTC Time Offset spinner
+
+**Range**: -7500ms to +7500ms (in 500ms increments)
+- Covers one full FT8 cycle (15 seconds)
+- Applied directly to `UtcTimer.delay`
+- Persisted in database as "utcDelay" config parameter
+
+#### Time Accuracy Requirements
+
+FT8 requires time accuracy within approximately ±100ms for reliable operation:
+- **Optimal**: Within ±100ms (toast shows "clock is accurate")
+- **Acceptable**: ±100ms to ±500ms (may work but less reliable)
+- **Problematic**: >±500ms (likely to cause decode/transmit failures)
+
+The application calculates and displays the time offset after each sync to help users understand their clock accuracy.
+
+#### Error Handling
+
+**GPS Sync Failures** (falls back to NTP):
+- GPS provider disabled → Falls back to NTP
+- Location permissions denied → Falls back to NTP
+- No GPS signal (indoors) → Falls back to NTP
+- GPS timeout (> 10 seconds) → Falls back to NTP
+- Stale GPS data → Falls back to NTP
+
+**NTP Sync Failures** (final fallback):
+- Network unavailable → `syncFailed()` callback invoked, uses system time
+- Server unreachable → `syncFailed()` callback invoked, uses system time
+- Timeout → Exception caught, uses system time
+- Manual offset remains available as backup
+
+**Fallback Behavior**:
+- GPS → NTP → System Time (with manual offset option)
+- If both GPS and NTP fail, application continues with system time
+- User can manually adjust offset if needed
+- No blocking or crashes on sync failure
+- Each sync attempt is independent and non-blocking
 
 ---
 

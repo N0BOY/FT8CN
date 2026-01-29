@@ -23,45 +23,6 @@
             app:layout_constraintTop_toTopOf="parent">
 
 
-            <ImageButton
-                android:id="@+id/exportImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/export"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_baseline_save_alt_24"
-                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
-
-            <ImageButton
-                android:id="@+id/shareLogImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/share_logs"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/exportImageButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/share_button_icon_24"
-                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
-
-
-            <ImageButton
-                android:id="@+id/locationInMapImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/map_location_image"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/shareLogImageButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/baseline_location_on_24"
-                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
-
             <EditText
                 android:id="@+id/inputMycallEdit"
                 android:layout_width="0dp"
@@ -71,7 +32,6 @@
                 android:layout_marginEnd="8dp"
                 android:layout_marginBottom="4dp"
                 android:autofillHints=""
-
                 android:background="@drawable/log_callsign_editor_style"
                 android:ems="10"
                 android:hint="@string/pl_mycall"
@@ -81,51 +41,43 @@
                 android:textColorHint="@color/bar_text_view_color"
                 android:textSize="14sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/logViewStyleimageButton"
-                app:layout_constraintStart_toEndOf="@+id/locationInMapImageButton"
+                app:layout_constraintEnd_toStartOf="@+id/actionsSpinner"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />
 
-            <ImageButton
-                android:id="@+id/logViewStyleimageButton"
+            <Spinner
+                android:id="@+id/actionsSpinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/view_style"
-                android:visibility="visible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/filterImageButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_baseline_assignment_ind_24"
-                tools:ignore="TouchTargetSizeCheck" />
-
-            <ImageButton
-                android:id="@+id/filterImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/filter"
+                android:minWidth="120dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/countImageButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_baseline_list_alt_24"
-                tools:ignore="TouchTargetSizeCheck" />
-
-            <ImageButton
-                android:id="@+id/countImageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/imagebutton_style"
-                android:contentDescription="@string/statistical"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_baseline_insert_chart_outlined_24" />
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/filterIndicatorTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/filter_indicator_background"
+            android:paddingStart="8dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="4dp"
+            android:textColor="@color/bar_text_view_color"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/log_fragment_bar"
+            tools:text="Filters: Comment, QRZ Missing, Date Range" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/logRecyclerView"
@@ -134,7 +86,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/log_fragment_bar" />
+            app:layout_constraintTop_toBottomOf="@+id/filterIndicatorTextView" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

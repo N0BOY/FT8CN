@@ -42,6 +42,7 @@ public class QSLRecord {
     private long bandFreq;//发射的波段
     private int wavFrequency;//发射的频率
     private String comment;
+    private String parkNumber = "";//公园编号
     public boolean isQSL = false;//手工确认
     public boolean isLotW_import = false;//是否是从外部数据导入的，此项需要在数据库中比对才能设定
     public boolean isLotW_QSL = false;//是否是lotw确认的
@@ -110,6 +111,23 @@ public class QSLRecord {
         this.comment =
                 distance.equals("") ? "QSO by FT8CN"
                         : String.format("Distance: %s, QSO by FT8CN", distance);
+        
+        // Append CQ modifier if present
+        if (GeneralVariables.toModifier != null && !GeneralVariables.toModifier.trim().isEmpty()) {
+            this.comment += ", " + GeneralVariables.toModifier.trim();
+        }
+        
+        // Append park number if present (after CQ modifier)
+        if (GeneralVariables.parkNumber != null && !GeneralVariables.parkNumber.trim().isEmpty()) {
+            this.parkNumber = GeneralVariables.parkNumber.trim();
+            this.comment += ", " + this.parkNumber;
+        } else {
+            this.parkNumber = ""; // Ensure parkNumber is always initialized
+        }
+        // Ensure parkNumber is never null (defensive check)
+        if (this.parkNumber == null) {
+            this.parkNumber = "";
+        }
     }
 
     public void update(QSLRecord record) {
@@ -226,7 +244,14 @@ public class QSLRecord {
             comment = String.format(GeneralVariables.getStringFromResource(R.string.qsl_record_import_time)
                     , UtcTimer.getDatetimeStr(UtcTimer.getSystemTime()));
         }
-
+        
+        // Extract park number from MY_SIG_INFO if present (POTA format: "US-0005")
+        if (map.containsKey("MY_SIG_INFO")) {
+            String sigInfo = map.get("MY_SIG_INFO");
+            parkNumber = sigInfo != null ? sigInfo : "";
+        } else {
+            parkNumber = "";
+        }
 
     }
 
@@ -362,6 +387,10 @@ public class QSLRecord {
 
     public String getComment() {
         return comment;
+    }
+
+    public String getParkNumber() {
+        return parkNumber != null ? parkNumber : "";
     }
 
 
