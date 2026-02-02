@@ -1,8 +1,30 @@
 Enter your callsign
 
-An amateur radio callsign is required to use this APP. Please comply with local laws and regulations to obtain your amateur radio license and callsign. It’s ILLEGAL to transmit without a valid license.
+An amateur radio callsign is required to use this APP. Please comply with local laws and regulations to obtain your amateur radio license and callsign. It's ILLEGAL to transmit without a valid license.
 
 CQ modifier
 
-CQ may be followed by a modifier with three decimal digits or one to four letters.
-Example : CQ POTA *callsign* *gridsquare*
+The CQ modifier is transmitted as part of your CQ message. CQ may be followed by a modifier with three decimal digits (000-999) or one to four letters (A-Z, AA-ZZ, AAA-ZZZ, or AAAA-ZZZZ).
+
+Common modifiers include:
+- POTA: Parks on the Air
+- SOTA: Summits on the Air
+- WWFF: World Wide Flora and Fauna
+- Numeric codes: 000-999 for various contests or events
+
+The modifier is included in your transmitted CQ message and will be visible to other stations.
+
+Example: CQ POTA *callsign* *gridsquare*
+
+Park Number
+
+The park number is NOT transmitted in your FT8 messages. Instead, it is automatically added to your QSO log entries when you set a value.
+
+This feature is designed for future filtering of your QSO logs. When you complete a QSO, the park number you have set will be:
+- Stored in the database with the QSO record
+- Added to the comment field of the log entry
+- Available for filtering and searching your QSO logs later
+
+Use this field to track which park, summit, or location you were operating from, even though this information is not transmitted over the air. This allows you to later filter your logs to see all QSOs made from a specific park or location.
+
+To use: Simply enter your park number (e.g., "K-1234" for POTA, "W1/AB-001" for SOTA, or any identifier you prefer) and it will be automatically associated with all QSOs you complete while this value is set.

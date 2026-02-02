@@ -17,14 +17,20 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RigNameList {
     private static final String TAG="RigNameList";
     private Context context;
     private static RigNameList rigNameList = null;
-
+    private static final Object lock = new Object();
+    private static volatile boolean isLoading = false;
+    private static final ExecutorService preloadExecutor = Executors.newSingleThreadExecutor();
 
     public ArrayList<RigName> rigList = new ArrayList<>();
+    // Cache for unique makes to avoid recalculating
+    private ArrayList<String> cachedUniqueMakes = null;
 
     public RigNameList(Context context) {
         this.context = context;
@@ -32,11 +38,84 @@ public class RigNameList {
         getRigNamesFromFile();
     }
 
+    /**
+     * Preload RigNameList in background thread to avoid blocking UI.
+     * Should be called during app startup (e.g., in MainActivity.InitData()).
+     * @param context Application context
+     */
+    public static void preload(Context context) {
+        synchronized (lock) {
+            if (rigNameList != null || isLoading) {
+                return; // Already loaded or loading
+            }
+            isLoading = true;
+        }
+        
+        preloadExecutor.execute(() -> {
+            try {
+                // Load in background thread
+                RigNameList instance = new RigNameList(context.getApplicationContext());
+                synchronized (lock) {
+                    rigNameList = instance;
+                    isLoading = false;
+                }
+                Log.d(TAG, "RigNameList preloaded successfully");
+            } catch (Exception e) {
+                Log.e(TAG, "Error preloading RigNameList: " + e.getMessage());
+                synchronized (lock) {
+                    isLoading = false;
+                }
+            }
+        });
+    }
+
+    /**
+     * Check if RigNameList is loaded (either preloaded or loaded synchronously).
+     * @return true if loaded, false if still loading or not loaded
+     */
+    public static boolean isLoaded() {
+        synchronized (lock) {
+            return rigNameList != null;
+        }
+    }
+
+    /**
+     * Wait for RigNameList to be loaded (if preloading is in progress).
+     * This should only be called from a background thread to avoid blocking UI.
+     * @param timeoutMs Maximum time to wait in milliseconds
+     * @return true if loaded within timeout, false otherwise
+     */
+    public static boolean waitForLoad(long timeoutMs) {
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < timeoutMs) {
+            synchronized (lock) {
+                if (rigNameList != null) {
+                    return true;
+                }
+                if (!isLoading) {
+                    return false; // Not loading and not loaded
+                }
+            }
+            try {
+                Thread.sleep(10); // Check every 10ms
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return false; // Timeout
+    }
+
     public static RigNameList getInstance(Context context) {
-        if (rigNameList == null) {
-            return new RigNameList(context);
-        } else {
-            return rigNameList;
+        synchronized (lock) {
+            if (rigNameList == null) {
+                // If not preloaded, load synchronously (fallback for backward compatibility)
+                // This should rarely happen if preload() is called during app startup
+                Log.w(TAG, "RigNameList not preloaded, loading synchronously (may block UI thread)");
+                return new RigNameList(context);
+            } else {
+                return rigNameList;
+            }
         }
     }
 
@@ -184,9 +263,15 @@ public class RigNameList {
 
     /**
      * Get list of unique makes (brands) from the rig list.
+     * Results are cached to avoid recalculating on every call.
      * @return ArrayList of unique make names, with empty string as first entry
      */
     public ArrayList<String> getUniqueMakes() {
+        // Return cached result if available
+        if (cachedUniqueMakes != null) {
+            return cachedUniqueMakes;
+        }
+        
         ArrayList<String> makes = new ArrayList<>();
         makes.add(""); // Empty entry first
         
@@ -199,6 +284,9 @@ public class RigNameList {
         
         // Sort makes (keep empty at index 0)
         Collections.sort(makes.subList(1, makes.size()));
+        
+        // Cache the result
+        cachedUniqueMakes = makes;
         return makes;
     }
 

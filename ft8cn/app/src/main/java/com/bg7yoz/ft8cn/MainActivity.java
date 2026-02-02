@@ -463,6 +463,9 @@ public class MainActivity extends AppCompatActivity {
     private void InitData() {
         if (mainViewModel.configIsLoaded) return;//如果数据已经读取一遍了，就不用再读取了。
 
+        // Preload RigNameList in background to avoid blocking UI when settings dialog opens
+        com.bg7yoz.ft8cn.database.RigNameList.preload(getBaseContext());
+
         //读取波段数据
         if (mainViewModel.operationBand == null) {
             mainViewModel.operationBand = OperationBand.getInstance(getBaseContext());

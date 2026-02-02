@@ -56,14 +56,28 @@ public class LogCallsignAdapter extends RecyclerView.Adapter<LogCallsignAdapter.
         return mainViewModel.callsignRecords.get(position);
     }
     /**
-     * 返回查询结题
+     * 返回查询结果
+     * @param records 记录
+     * @param isAppend 是否追加（true=追加，false=替换）
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    public void setQSLCallsignList(ArrayList<QSLCallsignRecord> records, boolean isAppend){
+        if (isAppend) {
+            mainViewModel.callsignRecords.addAll(records);
+        } else {
+            mainViewModel.callsignRecords.clear();
+            mainViewModel.callsignRecords.addAll(records);
+        }
+        notifyDataSetChanged();
+    }
+    
+    /**
+     * 返回查询结果（向后兼容，默认追加）
      * @param records 记录
      */
     @SuppressLint("NotifyDataSetChanged")
     public void setQSLCallsignList(ArrayList<QSLCallsignRecord> records){
-        mainViewModel.callsignRecords.addAll(records);
-        //mainViewModel.callsignRecords=records;
-        notifyDataSetChanged();
+        setQSLCallsignList(records, true);
     }
 
     /**

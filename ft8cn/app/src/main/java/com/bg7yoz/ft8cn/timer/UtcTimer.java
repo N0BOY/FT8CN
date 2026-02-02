@@ -363,7 +363,7 @@ public class UtcTimer {
                 // GPS time is very accurate, so even slightly stale is OK for time sync
                 if (timeDiff < 5 * 60 * 1000) { // Within 5 minutes
                     int trueDelay = (int) (gpsTime - currentTime);
-                    UtcTimer.delay = trueDelay % 15000; // Modulo 15000ms to keep within one FT8 cycle
+                    UtcTimer.delay = trueDelay;
                     if (afterSyncTime != null) {
                         afterSyncTime.doAfterSyncTimer(trueDelay, "GPS", "GPS");
                     }
@@ -384,6 +384,7 @@ public class UtcTimer {
         final CountDownLatch latch = new CountDownLatch(1);
         final boolean[] success = {false};
         final long[] gpsTime = {0};
+        final int[] calculatedDelay = {0};
 
         LocationListener locationListener = new LocationListener() {
             @Override
@@ -393,9 +394,8 @@ public class UtcTimer {
                     gpsTime[0] = location.getTime();
                     long currentTime = System.currentTimeMillis();
                     int trueDelay = (int) (gpsTime[0] - currentTime);
-                    
-                    // GPS time is always valid (it's UTC time from satellites)
-                    UtcTimer.delay = trueDelay % 15000; // Modulo 15000ms to keep within one FT8 cycle
+                    calculatedDelay[0] = trueDelay;
+                    UtcTimer.delay = trueDelay;
                     success[0] = true;
                 }
                 latch.countDown();
@@ -429,14 +429,13 @@ public class UtcTimer {
             locationManager.removeUpdates(locationListener);
 
             if (received && success[0]) {
-                // GPS sync succeeded
+                // GPS sync succeeded - use the delay calculated in the callback (not recalculate with stale time)
                 if (afterSyncTime != null) {
-                    int trueDelay = (int) (gpsTime[0] - System.currentTimeMillis());
-                    afterSyncTime.doAfterSyncTimer(trueDelay, "GPS", "GPS");
+                    afterSyncTime.doAfterSyncTimer(calculatedDelay[0], "GPS", "GPS");
                 }
                 
                 // Log successful GPS call
-                logExternalCall("GPS", "GPS", "SUCCESS", String.format("Time offset: %d ms", (int)(gpsTime[0] - System.currentTimeMillis())));
+                logExternalCall("GPS", "GPS", "SUCCESS", String.format("Time offset: %d ms", calculatedDelay[0]));
                 
                 return new SyncResult(true, null);
             } else if (received) {

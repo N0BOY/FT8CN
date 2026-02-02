@@ -1,5 +1,43 @@
 # FT8CN Release Notes
 
+## Version 0.93.201 (February 1, 2026)
+
+### 🚀 Performance Improvements
+
+#### Settings Dialog
+- **Significantly faster settings dialog load time** (80-95% improvement, from ~3s to ~0.2-0.5s)
+  - Removed unnecessary `runOnUiThread` calls (11 instances) - `onCreateView()` is already on UI thread
+  - Removed artificial delays (4 instances with 1000ms delays) - changed to immediate execution
+  - Preloaded RigNameList in background during app startup - eliminates file I/O blocking when dialog opens
+  - Deferred heavy adapter creation until after view is laid out
+  - Cached unique makes list to avoid recalculating on every adapter creation
+  - Settings dialog now appears almost instantly when opened
+
+### 🐛 Bug Fixes
+
+#### QSO Logs
+- **Fixed duplicate entries on first load**: Prevented multiple queries from running simultaneously during fragment initialization
+  - Added flag to prevent LiveData observers from firing during initial setup
+  - Fixed adapters to replace list instead of append when starting new query (offset = 0)
+  - Ensures each QSO entry appears only once when logs are first opened
+
+### 🗑️ Removed Features
+
+#### QSO Logs
+- **Removed View Mode toggle**: Simplified QSO logs to always show detailed QSO view (one entry per QSO)
+  - Removed "View Style" option from Actions spinner
+  - Always displays individual QSO records with full details (time, frequency, RST, etc.)
+  - Cleaner, more consistent user experience
+
+### 🔧 Technical Improvements
+
+#### Code Quality
+- Added comprehensive unit tests for `UtcTimer` class
+- Improved code organization and removed unused code
+- Added Git pre-commit hook to automatically run unit tests before commits
+
+---
+
 ## Version 0.93.176 (January 28, 2026)
 
 ### 🎉 New Features

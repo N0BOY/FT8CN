@@ -20,10 +20,9 @@ public class ActionsSpinnerAdapter extends BaseAdapter {
         EXPORT(0, R.string.export),
         SHARE_LOGS(1, R.string.share_logs),
         MAP_LOCATION(2, R.string.map_location_image),
-        VIEW_STYLE(3, R.string.view_style),
-        UPLOAD_QRZ(4, R.string.upload_qrz_unuploaded),
-        FILTER(5, R.string.filter),
-        STATISTICS(6, R.string.statistical);
+        UPLOAD_QRZ(3, R.string.upload_qrz_unuploaded),
+        FILTER(4, R.string.filter),
+        STATISTICS(5, R.string.statistical);
 
         private final int id;
         private final int stringResource;
@@ -53,7 +52,6 @@ public class ActionsSpinnerAdapter extends BaseAdapter {
         actions.add(Action.EXPORT);
         actions.add(Action.SHARE_LOGS);
         actions.add(Action.MAP_LOCATION);
-        actions.add(Action.VIEW_STYLE);
         actions.add(Action.UPLOAD_QRZ);
         actions.add(Action.FILTER);
         actions.add(Action.STATISTICS);

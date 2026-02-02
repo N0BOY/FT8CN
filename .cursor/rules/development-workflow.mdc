@@ -44,20 +44,22 @@ Before modifying auto sequencing:
 
 ### Run Unit Tests
 
-**Always** run unit tests after making code changes to ensure nothing is broken:
+**CRITICAL: Always run unit tests immediately after making code changes.** This is mandatory, not optional.
 
 ```bash
 # Windows
-.\gradlew.bat test
+cd ft8cn && .\gradlew.bat test
 
 # Linux/macOS
-./gradlew test
+cd ft8cn && ./gradlew test
 ```
 
 - Check test results at: `ft8cn/app/build/reports/tests/test/index.html`
 - Fix any failing tests before proceeding
 - If tests pass, continue to debug build
 - **Note**: Tests do NOT run automatically during builds - they must be run explicitly with the `test` command
+- **Pre-commit hook**: A git pre-commit hook is configured to run tests automatically before commits (see `.git/hooks/pre-commit`)
+- **If tests fail**: Do not proceed with build or commit until all tests pass
 
 ### Run Debug Build
 
@@ -82,11 +84,13 @@ When making changes, follow this checklist:
 - [ ] Investigated relevant markdown documentation files
 - [ ] Understood existing patterns and conventions
 - [ ] Made code changes
-- [ ] Ran unit tests (`.\gradlew.bat test` or `./gradlew test`)
-- [ ] All tests passed
-- [ ] Ran debug build (`.\gradlew.bat assembleDebug` or `./gradlew assembleDebug`)
+- [ ] **IMMEDIATELY ran unit tests** (`cd ft8cn && .\gradlew.bat test` or `cd ft8cn && ./gradlew test`)
+- [ ] **All tests passed** (if not, fix issues before proceeding)
+- [ ] Ran debug build (`cd ft8cn && .\gradlew.bat assembleDebug` or `cd ft8cn && ./gradlew assembleDebug`)
 - [ ] Build completed successfully
 - [ ] Updated documentation if needed (especially RELEASE_NOTES.md for user-facing changes)
+
+**Important**: The pre-commit hook will also run tests automatically, but don't rely on it - run tests immediately after making changes to catch issues early.
 
 ## Exceptions
 

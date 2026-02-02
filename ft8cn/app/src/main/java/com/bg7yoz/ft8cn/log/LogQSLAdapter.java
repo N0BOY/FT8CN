@@ -44,10 +44,29 @@ public class LogQSLAdapter extends RecyclerView.Adapter<LogQSLAdapter.LogQSLItem
     }
 
 
+    /**
+     * 设置QSL列表
+     * @param list 记录列表
+     * @param isAppend 是否追加（true=追加，false=替换）
+     */
+    @SuppressLint("NotifyDataSetChanged")
+    public void setQSLList(ArrayList<QSLRecordStr> list, boolean isAppend) {
+        if (isAppend) {
+            qslRecords.addAll(list);
+        } else {
+            qslRecords.clear();
+            qslRecords.addAll(list);
+        }
+        notifyDataSetChanged();
+    }
+    
+    /**
+     * 设置QSL列表（向后兼容，默认追加）
+     * @param list 记录列表
+     */
     @SuppressLint("NotifyDataSetChanged")
     public void setQSLList(ArrayList<QSLRecordStr> list) {
-        qslRecords.addAll(list);
-        notifyDataSetChanged();
+        setQSLList(list, true);
     }
 
     /**

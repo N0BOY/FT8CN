@@ -237,7 +237,7 @@ public class PskReporterMqtt {
      */
     private void parseAndHandleMessage(String payload) {
         try {
-            if (payload == null || payload.trim().isEmpty()) {
+            if (payload.trim().isEmpty()) {
                 Log.w(TAG, "Empty payload received");
                 return;
             }
@@ -279,13 +279,11 @@ public class PskReporterMqtt {
             
         } catch (org.json.JSONException e) {
             Log.w(TAG, "JSON parsing error: " + e.getMessage());
-            String safePayloadPreview = (payload == null) ? "null"
-                    : (payload.length() > 500 ? payload.substring(0, 500) + "..." : payload);
+            String safePayloadPreview = payload.length() > 500 ? payload.substring(0, 500) + "..." : payload;
             Log.d(TAG, "Payload (first 500 chars): " + safePayloadPreview);
         } catch (Exception e) {
             Log.w(TAG, "Error parsing MQTT message: " + e.getMessage());
-            String safePayloadPreview = (payload == null) ? "null"
-                    : (payload.length() > 500 ? payload.substring(0, 500) + "..." : payload);
+            String safePayloadPreview = payload.length() > 500 ? payload.substring(0, 500) + "..." : payload;
             Log.d(TAG, "Payload (first 500 chars): " + safePayloadPreview);
         }
     }

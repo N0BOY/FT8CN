@@ -1079,7 +1079,6 @@
                             android:textColor="@color/text_view_color"
                             android:textSize="14sp"
                             app:layout_constraintBottom_toBottomOf="@+id/parkNumberText"
-                            app:layout_constraintEnd_toStartOf="@+id/callsignHelpImageButton"
                             app:layout_constraintStart_toEndOf="@+id/parkNumberText"
                             app:layout_constraintTop_toTopOf="@+id/parkNumberText"
                             tools:ignore="TextContrastCheck,TouchTargetSizeCheck" />

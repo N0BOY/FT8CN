@@ -59,6 +59,7 @@ public class ConfigFragment extends Fragment {
     private RigMakeSpinnerAdapter rigMakeSpinnerAdapter;
     private RigModelSpinnerAdapter rigModelSpinnerAdapter;
     private LaunchSupervisionSpinnerAdapter launchSupervisionSpinnerAdapter;
+    private boolean isInitializingRigSpinners = false;
     private PttDelaySpinnerAdapter pttDelaySpinnerAdapter;
     private NoReplyLimitSpinnerAdapter noReplyLimitSpinnerAdapter;
     private NtpServerSpinnerAdapter ntpServerSpinnerAdapter;
@@ -395,8 +396,20 @@ public class ConfigFragment extends Fragment {
         //设置停止位
         setStopBitsSpinner();
 
-        //设置电台名称，参数列表（Make和Model）
-        setRigMakeAndModelSpinners();
+        //设置电台名称，参数列表（Make和Model） - defer to avoid blocking UI
+        // Use post() to defer heavy adapter creation until after view is laid out
+        new Handler(Looper.getMainLooper()).post(() -> {
+            // Ensure RigNameList is loaded (wait up to 500ms if still loading)
+            if (!RigNameList.isLoaded()) {
+                // If not loaded yet, wait a bit for preload to complete
+                // This should rarely happen if preload() is called during app startup
+                android.util.Log.w(TAG, "RigNameList not loaded yet, waiting...");
+                // Create adapters anyway - getInstance() will load synchronously if needed
+            }
+            setRigMakeAndModelSpinners();
+            // Initialize rig spinners after adapters are created
+            initializeRigSpinnersFromModelNo();
+        });
 
         //设置解码模式
         setDecodeMode();
@@ -428,13 +441,8 @@ public class ConfigFragment extends Fragment {
         //设置各个spinner的OnItemSelected事件
         setSpinnerOnItemSelected();
 
-        //显示滚动箭头
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                setScrollImageVisible();
-            }
-        }, 1000);
+        //显示滚动箭头 - use post() for immediate execution after view is laid out
+        new Handler(Looper.getMainLooper()).post(() -> setScrollImageVisible());
         // Follow callsign list is now shown in the ClearCacheDataDialog
 
         binding.scrollView3.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -546,7 +554,7 @@ public class ConfigFragment extends Fragment {
         //获取操作的波段
         binding.operationBandSpinner.setSelection(GeneralVariables.bandListIndex);
         //获取电台型号 - 初始化Make和Model spinners
-        initializeRigSpinnersFromModelNo();
+        // NOTE: initializeRigSpinnersFromModelNo() is now called in post() after setRigMakeAndModelSpinners()
         //串口数据位
         binding.dataBitsSpinner.setSelection(dataBitsSpinnerAdapter.getPosition(GeneralVariables.serialDataBits));
         //串口停止位
@@ -838,17 +846,13 @@ public class ConfigFragment extends Fragment {
                 GeneralVariables.serialParity = 0;
                 GeneralVariables.serialDataBits = 8;
                 GeneralVariables.serialStopBits = 1;
-                requireActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        binding.parityBitsSpinner.setSelection(
-                                parityBitsSpinnerAdapter.getPosition(GeneralVariables.serialParity));
-                        binding.dataBitsSpinner.setSelection(
-                                dataBitsSpinnerAdapter.getPosition(GeneralVariables.serialDataBits));
-                        binding.stopBitsSpinner.setSelection(
-                                stopBitsSpinnerAdapter.getPosition(GeneralVariables.serialStopBits));
-                    }
-                });
+                // onClick is already on UI thread, no need for runOnUiThread
+                binding.parityBitsSpinner.setSelection(
+                        parityBitsSpinnerAdapter.getPosition(GeneralVariables.serialParity));
+                binding.dataBitsSpinner.setSelection(
+                        dataBitsSpinnerAdapter.getPosition(GeneralVariables.serialDataBits));
+                binding.stopBitsSpinner.setSelection(
+                        stopBitsSpinnerAdapter.getPosition(GeneralVariables.serialStopBits));
 
             }
         });
@@ -862,9 +866,9 @@ public class ConfigFragment extends Fragment {
      * 设置各个spinner的OnItemSelected事件，防止在进入主界面时，重复向数据库写入配置信息
      */
     private void setSpinnerOnItemSelected(){
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        // Use post() to set listeners after view initialization completes
+        // This prevents listeners from firing during initial spinner selections
+        new Handler(Looper.getMainLooper()).post(() -> {
                 binding.pttDelayOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -984,9 +988,7 @@ public class ConfigFragment extends Fragment {
 
                     }
                 });
-
-            }
-        }, 1000);
+        });
     }
 
     /**
@@ -1107,15 +1109,10 @@ public class ConfigFragment extends Fragment {
      */
     private void setUtcTimeOffsetSpinner() {
         UtcOffsetSpinnerAdapter adapter = new UtcOffsetSpinnerAdapter(requireContext());
-
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                binding.utcTimeOffsetSpinner.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
-                binding.utcTimeOffsetSpinner.setSelection((UtcTimer.delay / 100 + 75) / 5);
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        binding.utcTimeOffsetSpinner.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+        binding.utcTimeOffsetSpinner.setSelection((UtcTimer.delay / 100 + 75) / 5);
         binding.utcTimeOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -1135,27 +1132,22 @@ public class ConfigFragment extends Fragment {
      */
     private void setNtpServerSpinner() {
         ntpServerSpinnerAdapter = new NtpServerSpinnerAdapter(requireContext());
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        binding.ntpServerSpinner.setAdapter(ntpServerSpinnerAdapter);
+        ntpServerSpinnerAdapter.notifyDataSetChanged();
         
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                binding.ntpServerSpinner.setAdapter(ntpServerSpinnerAdapter);
-                ntpServerSpinnerAdapter.notifyDataSetChanged();
-                
-                // Set selection based on current server
-                int position = ntpServerSpinnerAdapter.findServerPosition(GeneralVariables.ntpServer);
-                binding.ntpServerSpinner.setSelection(position);
-                
-                // Show/hide custom server input based on selection
-                if (position == ntpServerSpinnerAdapter.getCount() - 1) {
-                    // Custom option selected
-                    binding.ntpServerCustomEdit.setVisibility(View.VISIBLE);
-                    binding.ntpServerCustomEdit.setText(GeneralVariables.ntpServer);
-                } else {
-                    binding.ntpServerCustomEdit.setVisibility(View.GONE);
-                }
-            }
-        });
+        // Set selection based on current server
+        int position = ntpServerSpinnerAdapter.findServerPosition(GeneralVariables.ntpServer);
+        binding.ntpServerSpinner.setSelection(position);
+        
+        // Show/hide custom server input based on selection
+        if (position == ntpServerSpinnerAdapter.getCount() - 1) {
+            // Custom option selected
+            binding.ntpServerCustomEdit.setVisibility(View.VISIBLE);
+            binding.ntpServerCustomEdit.setText(GeneralVariables.ntpServer);
+        } else {
+            binding.ntpServerCustomEdit.setVisibility(View.GONE);
+        }
         
         // Set up custom server input text watcher
         binding.ntpServerCustomEdit.addTextChangedListener(new TextWatcher() {
@@ -1217,12 +1209,8 @@ public class ConfigFragment extends Fragment {
 
         bandsSpinnerAdapter = new BandsSpinnerAdapter(requireContext());
         binding.operationBandSpinner.setAdapter(bandsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                bandsSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        bandsSpinnerAdapter.notifyDataSetChanged();
 
     }
 
@@ -1232,12 +1220,8 @@ public class ConfigFragment extends Fragment {
     private void setBauRateSpinner() {
         bauRateSpinnerAdapter = new BauRateSpinnerAdapter(requireContext());
         binding.baudRateSpinner.setAdapter(bauRateSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                bauRateSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        bauRateSpinnerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -1246,12 +1230,8 @@ public class ConfigFragment extends Fragment {
     private void setDataBitsSpinner(){
         dataBitsSpinnerAdapter = new SerialDataBitsSpinnerAdapter(requireContext());
         binding.dataBitsSpinner.setAdapter(dataBitsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                dataBitsSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        dataBitsSpinnerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -1260,12 +1240,8 @@ public class ConfigFragment extends Fragment {
     private void setParityBitsSpinner(){
         parityBitsSpinnerAdapter = new SerialParityBitsSpinnerAdapter(requireContext());
         binding.parityBitsSpinner.setAdapter(parityBitsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                parityBitsSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        parityBitsSpinnerAdapter.notifyDataSetChanged();
     }
     /**
      * 设置停止位列表
@@ -1273,12 +1249,8 @@ public class ConfigFragment extends Fragment {
     private void setStopBitsSpinner(){
         stopBitsSpinnerAdapter = new SerialStopBitsSpinnerAdapter(requireContext());
         binding.stopBitsSpinner.setAdapter(stopBitsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                stopBitsSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        stopBitsSpinnerAdapter.notifyDataSetChanged();
     }
 
 
@@ -1289,12 +1261,8 @@ public class ConfigFragment extends Fragment {
     private void setNoReplyLimitSpinner() {
         noReplyLimitSpinnerAdapter = new NoReplyLimitSpinnerAdapter(requireContext());
         binding.noResponseCountSpinner.setAdapter(noReplyLimitSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                noReplyLimitSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        noReplyLimitSpinnerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -1303,12 +1271,8 @@ public class ConfigFragment extends Fragment {
     private void setLaunchSupervision() {
         launchSupervisionSpinnerAdapter = new LaunchSupervisionSpinnerAdapter(requireContext());
         binding.launchSupervisionSpinner.setAdapter(launchSupervisionSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                launchSupervisionSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        launchSupervisionSpinnerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -1325,14 +1289,9 @@ public class ConfigFragment extends Fragment {
         // Set adapters
         binding.rigMakeSpinner.setAdapter(rigMakeSpinnerAdapter);
         binding.rigNameSpinner.setAdapter(rigModelSpinnerAdapter);
-        
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                rigMakeSpinnerAdapter.notifyDataSetChanged();
-                rigModelSpinnerAdapter.notifyDataSetChanged();
-            }
-        });
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        rigMakeSpinnerAdapter.notifyDataSetChanged();
+        rigModelSpinnerAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -1342,6 +1301,9 @@ public class ConfigFragment extends Fragment {
     private void initializeRigSpinnersFromModelNo() {
         RigNameList rigNameList = RigNameList.getInstance(requireContext());
         RigNameList.RigName currentRig = rigNameList.getRigNameByIndex(GeneralVariables.modelNo);
+        
+        // Set flag to prevent saving during initialization
+        isInitializingRigSpinners = true;
         
         // Disable listeners during initialization
         binding.rigMakeSpinner.setOnItemSelectedListener(null);
@@ -1353,13 +1315,12 @@ public class ConfigFragment extends Fragment {
             rigModelSpinnerAdapter.updateFilter("");
             binding.rigNameSpinner.setSelection(0);
             
-            // Re-enable listeners after a delay
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    setRigSpinnerListeners();
-                }
-            }, 1000);
+            // Re-enable listeners - use post() to ensure it happens after selection is set
+            // The isInitializingRigSpinners flag prevents unwanted callbacks during initialization
+            new Handler(Looper.getMainLooper()).post(() -> {
+                setRigSpinnerListeners();
+                isInitializingRigSpinners = false;
+            });
             return;
         }
         
@@ -1379,13 +1340,12 @@ public class ConfigFragment extends Fragment {
         // Set model spinner
         binding.rigNameSpinner.setSelection(modelPosition);
         
-        // Re-enable listeners after a delay
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                setRigSpinnerListeners();
-            }
-        }, 1000);
+        // Re-enable listeners - use post() to ensure it happens after selection is set
+        // The isInitializingRigSpinners flag prevents unwanted callbacks during initialization
+        new Handler(Looper.getMainLooper()).post(() -> {
+            setRigSpinnerListeners();
+            isInitializingRigSpinners = false;
+        });
     }
 
     /**
@@ -1396,6 +1356,11 @@ public class ConfigFragment extends Fragment {
         final AdapterView.OnItemSelectedListener modelSpinnerListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                // Skip saving during initialization/restoration
+                if (isInitializingRigSpinners) {
+                    return;
+                }
+                
                 // Get the full list index from the filtered model adapter
                 int fullListIndex = rigModelSpinnerAdapter.getFullListIndex(i);
                 GeneralVariables.modelNo = fullListIndex;
@@ -1418,17 +1383,30 @@ public class ConfigFragment extends Fragment {
         binding.rigMakeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                // Skip processing during initialization
+                if (isInitializingRigSpinners) {
+                    return;
+                }
+                
                 String selectedMake = rigMakeSpinnerAdapter.getMake(i);
                 rigModelSpinnerAdapter.updateFilter(selectedMake);
                 
                 // Temporarily disable model spinner listener to avoid triggering during filter update
                 binding.rigNameSpinner.setOnItemSelectedListener(null);
                 
-                // If a make is selected, auto-select first model (or empty if none)
-                if (!selectedMake.isEmpty() && rigModelSpinnerAdapter.getCount() > 1) {
-                    binding.rigNameSpinner.setSelection(1); // Skip empty entry
+                // Try to preserve the previously saved model if it's in the filtered list
+                int savedModelPosition = rigModelSpinnerAdapter.getPositionForFullIndex(GeneralVariables.modelNo);
+                
+                if (savedModelPosition > 0) {
+                    // Found the saved model in the filtered list, select it
+                    binding.rigNameSpinner.setSelection(savedModelPosition);
                 } else {
-                    binding.rigNameSpinner.setSelection(0); // Empty entry
+                    // Saved model not in filtered list (different make), select first available
+                    if (!selectedMake.isEmpty() && rigModelSpinnerAdapter.getCount() > 1) {
+                        binding.rigNameSpinner.setSelection(1); // Skip empty entry
+                    } else {
+                        binding.rigNameSpinner.setSelection(0); // Empty entry
+                    }
                 }
                 
                 // Re-enable model spinner listener
@@ -1449,15 +1427,9 @@ public class ConfigFragment extends Fragment {
     private void setPttDelaySpinner() {
         pttDelaySpinnerAdapter = new PttDelaySpinnerAdapter(requireContext());
         binding.pttDelayOffsetSpinner.setAdapter(pttDelaySpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                pttDelaySpinnerAdapter.notifyDataSetChanged();
-                binding.pttDelayOffsetSpinner.setSelection(GeneralVariables.pttDelay / 10);
-            }
-        });
-
-
+        // onCreateView is already on UI thread, no need for runOnUiThread
+        pttDelaySpinnerAdapter.notifyDataSetChanged();
+        binding.pttDelayOffsetSpinner.setSelection(GeneralVariables.pttDelay / 10);
     }
 
 

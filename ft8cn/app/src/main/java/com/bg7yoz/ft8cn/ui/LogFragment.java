@@ -51,11 +51,8 @@ import com.bg7yoz.ft8cn.log.ShareLogs;
 import com.bg7yoz.ft8cn.databinding.FragmentLogBinding;
 import com.bg7yoz.ft8cn.grid_tracker.GridTrackerMainActivity;
 import com.bg7yoz.ft8cn.html.LogHttpServer;
-import com.bg7yoz.ft8cn.log.LogCallsignAdapter;
 import com.bg7yoz.ft8cn.log.LogQSLAdapter;
-import com.bg7yoz.ft8cn.log.OnQueryQSLCallsign;
 import com.bg7yoz.ft8cn.log.OnQueryQSLRecordCallsign;
-import com.bg7yoz.ft8cn.log.QSLCallsignRecord;
 import com.bg7yoz.ft8cn.log.QSLRecordStr;
 import com.bg7yoz.ft8cn.log.OnShareLogEvents;
 import com.bg7yoz.ft8cn.log.QSLRecord;
@@ -74,7 +71,6 @@ public class LogFragment extends Fragment {
     private FragmentLogBinding binding;
     private MainViewModel mainViewModel;
 
-    private LogCallsignAdapter logCallsignAdapter;
     private LogQSLAdapter logQSLAdapter;
     private boolean loading = false;//防止滑动触发多次查询
     private int lastItemPosition;
@@ -101,7 +97,6 @@ public class LogFragment extends Fragment {
                              Bundle savedInstanceState) {
         binding = FragmentLogBinding.inflate(getLayoutInflater());
 
-        logCallsignAdapter = new LogCallsignAdapter(requireContext(), mainViewModel);
         logQSLAdapter = new LogQSLAdapter(requireContext(), mainViewModel);
         binding.logRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
@@ -165,14 +160,20 @@ public class LogFragment extends Fragment {
         });
 
         binding.inputMycallEdit.setText(mainViewModel.queryKey);
-        queryByCallsign(mainViewModel.queryKey, 0);
         
-        // Initialize filter indicator
+        // Initialize filter indicator before setting up observers
         updateFilterIndicator();
+        
+        // Track if this is the initial setup to prevent duplicate queries
+        final boolean[] isInitialSetup = {true};
 
         mainViewModel.mutableQueryCommentFilter.observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                // Skip the initial observer callback to avoid duplicate query
+                if (isInitialSetup[0]) {
+                    return;
+                }
                 queryByCallsign(mainViewModel.queryKey, 0);
                 updateFilterIndicator();
             }
@@ -181,6 +182,10 @@ public class LogFragment extends Fragment {
         mainViewModel.mutableQueryQRZFilter.observe(getViewLifecycleOwner(), new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
+                // Skip the initial observer callback to avoid duplicate query
+                if (isInitialSetup[0]) {
+                    return;
+                }
                 queryByCallsign(mainViewModel.queryKey, 0);
                 updateFilterIndicator();
             }
@@ -189,6 +194,10 @@ public class LogFragment extends Fragment {
         mainViewModel.mutableQueryStartDate.observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                // Skip the initial observer callback to avoid duplicate query
+                if (isInitialSetup[0]) {
+                    return;
+                }
                 queryByCallsign(mainViewModel.queryKey, 0);
                 updateFilterIndicator();
             }
@@ -197,8 +206,22 @@ public class LogFragment extends Fragment {
         mainViewModel.mutableQueryEndDate.observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                // Skip the initial observer callback to avoid duplicate query
+                if (isInitialSetup[0]) {
+                    return;
+                }
                 queryByCallsign(mainViewModel.queryKey, 0);
                 updateFilterIndicator();
+            }
+        });
+        
+        // Mark initial setup as complete and perform the initial query
+        // Use post() to ensure observers are set up first
+        binding.getRoot().post(new Runnable() {
+            @Override
+            public void run() {
+                isInitialSetup[0] = false;
+                queryByCallsign(mainViewModel.queryKey, 0);
             }
         });
 
@@ -393,22 +416,15 @@ public class LogFragment extends Fragment {
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         int position = (Integer) item.getActionView().getTag();
-        if (!mainViewModel.logListShowCallsign) {
-            switch (item.getItemId()) {
-                case 2:
-                    showQrzFragment(logQSLAdapter.getRecord(position).getCall());
-                    break;
-                case 3:
-                    Intent intent = new Intent(requireContext(), GridTrackerMainActivity.class);
-                    intent.putExtra("qslList", logQSLAdapter.getRecord(position));
-                    startActivity(intent);
-                    break;
-
-            }
-        } else {
-            if (item.getItemId() == 2) {
-                showQrzFragment(logCallsignAdapter.getRecord(position).getCallsign());
-            }
+        switch (item.getItemId()) {
+            case 2:
+                showQrzFragment(logQSLAdapter.getRecord(position).getCall());
+                break;
+            case 3:
+                Intent intent = new Intent(requireContext(), GridTrackerMainActivity.class);
+                intent.putExtra("qslList", logQSLAdapter.getRecord(position));
+                startActivity(intent);
+                break;
         }
 
         return super.onContextItemSelected(item);
@@ -426,11 +442,8 @@ public class LogFragment extends Fragment {
 
     private void loadQueryData() {
         if ((!loading)) {
-            if (mainViewModel.logListShowCallsign) {
-                queryByCallsign(mainViewModel.queryKey, logCallsignAdapter.getItemCount());
-            } else {
-                queryByCallsign(mainViewModel.queryKey, logQSLAdapter.getItemCount());
-            }
+            // Always use QSO log adapter
+            queryByCallsign(mainViewModel.queryKey, logQSLAdapter.getItemCount());
         }
     }
 
@@ -444,12 +457,7 @@ public class LogFragment extends Fragment {
             public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
 
-                int itemCount;
-                if (mainViewModel.logListShowCallsign) {
-                    itemCount = logCallsignAdapter.getItemCount();
-                } else {
-                    itemCount = logQSLAdapter.getItemCount();
-                }
+                int itemCount = logQSLAdapter.getItemCount();
                 if (newState == SCROLL_STATE_IDLE &&
                         lastItemPosition == itemCount) {
                     loadQueryData();
@@ -515,18 +523,11 @@ public class LogFragment extends Fragment {
                 // Swipe left action removed - no longer toggling QSL confirmation
             }
 
-            //判断列表格式，呼号列表
+            // Always allow swipe right (END) for delete in QSO log view
             @Override
             public int getMovementFlags(@NonNull RecyclerView recyclerView
                     , @NonNull RecyclerView.ViewHolder viewHolder) {
-                int swipeFlag;
-                if (mainViewModel.logListShowCallsign) {
-                    swipeFlag = 0;
-                } else {
-                    // Only allow swipe right (END) for delete, no more swipe left (START) for QSL toggle
-                    swipeFlag = ItemTouchHelper.END;
-                }
-                return makeMovementFlags(0, swipeFlag);
+                return makeMovementFlags(0, ItemTouchHelper.END);
             }
 
             //制作删除背景的图标显示
@@ -565,19 +566,13 @@ public class LogFragment extends Fragment {
 
 
     /**
-     * 设置显示模式。通联的呼号和日志两种表现方式
+     * 设置显示模式。始终使用QSO日志详细视图
      */
     @SuppressLint("NotifyDataSetChanged")
     private void setShowStyle() {
-
-        if (mainViewModel.logListShowCallsign) {
-            binding.logRecyclerView.setAdapter(logCallsignAdapter);
-            logCallsignAdapter.notifyDataSetChanged();
-        } else {
-            binding.logRecyclerView.setAdapter(logQSLAdapter);
-            logQSLAdapter.notifyDataSetChanged();
-        }
-
+        // Always use QSO log adapter (detailed view)
+        binding.logRecyclerView.setAdapter(logQSLAdapter);
+        logQSLAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -587,46 +582,24 @@ public class LogFragment extends Fragment {
      */
     private void queryByCallsign(String callsign, int offset) {
         loading = true;//开始读数据
-        //分两种查询
-        if (mainViewModel.logListShowCallsign) {
-            if (offset == 0) {//说明是新增记录
-                logCallsignAdapter.clearRecords();//清空记录
-            }
-
-            mainViewModel.databaseOpr.getQSLCallsignsByCallsign(false, offset, callsign, mainViewModel.queryQRZFilter
-                    , mainViewModel.queryCommentFilter, mainViewModel.queryStartDate, mainViewModel.queryEndDate
-                    , new OnQueryQSLCallsign() {
-                        @Override
-                        public void afterQuery(ArrayList<QSLCallsignRecord> records) {
-                            requireActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    logCallsignAdapter.setQSLCallsignList(records);
-                                    loading = false;
-                                }
-                            });
-                        }
-                    });
-        } else {
-            if (offset == 0) {//说明是新增记录
-                logQSLAdapter.clearRecords();
-            }
-            mainViewModel.databaseOpr.getQSLRecordByCallsign(false, offset, callsign, mainViewModel.queryQRZFilter
-                    , mainViewModel.queryCommentFilter, mainViewModel.queryStartDate, mainViewModel.queryEndDate
-                    , new OnQueryQSLRecordCallsign() {
-                        @Override
-                        public void afterQuery(ArrayList<QSLRecordStr> records) {
-                            requireActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    logQSLAdapter.setQSLList(records);
-                                    loading = false;
-                                }
-                            });
-                        }
-                    });
-
+        if (offset == 0) {//说明是新增记录
+            logQSLAdapter.clearRecords();
         }
+        mainViewModel.databaseOpr.getQSLRecordByCallsign(false, offset, callsign, mainViewModel.queryQRZFilter
+                , mainViewModel.queryCommentFilter, mainViewModel.queryStartDate, mainViewModel.queryEndDate
+                , new OnQueryQSLRecordCallsign() {
+                    @Override
+                    public void afterQuery(ArrayList<QSLRecordStr> records) {
+                        requireActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // If offset is 0, replace the list; otherwise append
+                                logQSLAdapter.setQSLList(records, offset != 0);
+                                loading = false;
+                            }
+                        });
+                    }
+                });
     }
 
 
@@ -694,12 +667,6 @@ public class LogFragment extends Fragment {
                     intent.putExtra("qslAll", mainViewModel.queryKey);
                     // Note: GridTrackerMainActivity may need to be updated to use new filters
                     startActivity(intent);
-                    break;
-                    
-                case VIEW_STYLE:
-                    mainViewModel.logListShowCallsign = !mainViewModel.logListShowCallsign;
-                    setShowStyle();
-                    queryByCallsign(binding.inputMycallEdit.getText().toString(), 0);
                     break;
                     
                 case UPLOAD_QRZ:
