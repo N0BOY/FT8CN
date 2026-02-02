@@ -1134,7 +1134,6 @@ if (GeneralVariables.manualTimeslot >= 0) {
 ### Decoding
 
 - **Deep Decode Mode**: `GeneralVariables.deepDecodeMode`
-- **Live Decode Updates**: `GeneralVariables.live_decode_updates`
 - **Decode Overrun Toast**: `GeneralVariables.decode_overrun_toast`
 
 ### Transmission

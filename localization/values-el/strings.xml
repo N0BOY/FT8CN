@@ -478,7 +478,6 @@
     <string name="deep_mode">Λειτουργία πολλαπλής αποκωδικοποίησης</string>
     <string name="export_null">Παρακαλώ χρησιμοποιήστε τον web browser των άλλων συσκευών για εξαγωγή στο παρασκήνιο στο ίδιο LAN που είναι αυτή η συσκευή.\nPlease connect to a valid Wi-Fi</string>
     <string name="deep_mode_help">decode_help_en.txt</string>
-    <string name="live_decode_updates_help">live_decode_updates_help_en.txt</string>
     <string name="null_task_html">Το έργο δεν υπάρχει!</string>
     <string name="log_importing_html">Εισαγωγή...</string>
     <string name="log_import_finished_html">Τελειώσει!</string>

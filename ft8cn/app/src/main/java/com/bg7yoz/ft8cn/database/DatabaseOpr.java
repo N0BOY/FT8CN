@@ -2667,8 +2667,8 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("decodeOverrunToast")) {
                     GeneralVariables.decode_overrun_toast = result != null && result.equals("1");
                 }
-                if (name.equalsIgnoreCase("liveDecodeUpdates")) {
-                    GeneralVariables.live_decode_updates = result != null && result.equals("1");
+                if (name.equalsIgnoreCase("enablePskReporterReceive")) {
+                    GeneralVariables.enablePskReporterReceive = result != null && result.equals("1");
                 }
                 if (name.equalsIgnoreCase("skipMyGridWhenResponding")) {
                     GeneralVariables.skip_my_grid_when_responding = result != null && result.equals("1");

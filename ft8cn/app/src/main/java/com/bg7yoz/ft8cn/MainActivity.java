@@ -498,6 +498,13 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
+                    
+                    // Start PSK Reporter MQTT after config is loaded (callsign should be available now)
+                    if (GeneralVariables.enablePskReporterReceive && 
+                        GeneralVariables.myCallsign != null && 
+                        !GeneralVariables.myCallsign.trim().isEmpty()) {
+                        mainViewModel.startPskReporterMqtt();
+                    }
                 }
                 
                 //此处梅登海德已经通过数据库得到了，但是如果GPS能获取到，还是用GPS的

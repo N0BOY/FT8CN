@@ -47,6 +47,18 @@ public class ToastMessage {
         final String info=s;
         debugList.add(info);
         GeneralVariables.mutableDebugMessage.postValue(getDebugMessage());
+        
+        // Log toast notification
+        try {
+            android.content.Context context = GeneralVariables.getMainContext();
+            if (context != null) {
+                com.bg7yoz.ft8cn.log.ApplicationLogManager logManager = 
+                    new com.bg7yoz.ft8cn.log.ApplicationLogManager(context);
+                logManager.writeLog(com.bg7yoz.ft8cn.log.ApplicationLogManager.LogType.TOAST_NOTIFICATIONS, s);
+            }
+        } catch (Exception e) {
+            // Ignore logging errors
+        }
 
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override

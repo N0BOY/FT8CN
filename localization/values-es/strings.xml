@@ -478,7 +478,6 @@
     <string name="deep_mode">Modo de decodificación múltiple</string>
     <string name="export_null">Utilice el navegador web de otros dispositivos para exportar desde el fondo en la misma LAN que este dispositivo.\nPlease connect to a valid Wi-Fi</string>
     <string name="deep_mode_help">decode_help_en.txt</string>
-    <string name="live_decode_updates_help">live_decode_updates_help_en.txt</string>
     <string name="null_task_html">¡La tarea no existe!</string>
     <string name="log_importing_html">Importador...</string>
     <string name="log_import_finished_html">¡Terminado!</string>

@@ -164,31 +164,6 @@ Enhanced duplicate detection to consider multiple factors:
 
 ---
 
-## 6. Live Decode Updates
-
-### Problem
-Decoded messages and CQ/auto-follow lists were only updated after the entire deep decode batch completed, providing no feedback during long decode operations.
-
-### Solution
-Added per-pass UI updates during deep decode:
-
-1. **Toggle Setting**: `GeneralVariables.live_decode_updates` (default: `false`)
-2. **Per-Pass Updates**: When enabled, `onFt8Listen.afterDecode()` called after each deep decode pass
-3. **Bulk Mode**: When disabled, messages accumulated and sent once at end of deep decode
-
-### Implementation Details
-- **GeneralVariables.java**: Added `live_decode_updates` flag
-- **DatabaseOpr.java**: Persists `liveDecodeUpdates` setting
-- **FT8SignalListener.java**: Conditional `afterDecode()` calls during deep decode
-- **ConfigFragment.java**: UI toggle on settings page
-- **fragment_config.xml**: Layout with `liveDecodeSwitch`
-
-### Impact
-- Real-time feedback during deep decode (when enabled)
-- Option to reduce UI updates for better performance (when disabled)
-
----
-
 ## 7. Exception Handling and Robustness
 
 ### Problem
@@ -277,11 +252,6 @@ Added post-decode resolution pass:
    - Default: `false`
    - Shows toast when decode exceeds 15-second slot time
 
-2. **Live Decode Updates** (`live_decode_updates`)
-   - Location: Configuration tab, below decode mode
-   - Default: `false`
-   - Enables per-pass UI updates during deep decode
-
 ---
 
 ## Testing Recommendations
@@ -304,11 +274,8 @@ Added post-decode resolution pass:
 ### Potential Concerns
 - **CPU Usage**: Batch processing may increase CPU usage on very busy bands
 - **Memory**: Dynamic audio buffers may use more memory
-- **UI Updates**: Live updates (when enabled) may impact UI responsiveness
-
 ### Mitigation
 - Batch iteration limit (10) prevents excessive processing
-- Live updates are opt-in (default: disabled)
 - Time budget checks prevent excessive processing
 
 ---

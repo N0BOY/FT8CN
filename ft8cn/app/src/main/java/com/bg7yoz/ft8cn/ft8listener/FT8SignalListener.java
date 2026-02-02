@@ -151,8 +151,7 @@ public class FT8SignalListener {
 
 
                 if (GeneralVariables.deepDecodeMode) {//进入深度解码模式
-                    boolean liveUpdates = GeneralVariables.live_decode_updates;
-                    ArrayList<Ft8Message> deepAll = liveUpdates ? null : new ArrayList<>();
+                    ArrayList<Ft8Message> deepAll = new ArrayList<>();
                     long nextRxDeadline = utc
                             + (long) FT8Common.FT8_SLOT_TIME_MILLISECOND * 2
                             - 1000L; // leave 1s margin before next RX
@@ -161,18 +160,12 @@ public class FT8SignalListener {
                         Log.d(TAG, String.format("深度解码跳过，接近下一次接收(UTC=%d)", utc));
                         return;
                     }
-                    //float[] newSignal=tempData;
                     // First deep decode pass - clear a91List to start fresh for deep decode
                     msgs = runDecode(ft8Decoder, utc, true, nextRxDeadline, true);
                     addMsgToList(allMsg, msgs);
-                    if (!liveUpdates) {
-                        addMsgToList(deepAll, msgs);
-                    }
+                    addMsgToList(deepAll, msgs);
                     timeSec = System.currentTimeMillis() - time;
                     decodeTimeSec.postValue(timeSec);//解码耗时
-                    if (onFt8Listen != null && liveUpdates) {
-                        onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
-                    }
 
                     do {
                         if (System.currentTimeMillis() >= nextRxDeadline) {
@@ -189,18 +182,13 @@ public class FT8SignalListener {
                         //再做一次解码 - don't clear a91List, accumulate for next subtraction
                         msgs = runDecode(ft8Decoder, utc, true, nextRxDeadline, false);
                         addMsgToList(allMsg, msgs);
-                        if (!liveUpdates) {
-                            addMsgToList(deepAll, msgs);
-                        }
+                        addMsgToList(deepAll, msgs);
                         timeSec = System.currentTimeMillis() - time;
                         decodeTimeSec.postValue(timeSec);//解码耗时
-                        if (onFt8Listen != null && liveUpdates) {
-                            onFt8Listen.afterDecode(utc, averageOffset(allMsg), UtcTimer.sequential(utc), msgs, true);
-                        }
 
                     } while (msgs.size() > 0);
 
-                    if (!liveUpdates && deepAll.size() > 0 && onFt8Listen != null) {
+                    if (deepAll.size() > 0 && onFt8Listen != null) {
                         onFt8Listen.afterDecode(utc, averageOffset(deepAll), UtcTimer.sequential(utc), deepAll, true);
                     }
                 }

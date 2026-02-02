@@ -182,6 +182,10 @@ public class ThirdPartyService {
         String apiKey = GeneralVariables.getQrzApiKey();
         if (apiKey == null || apiKey.isEmpty()) {
             Log.e(TAG, "QRZ API key is not set");
+            
+            // Log failed QRZ test call
+            logExternalCall("QRZ Test", "logbook.qrz.com/api", "FAILED", "API key is not set");
+            
             return false;
         }
         try{
@@ -189,6 +193,10 @@ public class ThirdPartyService {
             String result = sendGetRequestWithUserAgent(url);
             if (result == null) {
                 Log.e(TAG, "QRZ connection check failed: No response");
+                
+                // Log failed QRZ test call
+                logExternalCall("QRZ Test", "logbook.qrz.com/api", "FAILED", "No response from server");
+                
                 return false;
             }
             HashMap<String,String> status = new HashMap<>();
@@ -200,12 +208,26 @@ public class ThirdPartyService {
             }
             Log.d(TAG, "QRZ status: " + status.toString());
             if (status.get("RESULT") == null || !status.get("RESULT").equals("OK")){
-                Log.e(TAG, "QRZ connection check failed: RESULT=" + status.get("RESULT"));
+                String errorMsg = "RESULT=" + (status.get("RESULT") != null ? status.get("RESULT") : "null");
+                Log.e(TAG, "QRZ connection check failed: " + errorMsg);
+                
+                // Log failed QRZ test call
+                logExternalCall("QRZ Test", "logbook.qrz.com/api", "FAILED", errorMsg);
+                
                 return false;
             }
+            
+            // Log successful QRZ test call
+            logExternalCall("QRZ Test", "logbook.qrz.com/api", "SUCCESS", "Connection test passed");
+            
             return true;
         }catch (Exception e){
-            Log.e(TAG, "QRZ connection check exception: " + e.toString(), e);
+            String errorMsg = e.toString();
+            Log.e(TAG, "QRZ connection check exception: " + errorMsg, e);
+            
+            // Log failed QRZ test call
+            logExternalCall("QRZ Test", "logbook.qrz.com/api", "FAILED", errorMsg);
+            
             return false;
         }
     }
@@ -310,6 +332,10 @@ public class ThirdPartyService {
                         ToastMessage.show(GeneralVariables.getStringFromResource(R.string.qrz_upload_success).replace(": %s", ""));
                     }
                     Log.d(TAG, String.format("QRZ upload succeeded on attempt %d", attempt));
+                    
+                    // Log successful QRZ call
+                    logExternalCall("QRZ", "qrz.com", "SUCCESS", String.format("Uploaded QSO for %s (attempt %d)", callsign, attempt));
+                    
                     return; // Success - exit retry loop
                 } else {
                     lastError = result.errorMessage;
@@ -357,6 +383,26 @@ public class ThirdPartyService {
             String finalError = lastError != null ? lastError : "Unknown error after " + MAX_RETRIES + " attempts";
             Log.e(TAG, "QRZ upload failed after " + MAX_RETRIES + " attempts: " + finalError);
             ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.qrz_upload_failed), finalError));
+            
+            // Log failed QRZ call
+            logExternalCall("QRZ", "qrz.com", "FAILED", String.format("Failed after %d attempts: %s", MAX_RETRIES, finalError));
+        }
+    }
+    
+    /**
+     * Log external service call
+     */
+    private static void logExternalCall(String service, String endpoint, String status, String details) {
+        try {
+            android.content.Context context = GeneralVariables.getMainContext();
+            if (context != null) {
+                com.bg7yoz.ft8cn.log.ApplicationLogManager logManager = 
+                    new com.bg7yoz.ft8cn.log.ApplicationLogManager(context);
+                String message = String.format("%s call to %s: %s - %s", service, endpoint, status, details);
+                logManager.writeLog(com.bg7yoz.ft8cn.log.ApplicationLogManager.LogType.EXTERNAL_CALLS, message);
+            }
+        } catch (Exception e) {
+            // Ignore logging errors
         }
     }
     
@@ -383,11 +429,15 @@ public class ThirdPartyService {
         
         if (apikey == null || apikey.isEmpty()) {
             Log.e(TAG, "QRZ API key is not set");
-            return new BulkUploadResult(false, 0, "QRZ API key is not set");
+            String errorMsg = "QRZ API key is not set";
+            logExternalCall("QRZ Bulk Upload", "logbook.qrz.com/api", "FAILED", errorMsg);
+            return new BulkUploadResult(false, 0, errorMsg);
         }
 
         if (qslRecords == null || qslRecords.isEmpty()) {
-            return new BulkUploadResult(false, 0, "No QSO records to upload");
+            String errorMsg = "No QSO records to upload";
+            logExternalCall("QRZ Bulk Upload", "logbook.qrz.com/api", "FAILED", errorMsg);
+            return new BulkUploadResult(false, 0, errorMsg);
         }
 
         // Build combined ADIF string with multiple records
@@ -428,6 +478,11 @@ public class ThirdPartyService {
                                 .setQSLTableIsQRZUploadedByRecord(qslRecord, true);
                     }
                     Log.d(TAG, String.format("QRZ bulk upload succeeded on attempt %d: %d QSOs uploaded", attempt, result.count));
+                    
+                    // Log successful QRZ bulk upload call
+                    logExternalCall("QRZ Bulk Upload", "logbook.qrz.com/api", "SUCCESS", 
+                        String.format("Uploaded %d QSOs (attempt %d)", result.count, attempt));
+                    
                     return result;
                 } else {
                     lastError = result.errorMessage;
@@ -468,7 +523,13 @@ public class ThirdPartyService {
         }
         
         // All retries failed
-        return new BulkUploadResult(false, 0, lastError != null ? lastError : "Unknown error after " + MAX_RETRIES + " attempts");
+        String finalError = lastError != null ? lastError : "Unknown error after " + MAX_RETRIES + " attempts";
+        
+        // Log failed QRZ bulk upload call
+        logExternalCall("QRZ Bulk Upload", "logbook.qrz.com/api", "FAILED", 
+            String.format("Failed after %d attempts: %s", MAX_RETRIES, finalError));
+        
+        return new BulkUploadResult(false, 0, finalError);
     }
 
     /**

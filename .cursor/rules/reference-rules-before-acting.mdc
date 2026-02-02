@@ -1,0 +1,26 @@
+---
+description: Reference .cursor/rules .mdc files before taking actions
+alwaysApply: true
+---
+
+# Reference Rules Before Acting
+
+## Before Taking Actions
+
+Before implementing features, making changes, or executing tasks, **always** consider and apply the guidance in the project's Cursor rules (`.cursor/rules/*.mdc`).
+
+### Rule Files to Reference
+
+- **database-column-migration.mdc** – Database schema and column migration practices
+- **development-workflow.mdc** – Investigate markdown docs, run tests and debug build after changes
+- **git-workflow.mdc** – Git commits (ask before committing), revert with git commands
+- **inquiry-mode.mdc** – Understanding vs. fixing; explain and ask before changing code when user asks "how does X work?"
+- **large-scale-documentation.mdc** – When and how to create/update improvement docs
+
+### Workflow
+
+1. **Before acting**: Check which rules apply to the current request (e.g., code change → development-workflow, git → git-workflow, "how does X work?" → inquiry-mode).
+2. **Follow rule guidance**: Apply the requirements and constraints from those rules (e.g., read docs first, don’t commit without asking, don’t fix when user is asking for explanation).
+3. **When rules conflict or overlap**: Prefer the rule that is most specific to the current action.
+
+Rules in `.cursor/rules/` are always-applied or context-applied workspace guidance; consulting them before acting keeps behavior consistent with the project’s standards.

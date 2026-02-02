@@ -625,13 +625,28 @@
     <string name="decode_overrun_toast">Decode overrun toast</string>
     <string name="decode_overrun_toast_on" translatable="false">Decode Toast On</string>
     <string name="decode_overrun_toast_off" translatable="false">Decode Toast Off</string>
+    <string name="psk_reporter_view_log">View log</string>
+    <string name="psk_reporter_view_spots">View spots</string>
+    <string name="psk_reporter_receive_spots">Get PSK reported spots</string>
+    <string name="psk_reporter_off" translatable="false">Off</string>
+    <string name="psk_reporter_on" translatable="false">On</string>
+    <string name="psk_reporter_refresh">Refresh</string>
+    <string name="refresh">Refresh</string>
+    <string name="clear">Clear</string>
+    <string name="application_log">Application Log</string>
+    <string name="log_tab_toast_notifications">Toast Notifications</string>
+    <string name="log_tab_external_calls">External Calls</string>
+    <string name="log_tab_psk_reporter">PSK Reporter</string>
+    <string name="log_tab_psk_mqtt_messages">PSK MQTT Messages</string>
+    <string name="psk_reporter_spots_title">PSK Reporter – Spots for %1$s</string>
+    <string name="psk_reporter_spots_tap_refresh">Tap Refresh to load spots for your callsign on current band (FT8).</string>
+    <string name="psk_reporter_spots_loading">Loading…</string>
+    <string name="psk_reporter_spots_error">Error: %1$s</string>
+    <string name="psk_reporter_spots_none">No spots in the last 6 hours for your callsign on this band.</string>
+    <string name="psk_reporter_spots_header">Who heard you (receiver call, grid, freq, last heard):</string>
     <string name="always_show_swr_alc">Always show SWR/ALC when transmitting</string>
     <string name="always_show_swr_alc_switch_on" translatable="false">On</string>
     <string name="always_show_swr_alc_switch_off" translatable="false">Off</string>
-    <string name="live_decode_updates">Live decode updates</string>
-    <string name="live_decode_updates_on" translatable="false">On</string>
-    <string name="live_decode_updates_off" translatable="false">Off</string>
-    <string name="live_decode_updates_help">live_decode_updates_help_en.txt</string>
     <string name="skip_my_grid_when_responding">Skip my grid when responding</string>
     <string name="skip_my_grid_when_responding_on" translatable="false">On</string>
     <string name="skip_my_grid_when_responding_off" translatable="false">Off</string>

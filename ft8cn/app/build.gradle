@@ -158,7 +158,8 @@ dependencies {
 
     implementation 'com.google.guava:guava:31.1-jre'//用于HashTable（多key的HashMap）
 
-
+    // MQTT client for PSK Reporter spot consumption
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
 
     implementation files('src/libs/MPAndroidChartv_3.1.0.jar')
     implementation files('src/libs/commons-net-3.6.jar')////用于时间同步

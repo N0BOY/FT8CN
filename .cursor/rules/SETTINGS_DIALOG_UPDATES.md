@@ -19,9 +19,10 @@ The constraint chain flows from top to bottom as follows:
 6. ... (continues with other settings)
 7. `swrAlcAlarmLayout` - SWR/ALC alarm settings
 8. `decodeModeLayout` - Decode mode (constrained to `top_toBottomOf="@+id/swrAlcAlarmLayout"`)
-9. `liveDecodeLayout` - Live decode updates (constrained to `top_toBottomOf="@+id/decodeModeLayout"`)
-10. `decodeOverrunLayout` - Decode overrun toast (constrained to `top_toBottomOf="@+id/liveDecodeLayout"`)
-11. ... (continues with remaining settings)
+9. `decodeOverrunLayout` - Decode overrun toast (constrained to `top_toBottomOf="@+id/decodeModeLayout"`)
+10. `pskReporterLayout` - PSK Reporter (constrained to `top_toBottomOf="@+id/decodeOverrunLayout"`)
+11. `launchSupervisionLayout` - Launch supervision (constrained to `top_toBottomOf="@+id/pskReporterLayout"`)
+12. ... (continues with remaining settings)
 
 ## How to Add a New Settings Option
 

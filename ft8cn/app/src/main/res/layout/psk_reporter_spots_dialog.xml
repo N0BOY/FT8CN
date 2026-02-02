@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/help_dialog_style"
+    android:minWidth="300dp"
+    android:minHeight="200dp"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/pskSpotsTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/help_dialog_text_color"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@+id/pskSpotsRefreshButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="PSK Reporter – Spots for MYCALL" />
+
+    <Button
+        android:id="@+id/pskSpotsRefreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/psk_reporter_refresh"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:id="@+id/pskSpotsScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pskSpotsTitle">
+
+        <TextView
+            android:id="@+id/pskSpotsText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="2dp"
+            android:padding="4dp"
+            android:textColor="@color/help_dialog_text_color"
+            android:textSize="13sp"
+            tools:text="Tap Refresh to load spots for your callsign on current band (FT8)." />
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

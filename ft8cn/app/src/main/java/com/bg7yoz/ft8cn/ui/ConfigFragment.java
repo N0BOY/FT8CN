@@ -444,6 +444,15 @@ public class ConfigFragment extends Fragment {
             }
         });
 
+        //Application Log按钮的onClick
+        binding.applicationLogButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                androidx.navigation.NavController navController = androidx.navigation.Navigation.findNavController(view);
+                navController.navigate(R.id.applicationLogFragment);
+            }
+        });
+
         //FAQ按钮的onClick
         binding.faqButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -586,22 +595,41 @@ public class ConfigFragment extends Fragment {
             }
         });
 
-        //设置实时解码更新开关
-        binding.liveDecodeSwitch.setOnCheckedChangeListener(null);
-        binding.liveDecodeSwitch.setChecked(GeneralVariables.live_decode_updates);
-        setLiveDecodeSwitchText();
-        binding.liveDecodeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                GeneralVariables.live_decode_updates = binding.liveDecodeSwitch.isChecked();
-                if (binding.liveDecodeSwitch.isChecked()) {
-                    mainViewModel.databaseOpr.writeConfig("liveDecodeUpdates", "1", null);
-                } else {
-                    mainViewModel.databaseOpr.writeConfig("liveDecodeUpdates", "0", null);
+        // PSK Reporter
+        // PSK Reporter Receive Spots switch
+        if (binding.pskReporterReceiveSwitch != null) {
+            binding.pskReporterReceiveSwitch.setOnCheckedChangeListener(null);
+            binding.pskReporterReceiveSwitch.setChecked(GeneralVariables.enablePskReporterReceive);
+            setPskReporterReceiveSwitchText();
+            binding.pskReporterReceiveSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    GeneralVariables.enablePskReporterReceive = binding.pskReporterReceiveSwitch.isChecked();
+                    mainViewModel.databaseOpr.writeConfig("enablePskReporterReceive", binding.pskReporterReceiveSwitch.isChecked() ? "1" : "0", null);
+                    setPskReporterReceiveSwitchText();
+                    if (mainViewModel.pskReporterMqtt != null) {
+                        if (binding.pskReporterReceiveSwitch.isChecked()) {
+                            mainViewModel.startPskReporterMqtt();
+                        } else {
+                            mainViewModel.stopPskReporterMqtt();
+                        }
+                    }
                 }
-                setLiveDecodeSwitchText();
-            }
-        });
+            });
+        }
+        
+        // View PSK Spots button - opens dialog to view real-time spots via MQTT
+        if (binding.pskReporterViewSpotsButton != null) {
+            binding.pskReporterViewSpotsButton.setVisibility(View.VISIBLE);
+            binding.pskReporterViewSpotsButton.setText(getString(R.string.psk_reporter_view_spots));
+            binding.pskReporterViewSpotsButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    PskReporterSpotsDialog dialog = new PskReporterSpotsDialog(getContext(), requireActivity());
+                    dialog.show();
+                }
+            });
+        }
 
         //设置跳过我的网格位置（当有人呼叫我时）
         if (binding.skipMyGridSwitch != null) {
@@ -1007,13 +1035,12 @@ public class ConfigFragment extends Fragment {
         }
     }
 
-    private void setLiveDecodeSwitchText() {
-        if (binding.liveDecodeSwitch.isChecked()) {
-            binding.liveDecodeSwitch.setText(R.string.live_decode_updates_on);
-        } else {
-            binding.liveDecodeSwitch.setText(R.string.live_decode_updates_off);
+    private void setPskReporterReceiveSwitchText() {
+        if (binding.pskReporterReceiveSwitch != null) {
+            binding.pskReporterReceiveSwitch.setText(binding.pskReporterReceiveSwitch.isChecked() ? R.string.psk_reporter_on : R.string.psk_reporter_off);
         }
     }
+    
 
     private void setSkipMyGridSwitchText() {
         if (binding.skipMyGridSwitch != null) {
@@ -1880,16 +1907,6 @@ public class ConfigFragment extends Fragment {
             }
         });
 
-        //实时解码更新
-        binding.liveDecodeHelpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new HelpDialog(requireContext(), requireActivity()
-                        , GeneralVariables.getStringFromResource(R.string.live_decode_updates_help)
-                        , true).show();
-            }
-        });
-
         //跳过我的网格位置（当有人呼叫我时）
         binding.skipMyGridHelpButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -2124,6 +2141,5 @@ public class ConfigFragment extends Fragment {
             binding.configScrollDownImageView.setVisibility(View.GONE);
         }
     }
-
 
 }

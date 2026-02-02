@@ -761,7 +761,6 @@
     <string name="deep_mode">ディープ</string>
     <string name="export_null">このデバイスと同じLANに接続し、ほかのデバイスでウェブブラウザーを利用してエクスポートしてください。\nブラウザーのアドレスバーに次の内容を入力してください：\n有効なWiFiに接続してください。</string>
     <string name="deep_mode_help">decode_help_en.txt</string>
-    <string name="live_decode_updates_help">live_decode_updates_help_en.txt</string>
     <string name="null_task_html">タスクが存在しません!</string>
     <string name="log_importing_html">インポート中…</string>
     <string name="log_import_finished_html">インポート済み！</string>

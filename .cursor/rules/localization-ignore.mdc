@@ -1,0 +1,27 @@
+---
+description: Do not modify the localization folder unless the user explicitly requests localization changes
+alwaysApply: true
+---
+
+# Ignore Localization Folder for Updates
+
+## Scope
+
+The **localization/** directory contains translated string resources (e.g. values-zh-rCN, values-ja, values-es). These are maintained separately from the main app strings.
+
+## Rule
+
+- **Do not add, edit, or remove files in localization/** when making feature changes, string additions, or other updates.
+- **Do not** mirror changes from `ft8cn/app/src/main/res/values/strings.xml` into localization `strings.xml` files unless the user explicitly asks for localization updates (e.g. "add this to localization" or "update translations").
+- If a change would normally affect both main and localized strings, apply the change only to the main app (e.g. `ft8cn/app/src/main/res/values/strings.xml`). Mention that localization was not updated.
+
+## When to Update Localization
+
+Update localization only when the user:
+- Explicitly requests translation or localization updates
+- Asks to add/change a string "in localization" or "in all languages"
+- Asks to "sync" or "update" localization
+
+## Rationale
+
+Localization is often managed by translators or a separate process; automatic updates can overwrite or conflict with that workflow.

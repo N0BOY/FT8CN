@@ -1,6 +1,0 @@
-Live Decode Updates:
-When enabled, decoded messages are displayed in real-time during deep decode operations. The UI updates after each decode pass, showing messages as they are discovered.
-
-When disabled (default), messages are accumulated during all decode passes and displayed once at the end of deep decode. This reduces UI updates for better performance.
-
-* Note: Enabling live updates provides immediate feedback but may impact performance during long decode operations. Disabling provides better performance by batching updates.

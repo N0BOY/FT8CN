@@ -327,7 +327,9 @@ public class UtcTimer {
     private static SyncResult syncTimeFromGPS(AfterSyncTime afterSyncTime) {
         Context context = GeneralVariables.getMainContext();
         if (context == null) {
-            return new SyncResult(false, "Context not available");
+            String reason = "Context not available";
+            logExternalCall("GPS", "GPS", "FAILED", reason);
+            return new SyncResult(false, reason);
         }
 
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -432,13 +434,21 @@ public class UtcTimer {
                     int trueDelay = (int) (gpsTime[0] - System.currentTimeMillis());
                     afterSyncTime.doAfterSyncTimer(trueDelay, "GPS", "GPS");
                 }
+                
+                // Log successful GPS call
+                logExternalCall("GPS", "GPS", "SUCCESS", String.format("Time offset: %d ms", (int)(gpsTime[0] - System.currentTimeMillis())));
+                
                 return new SyncResult(true, null);
             } else if (received) {
                 // Received but no valid location
-                return new SyncResult(false, "GPS location received but invalid");
+                String reason = "GPS location received but invalid";
+                logExternalCall("GPS", "GPS", "FAILED", reason);
+                return new SyncResult(false, reason);
             } else {
                 // Timeout
-                return new SyncResult(false, "GPS timeout (10 seconds)");
+                String reason = "GPS timeout (10 seconds)";
+                logExternalCall("GPS", "GPS", "FAILED", reason);
+                return new SyncResult(false, reason);
             }
         } catch (InterruptedException e) {
             // Timeout or interrupted - fall back to NTP
@@ -447,7 +457,9 @@ public class UtcTimer {
             } catch (Exception ex) {
                 // Ignore
             }
-            return new SyncResult(false, "GPS interrupted");
+            String reason = "GPS interrupted";
+            logExternalCall("GPS", "GPS", "FAILED", reason);
+            return new SyncResult(false, reason);
         } catch (Exception e) {
             // Any other error - fall back to NTP
             try {
@@ -455,7 +467,9 @@ public class UtcTimer {
             } catch (Exception ex) {
                 // Ignore
             }
-            return new SyncResult(false, "GPS error: " + e.getMessage());
+            String reason = "GPS error: " + (e.getMessage() != null ? e.getMessage() : "Unknown");
+            logExternalCall("GPS", "GPS", "FAILED", reason);
+            return new SyncResult(false, reason);
         }
     }
 
@@ -495,6 +509,10 @@ public class UtcTimer {
                 if (afterSyncTime != null) {
                     afterSyncTime.doAfterSyncTimer(trueDelay, "NTP", ntpServer);
                 }
+                
+                // Log successful NTP call
+                logExternalCall("NTP", ntpServer, "SUCCESS", String.format("Time offset: %d ms", trueDelay));
+                
                 return; // Success - exit retry loop
                 
             } catch (IOException e) {
@@ -545,19 +563,39 @@ public class UtcTimer {
         }
         
         // All retries failed
-        if (afterSyncTime != null) {
-            String reason = "Failed after " + MAX_RETRIES + " attempts";
-            if (lastException != null) {
-                String errorMsg = lastException.getMessage();
-                if (errorMsg != null && !errorMsg.isEmpty()) {
-                    if (errorMsg.contains("timeout") || errorMsg.contains("Timeout") || errorMsg.contains("timed out")) {
-                        reason = "NTP timeout after " + MAX_RETRIES + " attempts (10s per attempt)";
-                    } else {
-                        reason = errorMsg + " (after " + MAX_RETRIES + " attempts)";
-                    }
+        String reason = "Failed after " + MAX_RETRIES + " attempts";
+        if (lastException != null) {
+            String errorMsg = lastException.getMessage();
+            if (errorMsg != null && !errorMsg.isEmpty()) {
+                if (errorMsg.contains("timeout") || errorMsg.contains("Timeout") || errorMsg.contains("timed out")) {
+                    reason = "NTP timeout after " + MAX_RETRIES + " attempts (10s per attempt)";
+                } else {
+                    reason = errorMsg + " (after " + MAX_RETRIES + " attempts)";
                 }
             }
+        }
+        if (afterSyncTime != null) {
             afterSyncTime.syncFailed("NTP", ntpServer, reason);
+        }
+        
+        // Log failed NTP call
+        logExternalCall("NTP", ntpServer, "FAILED", reason);
+    }
+    
+    /**
+     * Log external service call
+     */
+    private static void logExternalCall(String service, String endpoint, String status, String details) {
+        try {
+            android.content.Context context = GeneralVariables.getMainContext();
+            if (context != null) {
+                com.bg7yoz.ft8cn.log.ApplicationLogManager logManager = 
+                    new com.bg7yoz.ft8cn.log.ApplicationLogManager(context);
+                String message = String.format("%s call to %s: %s - %s", service, endpoint, status, details);
+                logManager.writeLog(com.bg7yoz.ft8cn.log.ApplicationLogManager.LogType.EXTERNAL_CALLS, message);
+            }
+        } catch (Exception e) {
+            // Ignore logging errors
         }
     }
 

@@ -74,7 +74,7 @@ public class DatabaseConfigSafetyTest {
             "autoFollowCQ", "autoCallFollow", "saveSWL", "saveSWLQSO",
             "audioBits", "deepMode", "enableCloudlog", "enableQRZ",
             "swrSwitch", "alcSwitch", "decodeOverrunToast",
-            "liveDecodeUpdates", "skipMyGridWhenResponding",
+            "enablePskReporter", "skipMyGridWhenResponding",
             "callingAddsToFollowList", "msgMode", "synFreq"
         };
         

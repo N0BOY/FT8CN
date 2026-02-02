@@ -58,4 +58,9 @@
         android:name="com.bg7yoz.ft8cn.ui.XieguInfoFragment"
         android:label="fragment_xiegu_info"
         tools:layout="@layout/fragment_xiegu_info" />
+    <fragment
+        android:id="@+id/applicationLogFragment"
+        android:name="com.bg7yoz.ft8cn.ui.ApplicationLogFragment"
+        android:label="@string/application_log"
+        tools:layout="@layout/fragment_application_log" />
 </navigation>

@@ -55,6 +55,7 @@ import com.bg7yoz.ft8cn.flex.FlexRadio;
 import com.bg7yoz.ft8cn.flex.RadioTcpClient;
 import com.bg7yoz.ft8cn.ft8listener.FT8SignalListener;
 import com.bg7yoz.ft8cn.ft8listener.OnFt8Listen;
+import com.bg7yoz.ft8cn.psk.PskReporterMqtt;
 import com.bg7yoz.ft8cn.ft8transmit.FT8TransmitSignal;
 import com.bg7yoz.ft8cn.ft8transmit.OnDoTransmitted;
 import com.bg7yoz.ft8cn.ft8transmit.OnTransmitSuccess;
@@ -100,6 +101,7 @@ import com.bg7yoz.ft8cn.x6100.X6100Radio;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -152,6 +154,7 @@ public class MainViewModel extends ViewModel {
 
     public HamRecorder hamRecorder;//用于录音的对象
     public FT8SignalListener ft8SignalListener;//用于监听FT8信号并解码的对象
+    public PskReporterMqtt pskReporterMqtt;//用于接收PSK Reporter spots via MQTT
     public FT8TransmitSignal ft8TransmitSignal;//用于发射信号用的对象
     public SpectrumListener spectrumListener;//用于画频谱的对象
     public boolean markMessage = true;//是否标记消息开关
@@ -418,6 +421,11 @@ public class MainViewModel extends ViewModel {
 
         ft8SignalListener.startListen();
 
+        // Initialize PSK Reporter MQTT receiver
+        // Note: MQTT will be started after config is loaded (in MainActivity.InitData)
+        // to ensure callsign is available
+        pskReporterMqtt = new PskReporterMqtt();
+
         //频谱监听对象
         spectrumListener = new SpectrumListener(hamRecorder);
 
@@ -670,6 +678,7 @@ public class MainViewModel extends ViewModel {
             }
         }
     }
+
 
     /**
      * 清除消息列表
@@ -1159,6 +1168,69 @@ public class MainViewModel extends ViewModel {
         int headset = blueAdapter.getProfileConnectionState(BluetoothProfile.HEADSET);
         int a2dp = blueAdapter.getProfileConnectionState(BluetoothProfile.A2DP);
         return headset == BluetoothAdapter.STATE_CONNECTED || a2dp == BluetoothAdapter.STATE_CONNECTED;
+    }
+
+    /**
+     * Start PSK Reporter MQTT receiver if enabled.
+     * First spot shows toast, subsequent spots are logged.
+     */
+    private volatile boolean firstSpotReceived = false;
+    
+    public void startPskReporterMqtt() {
+        if (pskReporterMqtt == null) {
+            pskReporterMqtt = new PskReporterMqtt();
+        }
+        firstSpotReceived = false;
+        
+        pskReporterMqtt.start(new PskReporterMqtt.Callback() {
+            @Override
+            public void onSpotReceived(PskReporterMqtt.Spot spot) {
+                android.content.Context context = GeneralVariables.getMainContext();
+                if (context == null) return;
+                
+                com.bg7yoz.ft8cn.log.ApplicationLogManager logManager = 
+                    new com.bg7yoz.ft8cn.log.ApplicationLogManager(context);
+                
+                // Format spot information
+                String gridStr = spot.receiverLocator != null && !spot.receiverLocator.isEmpty() 
+                    ? spot.receiverLocator : "-";
+                String spotInfo = String.format(Locale.US, "%s @ %d Hz (Grid: %s)", 
+                    spot.receiverCallsign, spot.frequency, gridStr);
+                
+                if (!firstSpotReceived) {
+                    // First spot - show toast
+                    firstSpotReceived = true;
+                    String toastMsg = "PSK Spot: " + spotInfo;
+                    ToastMessage.show(toastMsg);
+                    Log.d(TAG, "PSK Reporter MQTT: First spot received - " + spotInfo);
+                } else {
+                    // Subsequent spots - just log to debug
+                    Log.d(TAG, "PSK Reporter MQTT: Spot received - " + spotInfo);
+                }
+            }
+
+            @Override
+            public void onConnected() {
+                Log.d(TAG, "PSK Reporter MQTT: Connected");
+            }
+
+            @Override
+            public void onDisconnected() {
+                Log.d(TAG, "PSK Reporter MQTT: Disconnected");
+            }
+
+            @Override
+            public void onError(String message) {
+                Log.w(TAG, "PSK Reporter MQTT: Error - " + message);
+            }
+        });
+    }
+    
+    public void stopPskReporterMqtt() {
+        if (pskReporterMqtt != null) {
+            pskReporterMqtt.stop();
+        }
+        firstSpotReceived = false;
     }
 
     private static class GetQTHRunnable implements Runnable {

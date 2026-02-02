@@ -144,66 +144,6 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/liveDecodeLayout"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:background="@drawable/editor_layout_style"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/decodeModeLayout">
-
-                        <TextView
-                            android:id="@+id/liveDecodeText"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:text="@string/live_decode_updates"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/liveDecodeSwitch"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
-
-                        <Switch
-                            android:id="@+id/liveDecodeSwitch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_marginEnd="8dp"
-                            android:layout_marginTop="4dp"
-                            android:layout_marginBottom="4dp"
-                            android:checked="false"
-                            android:text="@string/live_decode_updates_on"
-                            android:textColor="@color/text_view_color"
-                            android:textSize="14sp"
-                            android:thumbTint="?attr/colorPrimary"
-                            android:thumbTintMode="multiply"
-                            android:trackTint="@color/button_start_color"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toStartOf="@+id/liveDecodeHelpButton"
-                            app:layout_constraintStart_toEndOf="@+id/liveDecodeText"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:ignore="TouchTargetSizeCheck,UseSwitchCompatOrMaterialXml" />
-
-                        <ImageButton
-                            android:id="@+id/liveDecodeHelpButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/imagebutton_transparent_style"
-                            android:contentDescription="@string/help"
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:srcCompat="@drawable/ic_baseline_info_32"
-                            tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
-
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/skipMyGridLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -1928,7 +1868,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/liveDecodeLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/decodeModeLayout">
 
                         <TextView
                             android:id="@+id/decodeOverrunText"
@@ -1968,7 +1908,7 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/launchSupervisionLayout"
+                        android:id="@+id/pskReporterLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
@@ -1976,6 +1916,55 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/decodeOverrunLayout">
+
+                        <TextView
+                            android:id="@+id/pskReporterReceiveText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="4dp"
+                            android:text="@string/psk_reporter_receive_spots"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/pskReporterViewSpotsButton"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Switch
+                            android:id="@+id/pskReporterReceiveSwitch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="@string/psk_reporter_off"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toTopOf="@+id/pskReporterViewSpotsButton"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/pskReporterReceiveText"
+                            app:layout_constraintTop_toTopOf="@+id/pskReporterReceiveText" />
+
+                        <Button
+                            android:id="@+id/pskReporterViewSpotsButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp"
+                            android:text="@string/psk_reporter_view_log"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/pskReporterReceiveSwitch" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/launchSupervisionLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/pskReporterLayout">
 
                         <TextView
                             android:id="@+id/launchSupervisionText"
@@ -2446,9 +2435,21 @@
             android:layout_height="wrap_content"
             android:text="@string/about_me"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/faqButton"
+            app:layout_constraintEnd_toStartOf="@+id/applicationLogButton"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/applicationLogButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="@string/application_log"
+            app:layout_constraintBottom_toBottomOf="@+id/aboutButton"
+            app:layout_constraintEnd_toStartOf="@+id/faqButton"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/aboutButton"
+            app:layout_constraintTop_toTopOf="@+id/aboutButton" />
 
         <Button
             android:id="@+id/faqButton"
@@ -2459,7 +2460,7 @@
             app:layout_constraintBottom_toBottomOf="@+id/aboutButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@+id/aboutButton"
+            app:layout_constraintStart_toEndOf="@+id/applicationLogButton"
             app:layout_constraintTop_toTopOf="@+id/aboutButton" />
 
 
