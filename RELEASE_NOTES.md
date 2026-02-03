@@ -1,6 +1,6 @@
 # FT8CN Release Notes
 
-## Version 0.93.202 (February 2, 2026)
+## Version 0.93.220 (February 2, 2026)
 
 ### 🎉 New Features
 
