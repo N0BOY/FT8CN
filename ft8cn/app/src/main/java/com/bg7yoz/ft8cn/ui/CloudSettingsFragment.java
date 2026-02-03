@@ -1,12 +1,16 @@
 package com.bg7yoz.ft8cn.ui;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,7 +20,11 @@ import com.bg7yoz.ft8cn.FAQActivity;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.MainViewModel;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.database.SettingsBackupManager;
 import com.bg7yoz.ft8cn.databinding.FragmentCloudSettingsBinding;
+
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Cloud & Help settings tab: Cloud services + Maintenance
@@ -29,6 +37,31 @@ public class CloudSettingsFragment extends Fragment {
 
     private FragmentCloudSettingsBinding binding;
     private MainViewModel mainViewModel;
+    private SettingsBackupManager backupManager;
+
+    // Activity result launcher for backup (create document)
+    private final ActivityResultLauncher<Intent> backupLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        performBackup(uri);
+                    }
+                }
+            });
+
+    // Activity result launcher for restore (open document)
+    private final ActivityResultLauncher<Intent> restoreLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    if (uri != null) {
+                        performRestore(uri);
+                    }
+                }
+            });
 
     @Nullable
     @Override
@@ -43,6 +76,12 @@ public class CloudSettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Initialize backup manager
+        if (mainViewModel != null && mainViewModel.databaseOpr != null) {
+            backupManager = new SettingsBackupManager(requireContext(), mainViewModel.databaseOpr);
+        }
+
         initializeControls();
         setupListeners();
     }
@@ -164,6 +203,16 @@ public class CloudSettingsFragment extends Fragment {
             testQrzConnection();
         });
 
+        // Backup Settings Button
+        binding.backupSettingsButton.setOnClickListener(v -> {
+            startBackup();
+        });
+
+        // Restore Settings Button
+        binding.restoreSettingsButton.setOnClickListener(v -> {
+            startRestore();
+        });
+
         // Clear Cache Button - shows dialog for clearing follow list data
         binding.clearCacheButton.setOnClickListener(v -> {
             if (mainViewModel != null && mainViewModel.databaseOpr != null) {
@@ -203,6 +252,91 @@ public class CloudSettingsFragment extends Fragment {
         binding.qrzImageButton.setOnClickListener(v -> {
             new HelpDialog(requireContext(), requireActivity(), "qrz.txt", true);
         });
+    }
+
+    private void startBackup() {
+        if (backupManager == null) {
+            ToastMessage.show("Backup not available");
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, backupManager.getDefaultBackupFilename());
+        backupLauncher.launch(intent);
+    }
+
+    private void performBackup(Uri uri) {
+        if (backupManager == null) {
+            return;
+        }
+
+        try {
+            OutputStream outputStream = requireContext().getContentResolver().openOutputStream(uri);
+            if (outputStream != null) {
+                backupManager.writeBackupToStream(outputStream, new SettingsBackupManager.BackupCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        requireActivity().runOnUiThread(() -> {
+                            ToastMessage.show(getString(R.string.backup_success, message));
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        requireActivity().runOnUiThread(() -> {
+                            ToastMessage.show(getString(R.string.backup_failed, error));
+                        });
+                    }
+                });
+            }
+        } catch (Exception e) {
+            ToastMessage.show(getString(R.string.backup_failed, e.getMessage()));
+        }
+    }
+
+    private void startRestore() {
+        if (backupManager == null) {
+            ToastMessage.show("Restore not available");
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        restoreLauncher.launch(intent);
+    }
+
+    private void performRestore(Uri uri) {
+        if (backupManager == null) {
+            return;
+        }
+
+        try {
+            InputStream inputStream = requireContext().getContentResolver().openInputStream(uri);
+            if (inputStream != null) {
+                backupManager.readBackupFromStream(inputStream, new SettingsBackupManager.BackupCallback() {
+                    @Override
+                    public void onSuccess(String message) {
+                        requireActivity().runOnUiThread(() -> {
+                            ToastMessage.show(getString(R.string.restore_success, message));
+                            // Refresh the UI with restored settings
+                            initializeControls();
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        requireActivity().runOnUiThread(() -> {
+                            ToastMessage.show(getString(R.string.restore_failed, error));
+                        });
+                    }
+                });
+            }
+        } catch (Exception e) {
+            ToastMessage.show(getString(R.string.restore_failed, e.getMessage()));
+        }
     }
 
     private void testCloudlogConnection() {

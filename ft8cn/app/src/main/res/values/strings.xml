@@ -69,6 +69,12 @@
     <string name="qrz_api_key_hint">Enter QRZ API key</string>
     <string name="test_connection">Test Connection</string>
     <string name="config_clear_cache_data">Clear Cache Data</string>
+    <string name="backup_settings">Backup Settings</string>
+    <string name="restore_settings">Restore Settings</string>
+    <string name="backup_success">Backup successful: %s</string>
+    <string name="backup_failed">Backup failed: %s</string>
+    <string name="restore_success">%s</string>
+    <string name="restore_failed">Restore failed: %s</string>
     <string name="faq">FAQ</string>
     <string name="about">About</string>
 

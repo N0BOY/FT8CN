@@ -2,6 +2,23 @@
 
 ## Version 0.93.202 (February 2, 2026)
 
+### 🎉 New Features
+
+#### Settings Backup & Restore
+- **Backup all settings to JSON file**: Export all app settings including audio levels, radio configuration, and cloud service credentials
+  - Exports microphone input gain and signal output strength
+  - Exports all station settings (callsign, grid, modifier, park number)
+  - Exports radio configuration (rig model, control mode, serial settings, CI-V address)
+  - Exports transmit settings (frequency, delays, offsets, fake it split)
+  - Exports operating preferences (auto follow, decode mode, launch supervision)
+  - Exports cloud service settings (Cloudlog, QRZ, PSK Reporter)
+  - Filename includes callsign and timestamp for easy identification
+- **Restore settings from backup**: Import settings from a previously saved JSON backup file
+  - Validates backup file format before importing
+  - Shows count of imported settings
+  - Prompts user to restart app for changes to take full effect
+- **Location**: Settings > Cloud & Help tab > Data Management section
+
 ### 🎨 UI Improvements
 
 #### Settings Dialog Reorganization
@@ -23,6 +40,27 @@
   - `CloudSettingsFragment`: Cloud services and maintenance
 - **Proper adapter patterns**: Uses `RigModelSpinnerAdapter` for rig selection with filtering support
 - **Preserved functionality**: All original settings functionality maintained, just reorganized
+
+#### Settings Backup System
+- **New `SettingsBackupManager` class**: Centralized backup/restore logic
+  - Exports all config table entries to JSON
+  - Validates backup format on import
+  - Uses Android Storage Access Framework for file selection
+
+### 📚 Documentation
+
+#### Wiki Reorganization
+- **Reduced wiki from 21 to 15 files** (~30% reduction in redundancy)
+- **Removed redundant documentation**:
+  - Consolidated 5 overlapping settings tab docs into one
+  - Removed superseded frequency adjustment docs
+  - Removed obsolete implementation guides
+- **Added wiki README**: New index file organizing documentation by category
+  - User Documentation
+  - Feature Documentation
+  - Technical Documentation
+  - Completed Improvements
+  - Future Plans
 
 ---
 
