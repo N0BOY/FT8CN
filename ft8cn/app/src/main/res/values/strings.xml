@@ -1,5 +1,77 @@
 <resources>
     <string name="app_name">FT8CN</string>
+
+    <!-- Settings Tab Titles (Simplified 3-Tab Version) -->
+    <string name="settings_tab_basic">Basic</string>
+    <string name="settings_tab_advanced">Advanced</string>
+    <string name="settings_tab_cloud">Cloud &amp; Help</string>
+
+    <!-- Settings Section Headers -->
+    <string name="settings_audio_section">Audio Configuration</string>
+    <string name="settings_time_section">Time Synchronization</string>
+    <string name="settings_decode_section">Decode Settings</string>
+    <string name="settings_operating_section">Operating Behavior</string>
+    <string name="settings_logging_section">Logging</string>
+    <string name="settings_monitoring_section">Monitoring Alarms</string>
+    <string name="settings_psk_section">PSK Reporter</string>
+    <string name="settings_cloudlog_section">Cloudlog Integration</string>
+    <string name="settings_qrz_section">QRZ Integration</string>
+    <string name="settings_data_section">Data Management</string>
+    <string name="settings_help_section">Help &amp; Information</string>
+
+    <!-- Audio Settings -->
+    <string name="audio_sample_rate">Sample rate</string>
+    <string name="audio_16bit">16-bit</string>
+    <string name="audio_32bit">32-bit</string>
+    <string name="audio_12k">12 kHz</string>
+    <string name="audio_24k">24 kHz</string>
+    <string name="audio_48k">48 kHz</string>
+
+    <!-- Time Settings -->
+    <string name="utc_offset">UTC Offset</string>
+    <string name="ntp_server">NTP Server</string>
+    <string name="ntp_server_custom">Custom...</string>
+    <string name="ntp_server_custom_hint">Enter NTP server address</string>
+    <string name="sync_time_now">Sync Time Now</string>
+
+    <!-- Decode Settings -->
+    <string name="decode_mode">Decode Mode</string>
+    <string name="decode_fast">Fast</string>
+    <string name="decode_deep">Deep</string>
+    <string name="decode_overrun_alert">Decode overrun alert</string>
+    <string name="message_mode">Message Mode</string>
+    <string name="message_standard">Standard</string>
+    <string name="message_simple">Simple</string>
+
+    <!-- Operating Settings -->
+    <string name="auto_follow_cq_label">Auto follow CQ</string>
+    <string name="calling_adds_to_follow">Calling adds to follow list</string>
+    <string name="auto_call_follow">Auto call followed callsigns</string>
+    <string name="skip_my_grid">Skip my grid when responding</string>
+    <string name="no_reply_limit">No reply limit</string>
+    <string name="exclude_callsigns">Exclude Callsigns</string>
+    <string name="exclude_callsigns_hint">Comma-separated prefixes</string>
+
+    <!-- Logging Settings -->
+    <string name="save_swl_messages">Save decoded messages</string>
+    <string name="save_swl_qsos">Save SWL QSOs</string>
+
+    <!-- Monitoring Settings -->
+    <string name="swr_alarm">SWR Alarm</string>
+    <string name="alc_alarm">ALC Alarm</string>
+
+    <!-- Cloud Settings -->
+    <string name="psk_reporter_receive">Enable PSK Reporter receive</string>
+    <string name="cloudlog_server">Server Address</string>
+    <string name="cloudlog_server_hint">http://your-server.com</string>
+    <string name="cloudlog_api_key_hint">Enter API key</string>
+    <string name="cloudlog_station_id_hint">Station ID</string>
+    <string name="qrz_api_key_hint">Enter QRZ API key</string>
+    <string name="test_connection">Test Connection</string>
+    <string name="config_clear_cache_data">Clear Cache Data</string>
+    <string name="faq">FAQ</string>
+    <string name="about">About</string>
+
     <string name="nav_menu_title_call_list">Content</string>
     <string name="nav_menu_title_decode_list">Decode</string>
     <string name="nav_menu_title_my_calling">Calling</string>
@@ -31,14 +103,27 @@
     <string name="pl_sendFreq">Audio freq range 0~2900</string>
     <string name="transmitting">TX …</string>
     <string name="synFrequency">Lockd TX=RX</string>
+    <string name="fake_it_split">Split operation: Fake it</string>
+    <string name="fake_it_split_summary">Emulate split operation by adjusting rig frequency during transmission. Audio is always generated at 1500 Hz for optimal quality. Matches WSJT-X \"Fake It\" behavior. Only works in CAT/RTS/DTR modes.</string>
+    <string name="fake_it_split_vox_warning">This feature is not available in VOX mode (requires rig control)</string>
+    <string name="fake_it_rig_adjusted">Fake It: Rig adjusted to %s (offset: %.0f Hz)</string>
+    <string name="fake_it_rig_restored">Fake It: Rig restored to %s</string>
+    <!-- Legacy strings for backwards compatibility -->
+    <string name="adjustRigFreqForAudioFreq">Split operation: Fake it</string>
+    <string name="adjustRigFreqForAudioFreqSummary">Emulate split operation by adjusting rig frequency during transmission. Audio is always generated at 1500 Hz for optimal quality. Matches WSJT-X \"Fake It\" behavior. Only works in CAT/RTS/DTR modes.</string>
+    <string name="adjustRigFreqForAudioFreqVoxWarning">This feature is not available in VOX mode (requires rig control)</string>
+    <string name="rig_freq_adjusted">Fake It: Rig adjusted to %s (offset: %.0f Hz)</string>
+    <string name="rig_freq_restored">Fake It: Rig restored to %s</string>
     <string name="spectrum">Spectrum</string>
     <string name="pl_trans_delay">Tx delay time (MS)</string>
     <string name="tran_delay">Tx delay</string>
+    <string name="transmit_offset">TX offset</string>
+    <string name="pl_transmit_offset">Offset in Hz</string>
+    <string name="transmit_offset_positive">+</string>
+    <string name="transmit_offset_negative">-</string>
+    <string name="transmit_offset_help">Transmit frequency calibration offset. Use this to compensate if your rig transmits off frequency. Enter the offset in Hz with +/- sign.</string>
 
     <string name="timeOffset">Time offset</string>
-    <string name="ntp_server">NTP Server</string>
-    <string name="ntp_server_custom">Custom...</string>
-    <string name="ntp_server_custom_hint">Custom NTP server</string>
     <string name="help">Help</string>
     <string name="scroll_down">▾</string>
     <string name="about_me">About FT8CN</string>
@@ -73,7 +158,6 @@
     <string name="no_response_count">No response</string>
     <string name="break_launch">stopped</string>
     <string name="follow_cq">Auto track CQ</string>
-    <string name="auto_call_follow">Automatic call tracking</string>
     <string name="DTR">DTR</string>
     <string name="launch">TX</string>
     <string name="actions">Actions</string>
@@ -492,6 +576,7 @@
     <string name="time_sync_failed">Time sync failed (%1$s): %2$s</string>
     <string name="time_sync_gps_failed_fallback">GPS sync failed (%1$s), falling back to NTP</string>
     <string name="config_enable_gps_time_sync">GPS time sync (experimental)</string>
+    <string name="getting_location">Getting location, please wait...</string>
     <string name="grid_location_success">Grid square retrieved: %1$s</string>
     <string name="grid_location_failed">Grid location failed: %1$s</string>
     <string name="html_start_date_swl_message">Start date</string>

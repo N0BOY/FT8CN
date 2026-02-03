@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data></data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- PSK REPORTER SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_psk_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Enable PSK Reporter Receive -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/pskReporterReceiveSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/psk_reporter_receive"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- View PSK Spots Button -->
+                <Button
+                    android:id="@+id/pskReporterViewSpotsButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/psk_reporter_view_spots"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/pskReporterReceiveSwitch" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- CLOUDLOG SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_cloudlog_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Enable Cloudlog -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/enableCloudlogSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/config_enable_cloudlog"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toStartOf="@+id/cloudlogImageButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/cloudlogImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/enableCloudlogSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/enableCloudlogSwitch"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Server Address -->
+                <TextView
+                    android:id="@+id/cloudlogServerLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/cloudlog_server"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/enableCloudlogSwitch" />
+
+                <EditText
+                    android:id="@+id/cloudlogServerAddressEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/cloudlog_server_hint"
+                    android:inputType="textUri"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cloudlogServerLabel" />
+
+                <!-- API Key -->
+                <TextView
+                    android:id="@+id/cloudlogApiKeyLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/cloudlog_api_key"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cloudlogServerAddressEdit" />
+
+                <EditText
+                    android:id="@+id/cloudlogServerApiKeyEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/cloudlog_api_key_hint"
+                    android:inputType="textPassword"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cloudlogApiKeyLabel" />
+
+                <!-- Station ID -->
+                <TextView
+                    android:id="@+id/cloudlogStationIdLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/cloudlog_station_id"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cloudlogServerApiKeyEdit" />
+
+                <EditText
+                    android:id="@+id/cloudlogStationIdEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/cloudlog_station_id_hint"
+                    android:inputType="text"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cloudlogStationIdLabel" />
+
+                <!-- Test Connection Button -->
+                <Button
+                    android:id="@+id/cloudlogTestButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/test_connection"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/cloudlogStationIdEdit" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- QRZ SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_qrz_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Enable QRZ -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/enableQrzSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/config_enable_qrz"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toStartOf="@+id/qrzImageButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/qrzImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/enableQrzSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/enableQrzSwitch"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- API Key -->
+                <TextView
+                    android:id="@+id/qrzApiKeyLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/qrz_api_key"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/enableQrzSwitch" />
+
+                <EditText
+                    android:id="@+id/qrzApiKeyTextEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/qrz_api_key_hint"
+                    android:inputType="textPassword"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/qrzApiKeyLabel" />
+
+                <!-- Test Connection Button -->
+                <Button
+                    android:id="@+id/qrzTestButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/test_connection"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/qrzApiKeyTextEdit" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- DATA MANAGEMENT SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_data_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Clear Cache Button -->
+                <Button
+                    android:id="@+id/clearCacheButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/config_clear_cache_data"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/clearCacheImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/clearCacheButton"
+                    app:layout_constraintStart_toEndOf="@+id/clearCacheButton"
+                    app:layout_constraintTop_toTopOf="@+id/clearCacheButton"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Application Log Button -->
+                <Button
+                    android:id="@+id/applicationLogButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/application_log"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/clearCacheButton" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- HELP SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_help_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- FAQ Button -->
+                <Button
+                    android:id="@+id/faqButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/faq"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- About Button -->
+                <Button
+                    android:id="@+id/aboutButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/about"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toEndOf="@+id/faqButton"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</layout>

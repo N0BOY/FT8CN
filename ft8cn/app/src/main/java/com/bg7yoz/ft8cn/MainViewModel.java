@@ -167,6 +167,9 @@ public class MainViewModel extends ViewModel {
 
     public MutableLiveData<ArrayList<CableSerialPort.SerialPort>> mutableSerialPorts = new MutableLiveData<>();
     private ArrayList<CableSerialPort.SerialPort> serialPorts;//串口列表
+
+    // Store original rig frequency before adjustment for audio frequency feature
+    private long originalRigFrequency = 0;
     public BaseRig baseRig;//电台
     private final OnRigStateChanged onRigStateChanged = new OnRigStateChanged() {
         @Override
@@ -444,6 +447,36 @@ public class MainViewModel extends ViewModel {
 
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
+                // Fake It split mode: Emulate split operation like WSJT-X (before PTT activation)
+                if (GeneralVariables.fakeItSplit
+                        && GeneralVariables.controlMode != ControlMode.VOX
+                        && baseRig != null
+                        && baseRig.isConnected()) {
+
+                    // Store original frequency only if not already stored
+                    if (originalRigFrequency == 0) {
+                        originalRigFrequency = baseRig.getFreq();
+                    }
+
+                    // WSJT-X "Fake It" calculation:
+                    // Target TX freq = dial + audio offset, but we transmit at 1500 Hz
+                    // So adjust rig to: (dial + audio offset) - 1500 = dial + (audio - 1500)
+                    float audioFreq = GeneralVariables.getBaseFrequency();
+                    long offset = Math.round(audioFreq - 1500.0f);
+                    long newRigFreq = GeneralVariables.band + offset;
+
+                    // Set new frequency
+                    baseRig.setFreq(newRigFreq);
+                    baseRig.setFreqToRig();
+
+                    // Show toast message
+                    ToastMessage.show(String.format(getStringFromResource(R.string.fake_it_rig_adjusted),
+                            BaseRigOperation.getFrequencyAllInfo(newRigFreq), audioFreq));
+
+                    Log.d(TAG, String.format("Fake It: Adjusted rig frequency: %d Hz -> %d Hz (audio offset: %.0f Hz, rig offset: %d Hz)",
+                            originalRigFrequency, newRigFreq, audioFreq, offset));
+                }
+
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
@@ -470,6 +503,27 @@ public class MainViewModel extends ViewModel {
                         //if (GeneralVariables.connectMode != ConnectMode.NETWORK) startSco();
                         if (needControlSco()) startSco();
                     }
+                }
+
+                // Restore original rig frequency (Fake It mode)
+                if (GeneralVariables.fakeItSplit
+                        && GeneralVariables.controlMode != ControlMode.VOX
+                        && baseRig != null
+                        && baseRig.isConnected()
+                        && originalRigFrequency > 0) {
+
+                    // Restore original frequency
+                    baseRig.setFreq(originalRigFrequency);
+                    baseRig.setFreqToRig();
+
+                    // Show toast message
+                    ToastMessage.show(String.format(getStringFromResource(R.string.fake_it_rig_restored),
+                            BaseRigOperation.getFrequencyAllInfo(originalRigFrequency)));
+
+                    Log.d(TAG, String.format("Fake It: Restored rig frequency: %d Hz", originalRigFrequency));
+
+                    // Reset stored frequency
+                    originalRigFrequency = 0;
                 }
             }
 

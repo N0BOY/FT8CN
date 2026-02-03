@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data></data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- STATION SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Station Information"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- My Grid -->
+                <TextView
+                    android:id="@+id/locationTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/headGrid"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMyGridEdit"
+                    app:layout_constraintEnd_toStartOf="@+id/inputMyGridEdit"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/inputMyGridEdit" />
+
+                <EditText
+                    android:id="@+id/inputMyGridEdit"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="6dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/pl_grid"
+                    android:inputType="textEmailAddress"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toEndOf="@+id/locationTextView"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/locationImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/locate"
+                    android:src="@drawable/ic_baseline_not_listed_location_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMyGridEdit"
+                    app:layout_constraintStart_toEndOf="@+id/inputMyGridEdit"
+                    app:layout_constraintTop_toTopOf="@+id/inputMyGridEdit" />
+
+                <ImageButton
+                    android:id="@+id/maidenGridImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMyGridEdit"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/inputMyGridEdit"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- My Callsign -->
+                <TextView
+                    android:id="@+id/mycallTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/mycall"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
+                    app:layout_constraintEnd_toStartOf="@+id/inputMycallEdit"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+                <EditText
+                    android:id="@+id/inputMycallEdit"
+                    android:layout_width="90dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/pl_mycall"
+                    android:inputType="textEmailAddress|textCapWords"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toEndOf="@+id/mycallTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/inputMyGridEdit" />
+
+                <!-- Modifier -->
+                <TextView
+                    android:id="@+id/modifierTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/modifier_editor"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
+                    app:layout_constraintStart_toEndOf="@+id/inputMycallEdit"
+                    app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+                <EditText
+                    android:id="@+id/modifierEdit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:ems="5"
+                    android:hint="@string/pl_input_modifier"
+                    android:inputType="textEmailAddress|textCapWords"
+                    android:maxWidth="80dp"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
+                    app:layout_constraintStart_toEndOf="@+id/modifierTextView"
+                    app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+                <!-- Park Number -->
+                <TextView
+                    android:id="@+id/parkNumberTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/park_number_editor"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputMycallEdit"
+                    app:layout_constraintStart_toEndOf="@+id/modifierEdit"
+                    app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+                <EditText
+                    android:id="@+id/parkNumberEdit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_marginBottom="6dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:ems="8"
+                    android:hint="@string/pl_input_park_number"
+                    android:inputType="text"
+                    android:maxWidth="120dp"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/parkNumberTextView"
+                    app:layout_constraintTop_toTopOf="@+id/inputMycallEdit" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- RADIO SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Radio Configuration"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/rigNameTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Rig:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/rigNameSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/rigNameSpinner" />
+
+                <Spinner
+                    android:id="@+id/rigNameSpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/rigNameTextView"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/rigModelImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/rigNameSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/rigNameSpinner" />
+
+                <!-- Operation Band -->
+                <TextView
+                    android:id="@+id/operationBandTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/operationBand"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/operationBandSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/operationBandSpinner" />
+
+                <Spinner
+                    android:id="@+id/operationBandSpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintEnd_toStartOf="@+id/operationBandImageButton"
+                    app:layout_constraintStart_toEndOf="@+id/operationBandTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/rigNameSpinner" />
+
+                <ImageButton
+                    android:id="@+id/operationBandImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/operationBandSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/operationBandSpinner" />
+
+                <!-- Control Mode -->
+                <TextView
+                    android:id="@+id/controlModeTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Control:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/operationBandSpinner" />
+
+                <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                    android:id="@+id/controlRadioGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toStartOf="@+id/controlModeImageButton"
+                    app:layout_constraintStart_toEndOf="@+id/controlModeTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/operationBandSpinner">
+
+                    <RadioButton
+                        android:id="@+id/controlModeVoxRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/VOX"
+                        android:textSize="12sp" />
+
+                    <RadioButton
+                        android:id="@+id/controlModeCatRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/CAT"
+                        android:textSize="12sp" />
+
+                    <RadioButton
+                        android:id="@+id/controlModeRtsRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/RTS"
+                        android:textSize="12sp" />
+
+                    <RadioButton
+                        android:id="@+id/controlModeDtrRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/DTR"
+                        android:textSize="12sp" />
+                </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                <ImageButton
+                    android:id="@+id/controlModeImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/controlRadioGroup"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/controlRadioGroup" />
+
+                <!-- Connection Mode -->
+                <TextView
+                    android:id="@+id/connectionModeTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Connect:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/controlRadioGroup" />
+
+                <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                    android:id="@+id/connectRadioGroup"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="6dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/connectionModeImageButton"
+                    app:layout_constraintStart_toEndOf="@+id/connectionModeTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/controlRadioGroup">
+
+                    <RadioButton
+                        android:id="@+id/connectModeSerialRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/cable_connect"
+                        android:textSize="12sp" />
+
+                    <RadioButton
+                        android:id="@+id/connectModeBluetoothRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/bluetooth_connect"
+                        android:textSize="12sp" />
+
+                    <RadioButton
+                        android:id="@+id/connectModeWifiRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="@string/network_connect"
+                        android:textSize="12sp" />
+                </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                <ImageButton
+                    android:id="@+id/connectionModeImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/connectRadioGroup"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/connectRadioGroup" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Serial Settings (shown when connection is Serial) -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/serialSettingsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:layout_marginTop="4dp"
+                android:padding="8dp"
+                android:visibility="gone">
+
+                <!-- CI-V Address -->
+                <TextView
+                    android:id="@+id/civAddressTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/civ_address"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/civAddressEdit"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/civAddressEdit" />
+
+                <EditText
+                    android:id="@+id/civAddressEdit"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="0x00"
+                    android:inputType="text"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toEndOf="@+id/civAddressTextView"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/civAddressImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/civAddressEdit"
+                    app:layout_constraintStart_toEndOf="@+id/civAddressEdit"
+                    app:layout_constraintTop_toTopOf="@+id/civAddressEdit" />
+
+                <!-- Baud Rate -->
+                <TextView
+                    android:id="@+id/baudRateTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Baud:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/baudRateSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/baudRateSpinner" />
+
+                <Spinner
+                    android:id="@+id/baudRateSpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintEnd_toStartOf="@+id/serialImageButton"
+                    app:layout_constraintStart_toEndOf="@+id/baudRateTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/civAddressEdit" />
+
+                <ImageButton
+                    android:id="@+id/serialImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/baudRateSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/baudRateSpinner" />
+
+                <!-- Data Bits, Stop Bits, Parity -->
+                <TextView
+                    android:id="@+id/dataBitsTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Data:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
+                <Spinner
+                    android:id="@+id/dataBitsSpinner"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="6dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/dataBitsTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/baudRateSpinner" />
+
+                <TextView
+                    android:id="@+id/stopBitsTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Stop:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
+                    app:layout_constraintStart_toEndOf="@+id/dataBitsSpinner"
+                    app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
+                <Spinner
+                    android:id="@+id/stopBitsSpinner"
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
+                    app:layout_constraintStart_toEndOf="@+id/stopBitsTextView"
+                    app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
+                <TextView
+                    android:id="@+id/parityBitsTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Parity:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
+                    app:layout_constraintStart_toEndOf="@+id/stopBitsSpinner"
+                    app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
+                <Spinner
+                    android:id="@+id/parityBitsSpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/dataBitsSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/parityBitsTextView"
+                    app:layout_constraintTop_toTopOf="@+id/dataBitsSpinner" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- TRANSMIT SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Transmit Settings"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Frequency -->
+                <TextView
+                    android:id="@+id/frequencyTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sendFreq"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputFreqEditor"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/inputFreqEditor" />
+
+                <EditText
+                    android:id="@+id/inputFreqEditor"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/pl_sendFreq"
+                    android:inputType="number"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toEndOf="@+id/frequencyTextView"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/frequencyImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputFreqEditor"
+                    app:layout_constraintStart_toEndOf="@+id/inputFreqEditor"
+                    app:layout_constraintTop_toTopOf="@+id/inputFreqEditor" />
+
+                <!-- Sync Frequency -->
+                <TextView
+                    android:id="@+id/synFrequencyTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/synFrequency"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/synFrequencySwitch"
+                    app:layout_constraintEnd_toStartOf="@+id/synFrequencySwitch"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/synFrequencySwitch" />
+
+                <Switch
+                    android:id="@+id/synFrequencySwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintEnd_toStartOf="@+id/synFrequencyImageButton"
+                    app:layout_constraintTop_toBottomOf="@+id/inputFreqEditor" />
+
+                <ImageButton
+                    android:id="@+id/synFrequencyImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/synFrequencySwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/synFrequencySwitch" />
+
+                <!-- Fake It Split -->
+                <TextView
+                    android:id="@+id/fakeItSplitTextView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/fake_it_split"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/fakeItSplitSwitch"
+                    app:layout_constraintEnd_toStartOf="@+id/fakeItSplitSwitch"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/fakeItSplitSwitch" />
+
+                <Switch
+                    android:id="@+id/fakeItSplitSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintEnd_toStartOf="@+id/fakeItSplitImageButton"
+                    app:layout_constraintTop_toBottomOf="@+id/synFrequencySwitch" />
+
+                <ImageButton
+                    android:id="@+id/fakeItSplitImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/fakeItSplitSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/fakeItSplitSwitch" />
+
+                <!-- Transmit Offset -->
+                <TextView
+                    android:id="@+id/transmitOffsetTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="TX Offset:"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/transmitOffsetEdit"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/transmitOffsetEdit" />
+
+                <EditText
+                    android:id="@+id/transmitOffsetEdit"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="0"
+                    android:inputType="number"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toEndOf="@+id/transmitOffsetTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/fakeItSplitSwitch" />
+
+                <TextView
+                    android:id="@+id/transmitOffsetHzTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="Hz"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/transmitOffsetEdit"
+                    app:layout_constraintStart_toEndOf="@+id/transmitOffsetEdit"
+                    app:layout_constraintTop_toTopOf="@+id/transmitOffsetEdit" />
+
+                <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                    android:id="@+id/transmitOffsetSignRadioGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintBottom_toBottomOf="@+id/transmitOffsetEdit"
+                    app:layout_constraintStart_toEndOf="@+id/transmitOffsetHzTextView"
+                    app:layout_constraintTop_toTopOf="@+id/transmitOffsetEdit">
+
+                    <RadioButton
+                        android:id="@+id/transmitOffsetPositiveRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="+"
+                        android:textSize="12sp" />
+
+                    <RadioButton
+                        android:id="@+id/transmitOffsetNegativeRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:text="-"
+                        android:textSize="12sp" />
+                </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                <!-- TX Delay -->
+                <TextView
+                    android:id="@+id/txDelayTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/pl_trans_delay"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputTransDelayEdit"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/inputTransDelayEdit" />
+
+                <EditText
+                    android:id="@+id/inputTransDelayEdit"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/pl_trans_delay"
+                    android:inputType="number"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toEndOf="@+id/txDelayTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/transmitOffsetEdit" />
+
+                <ImageButton
+                    android:id="@+id/txDelayImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/inputTransDelayEdit"
+                    app:layout_constraintStart_toEndOf="@+id/inputTransDelayEdit"
+                    app:layout_constraintTop_toTopOf="@+id/inputTransDelayEdit" />
+
+                <!-- PTT Delay -->
+                <TextView
+                    android:id="@+id/pttDelayTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/ptt_delay"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/pttDelayOffsetSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/pttDelayOffsetSpinner" />
+
+                <Spinner
+                    android:id="@+id/pttDelayOffsetSpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="6dp"
+                    android:minHeight="32dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/pttDelayImageButton"
+                    app:layout_constraintStart_toEndOf="@+id/pttDelayTextView"
+                    app:layout_constraintTop_toBottomOf="@+id/inputTransDelayEdit" />
+
+                <ImageButton
+                    android:id="@+id/pttDelayImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:src="@drawable/ic_baseline_info_32"
+                    app:layout_constraintBottom_toBottomOf="@+id/pttDelayOffsetSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/pttDelayOffsetSpinner" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</layout>

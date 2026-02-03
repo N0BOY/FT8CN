@@ -180,6 +180,9 @@ public class GeneralVariables {
     public static boolean decode_overrun_toast = false;//解码超时提示
     public static boolean enablePskReporterReceive = false;//是否接收PSK Reporter spots via MQTT
     public static boolean skip_my_grid_when_responding = false;//当有人呼叫我时，跳过发送我的网格位置
+    public static boolean fakeItSplit = false;//分频操作：模拟分频（Fake It）- 类似WSJT-X
+
+    public static int transmitOffsetHz = 0;//发射频率校准偏移（Hz），用于补偿电台发射频率不准确
 
     public static MutableLiveData<Float> mutableBaseFrequency = new MutableLiveData<>();
     public static String cloudlogServerAddress = "";//cloudlog的服务器地址
@@ -245,6 +248,21 @@ public class GeneralVariables {
         GeneralVariables.baseFrequency = baseFrequency;
     }
 
+    /**
+     * Get the audio frequency to use for FT8 signal generation.
+     * If Fake It split mode is enabled (and not in VOX mode), always use 1500 Hz (center frequency)
+     * since the rig frequency is adjusted to compensate. This matches WSJT-X's "Fake It" behavior.
+     * Otherwise, use the selected base frequency.
+     *
+     * @return Audio frequency in Hz to use for signal generation
+     */
+    public static float getAudioFrequencyForGeneration() {
+        if (fakeItSplit && controlMode != ControlMode.VOX) {
+            return 1500.0f; // Always use center frequency in Fake It mode
+        }
+        return baseFrequency;
+    }
+
     public static String getCloudlogServerAddress() {
         return cloudlogServerAddress;
     }
@@ -273,6 +291,10 @@ public class GeneralVariables {
 
     public static String getTransmitDelayStr() {
         return String.valueOf(transmitDelay);
+    }
+
+    public static String getTransmitOffsetHzStr() {
+        return String.valueOf(transmitOffsetHz);
     }
 
     public static String getBandString() {

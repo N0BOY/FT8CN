@@ -274,7 +274,9 @@ public class XieGuRig extends BaseRig {
     @Override
     public void sendWaveData(Ft8Message message) {//发送音频数据到电台，用于网络方式
         if (getConnector() != null) {//把生成的具体音频数据传递到Connector，
-            float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
+            // Apply transmit offset calibration
+            float transmitFreq = GeneralVariables.getAudioFrequencyForGeneration() + GeneralVariables.transmitOffsetHz;
+            float[] data = GenerateFT8.generateFt8(message, transmitFreq
                     , 12000);//此处icom电台发射音频的采样率是12000
             if (data == null) {
                 setPTT(false);

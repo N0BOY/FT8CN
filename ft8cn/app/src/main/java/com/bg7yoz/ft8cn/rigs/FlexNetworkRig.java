@@ -87,7 +87,9 @@ public class FlexNetworkRig extends BaseRig {
     public void sendWaveData(Ft8Message message) {
 
         if (getConnector() != null) {
-            float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
+            // Apply transmit offset calibration
+            float transmitFreq = GeneralVariables.getAudioFrequencyForGeneration() + GeneralVariables.transmitOffsetHz;
+            float[] data = GenerateFT8.generateFt8(message, transmitFreq
                     , 24000);//flex音频的采样率是24000
             if (data == null) {
                 setPTT(false);

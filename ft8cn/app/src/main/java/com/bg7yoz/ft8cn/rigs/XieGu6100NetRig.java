@@ -65,7 +65,9 @@ public class XieGu6100NetRig extends BaseRig {
                 getConnector().sendFt8A91(GenerateFT8.generateA91(message,true)
                         ,GeneralVariables.getBaseFrequency());
             }else {//否则正常传输音频数据
-                float[] data = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
+                // Apply transmit offset calibration
+                float transmitFreq = GeneralVariables.getAudioFrequencyForGeneration() + GeneralVariables.transmitOffsetHz;
+                float[] data = GenerateFT8.generateFt8(message, transmitFreq
                         , 12000);//此处电台发射音频的采样率是12000
                 getConnector().sendWaveData(data);
             }

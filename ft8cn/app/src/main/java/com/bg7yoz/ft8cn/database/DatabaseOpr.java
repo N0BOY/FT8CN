@@ -2407,6 +2407,13 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("synFreq")) {
                     GeneralVariables.synFrequency = !(result == null || result.equals("") || result.equals("0"));
                 }
+                if (name.equalsIgnoreCase("fakeItSplit")) {
+                    GeneralVariables.fakeItSplit = !(result == null || result.equals("") || result.equals("0"));
+                }
+                // Legacy key support - maintain compatibility with old config
+                if (name.equalsIgnoreCase("adjustRigFreqForAudioFreq")) {
+                    GeneralVariables.fakeItSplit = !(result == null || result.equals("") || result.equals("0"));
+                }
                 if (name.equalsIgnoreCase("transDelay")) {
                     try {
                         if (result != null && result.matches("^\\d{1,4}$")) {//正则表达式，1-4位长度的数字
@@ -2512,6 +2519,14 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                     } catch (NumberFormatException e) {
                         Log.e(TAG, "Invalid pttDelay: " + result + ", using default 100");
                         GeneralVariables.pttDelay = 100;
+                    }
+                }
+                if (name.equalsIgnoreCase("transmitOffset")) {//发射频率校准偏移
+                    try {
+                        GeneralVariables.transmitOffsetHz = result.equals("") ? 0 : Integer.parseInt(result);
+                    } catch (NumberFormatException e) {
+                        Log.e(TAG, "Invalid transmitOffset: " + result + ", using default 0");
+                        GeneralVariables.transmitOffsetHz = 0;
                     }
                 }
                 if (name.equalsIgnoreCase("icomIp")) {//IcomIp地址

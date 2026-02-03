@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(find:*)",
+      "Bash(./gradlew compileDebugJavaWithJavac:*)",
+      "Bash(cmd.exe /c \"cd /d C:\\\\Users\\\\matt\\\\repos\\\\FT8CN\\\\ft8cn && set \"\"JAVA_HOME=C:\\\\Program Files\\\\Java\\\\jdk-17\"\" && gradlew.bat compileDebugJavaWithJavac\")"
+    ]
+  }
+}

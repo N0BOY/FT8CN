@@ -1,5 +1,31 @@
 # FT8CN Release Notes
 
+## Version 0.93.202 (February 2, 2026)
+
+### 🎨 UI Improvements
+
+#### Settings Dialog Reorganization
+- **New 3-tab settings interface**: Completely reorganized settings into three logical tabs for better navigation
+  - **Basic Tab**: Station settings (callsign, grid, modifier, park number), radio settings (rig model, band, control mode, connection mode), and transmit settings (frequency, fake it split, TX delay, PTT delay)
+  - **Advanced Tab**: Audio configuration (bit depth, sample rate), time synchronization (UTC offset, NTP server), decode settings (mode, overrun alerts), operating behavior (auto follow, call tracking, launch supervision), logging options (SWL), and monitoring (SWR/ALC)
+  - **Cloud & Help Tab**: PSK Reporter integration, Cloudlog settings, QRZ.com settings, data management (clear cache), and help resources (application log, FAQ, about)
+- **Improved settings organization**: Related settings are now grouped together with clear section headers
+- **Swipeable tabs**: Navigate between tabs by swiping left/right or tapping tab headers
+- **Consistent styling**: All tabs use the same visual design language with proper spacing and help buttons
+
+### 🔧 Technical Improvements
+
+#### Settings Architecture
+- **ViewPager2 with TabLayout**: Modern Android tab navigation implementation
+- **Fragment-based tabs**: Each tab is a separate Fragment for better lifecycle management
+  - `BasicSettingsFragment`: Station, radio, and transmit configuration
+  - `AdvancedSettingsFragment`: Audio, time, decode, and operating settings
+  - `CloudSettingsFragment`: Cloud services and maintenance
+- **Proper adapter patterns**: Uses `RigModelSpinnerAdapter` for rig selection with filtering support
+- **Preserved functionality**: All original settings functionality maintained, just reorganized
+
+---
+
 ## Version 0.93.201 (February 1, 2026)
 
 ### 🚀 Performance Improvements

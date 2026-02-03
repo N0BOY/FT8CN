@@ -272,7 +272,9 @@ public class TrUSDXRig extends BaseRig {
         if (getConnector() == null) {
             return;
         }
-        float[] wave = GenerateFT8.generateFt8(message, GeneralVariables.getBaseFrequency()
+        // Apply transmit offset calibration
+        float transmitFreq = GeneralVariables.getAudioFrequencyForGeneration() + GeneralVariables.transmitOffsetHz;
+        float[] wave = GenerateFT8.generateFt8(message, transmitFreq
                 , 24000);
 
         if (wave == null) {

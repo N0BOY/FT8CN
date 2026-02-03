@@ -179,8 +179,10 @@ public class FT8TransmitSignal {
             return;
         }
         //检测是不是黑名单频率，WSPR-2的频率，频率=电台频率+声音频率
+        // Apply transmit offset calibration when checking WSPR-2 frequency
+        float actualTransmitFreq = GeneralVariables.getBaseFrequency() + GeneralVariables.transmitOffsetHz;
         if (BaseRigOperation.checkIsWSPR2(
-                GeneralVariables.band + Math.round(GeneralVariables.getBaseFrequency()))) {
+                GeneralVariables.band + Math.round(actualTransmitFreq))) {
             ToastMessage.show(String.format(GeneralVariables.getStringFromResource(R.string.use_wspr2_error)
                     , BaseRigOperation.getFrequencyAllInfo(GeneralVariables.band)));
             setActivated(false);
@@ -432,7 +434,9 @@ public class FT8TransmitSignal {
 
         //进入声卡模式
         float[] buffer;
-        buffer = GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency()
+        // Apply transmit offset calibration to audio frequency
+        float transmitFrequency = GeneralVariables.getAudioFrequencyForGeneration() + GeneralVariables.transmitOffsetHz;
+        buffer = GenerateFT8.generateFt8(msg, transmitFrequency
                 , GeneralVariables.audioSampleRate);
         if (buffer == null) {
             afterPlayAudio();
@@ -559,6 +563,8 @@ public class FT8TransmitSignal {
 
         messageEndTime = UtcTimer.getSystemTime();
         if (onDoTransmitted != null) {//用于保存通联记录
+            // Log QSL record with actual transmit frequency (including offset)
+            float actualTransmitFreq = GeneralVariables.getBaseFrequency() + GeneralVariables.transmitOffsetHz;
             onTransmitSuccess.doAfterTransmit(new QSLRecord(
                     messageStartTime,
                     messageEndTime,
@@ -570,7 +576,7 @@ public class FT8TransmitSignal {
                     receiveTargetReport != -100 ? receiveTargetReport : receivedReport,//如果给对方的信号报告是不是-100，就用发给对方的信号报告记录
                     "FT8",
                     GeneralVariables.band,
-                    Math.round(GeneralVariables.getBaseFrequency())
+                    Math.round(actualTransmitFreq)
             ));
 
             GeneralVariables.addQSLCallsign(toCallsign.callsign);//把通联成功的呼号添加到列表中
@@ -858,6 +864,8 @@ public class FT8TransmitSignal {
         QSLRecord record = GeneralVariables.qslRecordList.getRecordByCallsign(toCall.callsign);
         if (record == null) {
             toMaidenheadGrid = GeneralVariables.getGridByCallsign(toCallsign.callsign, databaseOpr);
+            // Log QSL record with actual transmit frequency (including offset)
+            float actualTransmitFreq = GeneralVariables.getBaseFrequency() + GeneralVariables.transmitOffsetHz;
             record = GeneralVariables.qslRecordList.addQSLRecord(new QSLRecord(
                     messageStartTime,
                     messageEndTime,
@@ -869,7 +877,7 @@ public class FT8TransmitSignal {
                     receiveTargetReport != -100 ? receiveTargetReport : receivedReport,//如果给对方的信号报告是不是-100，就用发给对方的信号报告记录
                     "FT8",
                     GeneralVariables.band,
-                    Math.round(GeneralVariables.getBaseFrequency()
+                    Math.round(actualTransmitFreq
                     )));
         }
         //根据消息序列更新内容

@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data></data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- AUDIO SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_audio_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="8dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Audio Bit Depth -->
+                <TextView
+                    android:id="@+id/audioBitDepthLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/audio_bit_depth"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <RadioGroup
+                    android:id="@+id/audioBitDepthRadioGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintStart_toEndOf="@+id/audioBitDepthLabel"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <RadioButton
+                        android:id="@+id/audioBit16Radio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_16bit"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/audioBit32Radio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_32bit"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+                </RadioGroup>
+
+                <ImageButton
+                    android:id="@+id/audioBitDepthImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/audioBitDepthRadioGroup"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/audioBitDepthRadioGroup"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Audio Sample Rate -->
+                <TextView
+                    android:id="@+id/audioSampleRateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/audio_sample_rate"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/audioBitDepthRadioGroup" />
+
+                <RadioGroup
+                    android:id="@+id/audioSampleRateRadioGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintStart_toEndOf="@+id/audioSampleRateLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/audioBitDepthRadioGroup">
+
+                    <RadioButton
+                        android:id="@+id/audioRate12kRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_12k"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/audioRate24kRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_24k"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/audioRate48kRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_48k"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+                </RadioGroup>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- TIME SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_time_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- UTC Time Offset -->
+                <TextView
+                    android:id="@+id/utcOffsetLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/utc_offset"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/utcOffsetSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/utcOffsetSpinner" />
+
+                <Spinner
+                    android:id="@+id/utcOffsetSpinner"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/spinner_style"
+                    app:layout_constraintStart_toEndOf="@+id/utcOffsetLabel"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/utcOffsetImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/utcOffsetSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/utcOffsetSpinner"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- NTP Server -->
+                <TextView
+                    android:id="@+id/ntpServerLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/ntp_server"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/ntpServerSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/ntpServerSpinner" />
+
+                <Spinner
+                    android:id="@+id/ntpServerSpinner"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:background="@drawable/spinner_style"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ntpServerLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/utcOffsetSpinner" />
+
+                <!-- Custom NTP Server (shown when Custom is selected) -->
+                <EditText
+                    android:id="@+id/customNtpServerEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/ntp_server_custom_hint"
+                    android:inputType="textUri"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/ntpServerLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/ntpServerSpinner" />
+
+                <!-- Sync Time Button -->
+                <Button
+                    android:id="@+id/syncTimeButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/sync_time_now"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/customNtpServerEdit" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- DECODE SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_decode_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Decode Mode -->
+                <TextView
+                    android:id="@+id/decodeModeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/decode_mode"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <RadioGroup
+                    android:id="@+id/decodeModeRadioGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintStart_toEndOf="@+id/decodeModeLabel"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <RadioButton
+                        android:id="@+id/decodeModeFastRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/decode_fast"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/decodeModeDeepRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/decode_deep"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+                </RadioGroup>
+
+                <ImageButton
+                    android:id="@+id/decodeModeImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/decodeModeRadioGroup"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/decodeModeRadioGroup"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Decode Overrun Alert -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/decodeOverrunSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/decode_overrun_alert"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/decodeModeRadioGroup" />
+
+                <!-- Message Display Mode -->
+                <TextView
+                    android:id="@+id/messageModeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/message_mode"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/decodeOverrunSwitch" />
+
+                <RadioGroup
+                    android:id="@+id/messageModeRadioGroup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal"
+                    app:layout_constraintStart_toEndOf="@+id/messageModeLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/decodeOverrunSwitch">
+
+                    <RadioButton
+                        android:id="@+id/messageModeStandardRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/message_standard"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+
+                    <RadioButton
+                        android:id="@+id/messageModeSimpleRadio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/message_simple"
+                        android:textColor="@color/text_view_color"
+                        android:textSize="14sp" />
+                </RadioGroup>
+
+                <ImageButton
+                    android:id="@+id/messageModeImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/messageModeRadioGroup"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/messageModeRadioGroup"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- OPERATING SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_operating_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Auto Follow CQ -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/followCQSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/auto_follow_cq"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toStartOf="@+id/followCQImageButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/followCQImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/followCQSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/followCQSwitch"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Calling Adds to Follow List -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/callingAddsToFollowSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/calling_adds_to_follow"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toStartOf="@+id/callingAddsToFollowImageButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/followCQSwitch" />
+
+                <ImageButton
+                    android:id="@+id/callingAddsToFollowImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/callingAddsToFollowSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/callingAddsToFollowSwitch"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Auto Call Follow List -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/autoCallFollowSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/auto_call_follow"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toStartOf="@+id/autoCallFollowImageButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/callingAddsToFollowSwitch" />
+
+                <ImageButton
+                    android:id="@+id/autoCallFollowImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="@+id/autoCallFollowSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/autoCallFollowSwitch"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Skip My Grid When Responding -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/skipMyGridSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/skip_my_grid"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toStartOf="@+id/skipMyGridImageButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/autoCallFollowSwitch" />
+
+                <ImageButton
+                    android:id="@+id/skipMyGridImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/skipMyGridSwitch"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/skipMyGridSwitch"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Launch Supervision Timeout -->
+                <TextView
+                    android:id="@+id/launchSupervisionLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/launch_supervision"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/launchSupervisionSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/launchSupervisionSpinner" />
+
+                <Spinner
+                    android:id="@+id/launchSupervisionSpinner"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/spinner_style"
+                    app:layout_constraintStart_toEndOf="@+id/launchSupervisionLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/skipMyGridSwitch" />
+
+                <ImageButton
+                    android:id="@+id/launchSupervisionImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/launchSupervisionSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/launchSupervisionSpinner"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- No Reply Limit -->
+                <TextView
+                    android:id="@+id/noReplyLimitLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/no_reply_limit"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="@+id/noReplyLimitSpinner"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/noReplyLimitSpinner" />
+
+                <Spinner
+                    android:id="@+id/noReplyLimitSpinner"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/spinner_style"
+                    app:layout_constraintStart_toEndOf="@+id/noReplyLimitLabel"
+                    app:layout_constraintTop_toBottomOf="@+id/launchSupervisionSpinner" />
+
+                <ImageButton
+                    android:id="@+id/noReplyLimitImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/noReplyLimitSpinner"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/noReplyLimitSpinner"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+                <!-- Exclude Callsigns -->
+                <TextView
+                    android:id="@+id/excludeCallsignsLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/exclude_callsigns"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/noReplyLimitSpinner" />
+
+                <EditText
+                    android:id="@+id/excludeCallsignsEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginEnd="48dp"
+                    android:autofillHints=""
+                    android:background="@drawable/editor_style"
+                    android:hint="@string/exclude_callsigns_hint"
+                    android:inputType="textCapCharacters"
+                    android:minHeight="32dp"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/excludeCallsignsLabel" />
+
+                <ImageButton
+                    android:id="@+id/excludeCallsignsImageButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/imagebutton_transparent_style"
+                    android:contentDescription="@string/help"
+                    app:layout_constraintBottom_toBottomOf="@+id/excludeCallsignsEdit"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/excludeCallsignsEdit"
+                    app:srcCompat="@drawable/ic_baseline_info_32" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- LOGGING SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_logging_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp">
+
+                <!-- Save SWL Messages -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/saveSWLSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/save_swl_messages"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Save SWL QSOs -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/saveSWLQSOSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/save_swl_qsos"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/saveSWLSwitch" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- MONITORING SECTION -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_monitoring_section"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_view_color"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/editor_layout_style"
+                android:padding="8dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- SWR Alarm -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/swrSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/swr_alarm"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- ALC Alarm -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/alcSwitch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/alc_alarm"
+                    android:textColor="@color/text_view_color"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/swrSwitch" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</layout>
