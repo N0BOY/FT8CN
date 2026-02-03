@@ -170,6 +170,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.1.1'
     testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'org.json:json:20231013'
     
     // Android test dependencies (for instrumented tests)
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

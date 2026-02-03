@@ -75,6 +75,14 @@
     <string name="backup_failed">Backup failed: %s</string>
     <string name="restore_success">%s</string>
     <string name="restore_failed">Restore failed: %s</string>
+    <string name="backup_settings_exporting">Exporting settings…</string>
+    <string name="backup_settings_importing">Importing settings…</string>
+    <string name="backup_settings_export_success">Settings exported successfully</string>
+    <string name="backup_settings_export_failed">Failed to export settings</string>
+    <string name="backup_settings_import_success">Imported %d settings successfully</string>
+    <string name="backup_settings_import_failed">Failed to import settings</string>
+    <string name="backup_settings_no_cache_dir">No cache directory available</string>
+    <string name="backup_settings_invalid_format">Invalid backup file format</string>
     <string name="faq">FAQ</string>
     <string name="about">About</string>
 
