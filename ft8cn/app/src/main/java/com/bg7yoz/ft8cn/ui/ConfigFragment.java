@@ -368,6 +368,9 @@ public class ConfigFragment extends Fragment {
         //设置解码模式
         setDecodeMode();
 
+        //设置调试模式
+        setDebugMode();
+
         //设置音频输出的位数
         setAudioOutputBitsMode();
 
@@ -527,6 +530,21 @@ public class ConfigFragment extends Fragment {
                     mainViewModel.databaseOpr.writeConfig("autoFollowCQ", "0", null);
                 }
                 setAutoFollowCQText();
+            }
+        });
+
+        binding.debugModeSwitch.setOnCheckedChangeListener(null);
+        binding.debugModeSwitch.setChecked(GeneralVariables.isDebugMode());
+        setDebugModeSwitchText();
+        binding.debugModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                GeneralVariables.setDebugMode(binding.debugModeSwitch.isChecked());
+                writeConfig("debugMode", binding.debugModeSwitch.isChecked() ? "1" : "0");
+                setDebugModeSwitchText();
+                if (binding.debugModeSwitch.isChecked()) {
+                    GeneralVariables.appendDebugTrace(TAG, "Debug mode enabled");
+                }
             }
         });
 
@@ -748,7 +766,16 @@ public class ConfigFragment extends Fragment {
 
                         //指令集
                         GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
+                        GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
                         writeConfig("instruction", String.valueOf(GeneralVariables.instructionSet));
+                        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
+                                && GeneralVariables.controlMode != ControlMode.CAT) {
+                            GeneralVariables.controlMode = ControlMode.CAT;
+                            writeConfig("ctrMode", String.valueOf(GeneralVariables.controlMode));
+                            mainViewModel.setControlMode();
+                            setControlMode();
+                            setConnectMode();
+                        }
                     }
 
                     @Override
@@ -887,6 +914,14 @@ public class ConfigFragment extends Fragment {
             binding.swrAlarmSwitch.setText(R.string.swr_switch_on);
         }else {
             binding.swrAlarmSwitch.setText(R.string.swr_switch_off);
+        }
+    }
+
+    private void setDebugModeSwitchText() {
+        if (binding.debugModeSwitch.isChecked()) {
+            binding.debugModeSwitch.setText(R.string.debug_mode_on);
+        } else {
+            binding.debugModeSwitch.setText(R.string.debug_mode_off);
         }
     }
 
@@ -1108,6 +1143,11 @@ public class ConfigFragment extends Fragment {
         binding.fastDecodeRadioButton.setOnClickListener(listener);
         binding.deepDecodeRadioButton.setOnClickListener(listener);
 
+    }
+
+    private void setDebugMode() {
+        binding.debugModeSwitch.setChecked(GeneralVariables.isDebugMode());
+        setDebugModeSwitchText();
     }
 
 
@@ -1534,6 +1574,15 @@ public class ConfigFragment extends Fragment {
                 new HelpDialog(requireContext(),requireActivity()
                         ,GeneralVariables.getStringFromResource(R.string.deep_mode_help)
                         ,true).show();
+            }
+        });
+
+        binding.debugModeHelpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new HelpDialog(requireContext(), requireActivity()
+                        , GeneralVariables.getStringFromResource(R.string.debug_mode_help)
+                        , true).show();
             }
         });
 

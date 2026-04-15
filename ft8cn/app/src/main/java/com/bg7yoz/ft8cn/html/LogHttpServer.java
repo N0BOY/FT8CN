@@ -592,6 +592,10 @@ public class LogHttpServer extends NanoHTTPD {
                 , String.format("%dHz", GeneralVariables.audioSampleRate));
 
         HtmlContext.tableKeyRow(result, true
+                , "Audio route"
+                , GeneralVariables.getAudioRouteReport().replace("\n", "<br>"));
+
+        HtmlContext.tableKeyRow(result, true
                 , GeneralVariables.getStringFromResource(R.string.html_decodes_in_this_cycle)
                 , String.format("%d", mainViewModel.currentDecodeCount));
 

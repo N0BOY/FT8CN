@@ -2185,6 +2185,9 @@ public class DatabaseOpr extends SQLiteOpenHelper {
                 if (name.equalsIgnoreCase("deepMode")) {//是不是深度解码模式
                     GeneralVariables.deepDecodeMode =result.equals("1");
                 }
+                if (name.equalsIgnoreCase("debugMode")) {
+                    GeneralVariables.setDebugMode(result.equals("1"));
+                }
                 if (name.equalsIgnoreCase("dataBits")) {//串口数据位
                     GeneralVariables.serialDataBits =Integer.parseInt(result);
                 }

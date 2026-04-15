@@ -52,6 +52,9 @@
     <string name="close">Close</string>
     <string name="rig_name">Rig</string>
     <string name="debug">Debug</string>
+    <string name="debug_mode_on">Debug On</string>
+    <string name="debug_mode_off">Debug Off</string>
+    <string name="debug_mode_help">Enable detailed FT-710 debug information in the in-app debug panel and logs.</string>
     <string name="logo_image">FT8CN</string>
     <string name="RTS">RTS</string>
     <string name="FAQ">FAQ</string>

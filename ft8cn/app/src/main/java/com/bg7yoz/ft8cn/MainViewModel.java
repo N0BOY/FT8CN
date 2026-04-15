@@ -37,6 +37,7 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
+import com.bg7yoz.ft8cn.audio.AudioRouteHelper;
 import com.bg7yoz.ft8cn.callsign.CallsignDatabase;
 import com.bg7yoz.ft8cn.callsign.CallsignInfo;
 import com.bg7yoz.ft8cn.callsign.OnAfterQueryCallsignLocation;
@@ -67,6 +68,7 @@ import com.bg7yoz.ft8cn.log.ThirdPartyService;
 import com.bg7yoz.ft8cn.rigs.BaseRig;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.rigs.ElecraftRig;
+import com.bg7yoz.ft8cn.rigs.FT710Rig;
 import com.bg7yoz.ft8cn.rigs.Flex6000Rig;
 import com.bg7yoz.ft8cn.rigs.FlexNetworkRig;
 import com.bg7yoz.ft8cn.rigs.GuoHeQ900Rig;
@@ -376,8 +378,14 @@ public class MainViewModel extends ViewModel {
 
         //创建发射对象，回调：发射前，发射后、QSL成功后。
         ft8TransmitSignal = new FT8TransmitSignal(databaseOpr, new OnDoTransmitted() {
+            private boolean recorderPausedForUsbTx = false;
+
+            private boolean isFt710WorkaroundEnabled() {
+                return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
+                        || baseRig instanceof FT710Rig;
+            }
             private boolean needControlSco() {//根据控制模式，确定是不是需要开启SCO
-                if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
+                if (GeneralVariables.connectMode != ConnectMode.BLUE_TOOTH) {
                     return false;
                 }
                 if (GeneralVariables.controlMode != ControlMode.CAT) {
@@ -386,14 +394,67 @@ public class MainViewModel extends ViewModel {
                 return baseRig != null && !baseRig.supportWaveOverCAT();
             }
 
+            private boolean needPauseRecorderForUsbTx() {
+                if (!isFt710WorkaroundEnabled()) {
+                    return false;
+                }
+                if (GeneralVariables.connectMode != ConnectMode.USB_CABLE) {
+                    return false;
+                }
+                return baseRig != null && baseRig.isConnected() && !baseRig.supportWaveOverCAT();
+            }
+
+            private void pauseRecorderForUsbTx() {
+                recorderPausedForUsbTx = false;
+                if (!needPauseRecorderForUsbTx() || !hamRecorder.isRunning()) {
+                    return;
+                }
+                Log.d(TAG, "pauseRecorderForUsbTx: stop recorder before USB TX.");
+                GeneralVariables.debugLog(TAG, "pause recorder before USB TX");
+                hamRecorder.stopRecord();
+                recorderPausedForUsbTx = true;
+                try {
+                    Thread.sleep(150);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            private void resumeRecorderAfterUsbTx() {
+                if (!recorderPausedForUsbTx) {
+                    return;
+                }
+                recorderPausedForUsbTx = false;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(800);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            return;
+                        }
+                        if (!hamRecorder.isRunning()) {
+                            Log.d(TAG, "resumeRecorderAfterUsbTx: restart recorder after USB TX.");
+                            GeneralVariables.debugLog(TAG, "resume recorder after USB TX");
+                            hamRecorder.startRecord();
+                        }
+                    }
+                }).start();
+            }
+
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
+                pauseRecorderForUsbTx();
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
+                        AudioRouteHelper.publishDeviceReport("Before TX");
                         //if (GeneralVariables.connectMode != ConnectMode.NETWORK) stopSco();
                         if (needControlSco()) stopSco();
+                        GeneralVariables.debugLog(TAG, "PTT ON controlMode="
+                                + ControlMode.getControlModeStr(GeneralVariables.controlMode));
                         baseRig.setPTT(true);
                     }
                 }
@@ -410,11 +471,14 @@ public class MainViewModel extends ViewModel {
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
+                        GeneralVariables.debugLog(TAG, "PTT OFF controlMode="
+                                + ControlMode.getControlModeStr(GeneralVariables.controlMode));
                         baseRig.setPTT(false);
                         //if (GeneralVariables.connectMode != ConnectMode.NETWORK) startSco();
                         if (needControlSco()) startSco();
                     }
                 }
+                resumeRecorderAfterUsbTx();
             }
 
             @Override
@@ -690,6 +754,10 @@ public class MainViewModel extends ViewModel {
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
+        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710 || baseRig instanceof FT710Rig) {
+            stopSco();
+        }
+        AudioRouteHelper.publishDeviceReport("USB cable connected");
 
         //晚1秒钟设置模式，防止有的电台反应不过来
         new Handler().postDelayed(new Runnable() {
@@ -887,6 +955,9 @@ public class MainViewModel extends ViewModel {
                 break;
             case InstructionSet.YAESU_DX10:
                 baseRig = new YaesuDX10Rig();//YAESU DX10 DX101
+                break;
+            case InstructionSet.YAESU_FT710:
+                baseRig = new FT710Rig();//YAESU FT-710
                 break;
             case InstructionSet.KENWOOD_TS590:
                 baseRig = new KenwoodTS590Rig();//KENWOOD TS590

@@ -1,6 +1,7 @@
 package com.bg7yoz.ft8cn.wave;
 /**
- * 使用Mic录音的操作。
+ * 用于 Mic 录音的类。
+ *
  * @author BGY70Z
  * @date 2023-03-20
  */
@@ -17,14 +18,13 @@ import com.bg7yoz.ft8cn.ui.ToastMessage;
 
 public class MicRecorder {
     private static final String TAG = "MicRecorder";
-    private int bufferSize = 0;//最小缓冲区大小
-    private static final int sampleRateInHz = 12000;//采样率
-    private static final int channelConfig = AudioFormat.CHANNEL_IN_MONO; //单声道
-    //private static final int audioFormat = AudioFormat.ENCODING_PCM_16BIT; //量化位数
-    private static final int audioFormat = AudioFormat.ENCODING_PCM_FLOAT; //量化位数
+    private static final int sampleRateInHz = 12000;
+    private static final int channelConfig = AudioFormat.CHANNEL_IN_MONO;
+    private static final int audioFormat = AudioFormat.ENCODING_PCM_FLOAT;
 
-    private AudioRecord audioRecord = null;//AudioRecord对象
-    private boolean isRunning = false;//是否处于录音的状态。
+    private int bufferSize = 0;
+    private AudioRecord audioRecord = null;
+    private boolean isRunning = false;
     private OnDataListener onDataListener;
 
     public interface OnDataListener{
@@ -33,60 +33,133 @@ public class MicRecorder {
 
     @SuppressLint("MissingPermission")
     public MicRecorder(){
-        //计算最小缓冲区
         bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
-//        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateInHz
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRateInHz
-                , channelConfig, audioFormat, bufferSize);//创建AudioRecorder对象
+        if (bufferSize <= 0) {
+            bufferSize = sampleRateInHz;
+        }
+        ensureAudioRecord();
     }
 
-    public void start(){
-        if (isRunning) return;
-
-        float[] buffer = new float[bufferSize];
+    @SuppressLint("MissingPermission")
+    private synchronized boolean ensureAudioRecord() {
+        if (audioRecord != null && audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+            return true;
+        }
+        releaseAudioRecord();
         try {
-            audioRecord.startRecording();//开始录音
-        }catch (Exception e){
-            ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
-                    R.string.recorder_cannot_record),e.getMessage()));
-            Log.d(TAG, "startRecord: "+e.getMessage() );
+            audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRateInHz
+                    , channelConfig, audioFormat, bufferSize);
+        } catch (Exception e) {
+            Log.e(TAG, "ensureAudioRecord: " + e.getMessage());
+            audioRecord = null;
+        }
+        return audioRecord != null && audioRecord.getState() == AudioRecord.STATE_INITIALIZED;
+    }
+
+    private synchronized void releaseAudioRecord() {
+        if (audioRecord == null) {
+            return;
+        }
+        try {
+            if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                audioRecord.stop();
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "releaseAudioRecord stop: " + e.getMessage());
+        }
+        try {
+            audioRecord.release();
+        } catch (Exception e) {
+            Log.d(TAG, "releaseAudioRecord release: " + e.getMessage());
+        }
+        audioRecord = null;
+    }
+
+    @SuppressLint("MissingPermission")
+    private boolean startRecordingInternal() {
+        for (int i = 0; i < 2; i++) {
+            if (!ensureAudioRecord()) {
+                continue;
+            }
+            try {
+                audioRecord.startRecording();
+                if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                    return true;
+                }
+                Log.d(TAG, "startRecordingInternal: invalid recording state="
+                        + audioRecord.getRecordingState());
+            } catch (Exception e) {
+                Log.d(TAG, "startRecordingInternal: " + e.getMessage());
+            }
+            releaseAudioRecord();
+            try {
+                Thread.sleep(120);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
+                R.string.recorder_cannot_record), "AudioRecord is not initialized"));
+        return false;
+    }
+
+    public synchronized void start(){
+        if (isRunning) return;
+        if (!startRecordingInternal()) {
+            isRunning = false;
+            return;
         }
 
         isRunning = true;
+        float[] buffer = new float[bufferSize];
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (isRunning) {
-                    //判断是否处于录音状态，state!=3，说明没有处于录音的状态
-                    if (audioRecord.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
+                    AudioRecord currentRecord = audioRecord;
+                    if (currentRecord == null
+                            || currentRecord.getState() != AudioRecord.STATE_INITIALIZED
+                            || currentRecord.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
                         isRunning = false;
-                        Log.d(TAG, String.format("录音失败，状态码：%d", audioRecord.getRecordingState()));
+                        Log.d(TAG, "record loop: AudioRecord is unavailable.");
                         break;
                     }
 
-                    //读录音的数据
-                    int bufferReadResult = audioRecord.read(buffer, 0, bufferSize,AudioRecord.READ_BLOCKING);
+                    int bufferReadResult = currentRecord.read(buffer, 0, bufferSize, AudioRecord.READ_BLOCKING);
+                    if (bufferReadResult > 0) {
+                        if (onDataListener!=null){
+                            onDataListener.onDataReceived(buffer,bufferReadResult);
+                        }
+                        continue;
+                    }
 
-                    if (onDataListener!=null){
-                        onDataListener.onDataReceived(buffer,bufferReadResult);
+                    Log.d(TAG, "record loop read error: " + bufferReadResult);
+                    if (bufferReadResult == AudioRecord.ERROR_DEAD_OBJECT
+                            || bufferReadResult == AudioRecord.ERROR_INVALID_OPERATION
+                            || bufferReadResult == AudioRecord.ERROR_BAD_VALUE) {
+                        isRunning = false;
+                        break;
                     }
                 }
-                try {
-                    if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-                        audioRecord.stop();//停止录音
+
+                AudioRecord currentRecord = audioRecord;
+                if (currentRecord != null) {
+                    try {
+                        if (currentRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                            currentRecord.stop();
+                        }
+                    } catch (Exception e) {
+                        Log.d(TAG, "stop after loop: " + e.getMessage());
                     }
-                }catch (Exception e){
-                    ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
-                            R.string.recorder_stop_record_error),e.getMessage()));
-                    Log.d(TAG, "startRecord: "+e.getMessage() );
                 }
             }
         }).start();
     }
 
     /**
-     * 停止录音。当录音停止后，监听列表中的监听器全部删除。
+     * 停止录音。这里只停止录音循环，实际资源会在录音线程退出后释放。
      */
     public void stopRecord() {
         isRunning = false;
