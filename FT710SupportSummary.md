@@ -15,7 +15,7 @@
 ### 1. FT-710 独立机型支持
 
 - 新增 `InstructionSet.YAESU_FT710`
-- 新增 `FT710Rig`
+- 新增 `YaesuFT710Rig`
 - 在 `rigaddress.txt` 中加入 `YAESU FT-710`
 - 配置列表中单独显示 FT-710，而不是继续复用 FTDX10 入口
 
@@ -83,7 +83,7 @@
 
 - `ft8cn/app/src/main/assets/rigaddress.txt`
 - `ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/InstructionSet.java`
-- `ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/FT710Rig.java`
+- `ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/YaesuFT710Rig.java`
 - `ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/Yaesu3RigConstant.java`
 
 ### 配置与调试
@@ -287,3 +287,83 @@
   - preserving this working baseline
   - validating repeatability
   - cautiously trimming non-essential debug or workaround layers only after A/B confirmation
+
+## Checkpoint 2026-04-17
+
+### Safe Baseline Snapshot
+
+- Current safe checkpoint commit:
+  - `73ae96f Stabilize FT-710 USB TX path and debug cleanup`
+- Branch:
+  - `Feature/FT710Support`
+- This commit is intended as the new rollback-safe baseline before touching CQ state-machine behavior.
+
+### End-to-End Repair Chain
+
+- The final effective repair direction was not a single parameter tweak.
+- The working chain was built in this order:
+  - split FT-710 out from the inherited FTDX10 behavior
+  - default FT-710 control mode to `CAT`
+  - stop FT-710 from inheriting DX10-style background CAT polling
+  - disable FT-710 USB CAT background read loop and move to write-only CAT behavior
+  - stabilize local USB audio playback toward the FT-710 composite USB audio device
+  - pause recorder before USB TX and restore it after TX
+  - add TX-side tracing and route snapshots so the whole boundary could be observed in one log
+  - keep a small FT-710-only PTT tail hold so `PTT OFF` does not cut the final part of FT8 audio too early
+
+### What Is Now Considered Core To The Fix
+
+- The following items are now treated as core to the currently successful FT-710 path:
+  - FT-710 dedicated rig branch
+  - FT-710 CAT write-only behavior
+  - no serial background read loop for FT-710 USB CAT
+  - no inherited DX10 CAT polling during FT-710 USB use
+  - stable local USB `AudioTrack` playback path
+  - recorder pause/resume around FT-710 USB TX
+
+### What Is Not Yet Proven As Root Cause
+
+- The following items may still be helpful, but are not yet isolated as the decisive root fix:
+  - FT-710 USB audio pre-roll / post-roll padding
+  - FT-710-only PTT tail-hold duration tuning
+  - detailed debug traces and route snapshots
+
+### Timing Clarification
+
+- There are now three separate timing concepts in the code and they should not be confused:
+  - `transmitDelay`
+    - launch offset inside each 15-second FT8 cycle
+    - used to leave time for decode and scheduling
+  - `pttDelay`
+    - wait time after `PTT ON` and before sending FT8 audio
+    - configured from the settings page
+  - `FT710_TX_TAIL_HOLD_MS`
+    - FT-710-only wait time after audio playback finishes and before `PTT OFF`
+    - this is not the same as `pttDelay`
+
+### CQ Logic Status
+
+- A new behavioral concern was observed after the TX path became stable:
+  - under some conditions the app may remain in activated state and continue calling `CQ`
+  - this appears as:
+    - target callsign stays `CQ`
+    - function order stays `6`
+    - TX continues with `CQ <MYCALL> <GRID>`
+- Current judgment:
+  - this is more likely a shared FT8 transmit state-machine behavior than an FT-710-only bug
+  - the logic lives primarily in the common `FT8TransmitSignal` state machine
+- Decision at this checkpoint:
+  - do not change CQ auto-return behavior yet
+  - first compare with the intended behavior on non-FT710 models
+
+### Next Action Plan
+
+- Freeze `73ae96f` as the current known-good baseline.
+- Review shared CQ behavior against non-FT710 rigs before making any logic change.
+- Focus the next round on:
+  - whether “return to CQ after QSO” should also clear activation
+  - whether manual `resetToCQ()` and automatic state-machine `resetToCQ()` should behave differently
+  - whether current UI button state matches the real transmit activation state
+- Until that comparison is complete:
+  - avoid changing the FT-710 USB TX/audio chain
+  - avoid removing the FT-710 write-only CAT architecture

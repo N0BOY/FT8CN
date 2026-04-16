@@ -68,7 +68,6 @@ import com.bg7yoz.ft8cn.log.ThirdPartyService;
 import com.bg7yoz.ft8cn.rigs.BaseRig;
 import com.bg7yoz.ft8cn.rigs.BaseRigOperation;
 import com.bg7yoz.ft8cn.rigs.ElecraftRig;
-import com.bg7yoz.ft8cn.rigs.FT710Rig;
 import com.bg7yoz.ft8cn.rigs.Flex6000Rig;
 import com.bg7yoz.ft8cn.rigs.FlexNetworkRig;
 import com.bg7yoz.ft8cn.rigs.GuoHeQ900Rig;
@@ -90,6 +89,7 @@ import com.bg7yoz.ft8cn.rigs.Yaesu38Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu38_450Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu39Rig;
 import com.bg7yoz.ft8cn.rigs.YaesuDX10Rig;
+import com.bg7yoz.ft8cn.rigs.YaesuFT710Rig;
 import com.bg7yoz.ft8cn.spectrum.SpectrumListener;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -385,7 +385,7 @@ public class MainViewModel extends ViewModel {
 
             private boolean isFt710WorkaroundEnabled() {
                 return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
-                        || baseRig instanceof FT710Rig;
+                        || baseRig instanceof YaesuFT710Rig;
             }
             private boolean needControlSco() {//根据控制模式，确定是不是需要开启SCO
                 if (GeneralVariables.connectMode != ConnectMode.BLUE_TOOTH) {
@@ -789,7 +789,7 @@ public class MainViewModel extends ViewModel {
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
-        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710 || baseRig instanceof FT710Rig) {
+        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710 || baseRig instanceof YaesuFT710Rig) {
             stopSco();
         }
         AudioRouteHelper.publishDeviceReport("USB cable connected");
@@ -992,7 +992,7 @@ public class MainViewModel extends ViewModel {
                 baseRig = new YaesuDX10Rig();//YAESU DX10 DX101
                 break;
             case InstructionSet.YAESU_FT710:
-                baseRig = new FT710Rig();//YAESU FT-710
+                baseRig = new YaesuFT710Rig();//YAESU FT-710
                 break;
             case InstructionSet.KENWOOD_TS590:
                 baseRig = new KenwoodTS590Rig();//KENWOOD TS590

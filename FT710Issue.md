@@ -42,7 +42,7 @@
 ### FT-710 独立分支化
 
 - 新增独立指令集：`InstructionSet.YAESU_FT710 = 23`
-- 新增独立机型类：`FT710Rig`
+- 新增独立机型类：`YaesuFT710Rig`
 - 在 `rigaddress.txt` 中加入 `YAESU FT-710`
 - 配置页中将 FT-710 排在 FTDX10 前面
 - 选择 FT-710 时默认控制方式切为 `CAT`
@@ -67,7 +67,7 @@
 
 ### 当前仍在保留验证的逻辑
 
-- `FT710Rig.setUsbModeToRig()` 目前采用：
+- `YaesuFT710Rig.setUsbModeToRig()` 目前采用：
   - 先切 `RTTY-U`
   - 短延时后再切回 `DATA-U`
 - 这是依据“手动从 `RTTY-U` 切回 `DATA-U` 后曾出现输出”这条关键线索保留的待验证逻辑。
@@ -335,3 +335,67 @@
   - stability across repeated TX/RX cycles
   - receive recovery after TX
   - whether debug-only traces should become optional or be reduced
+
+## Latest Checkpoint 2026-04-17
+
+### Safe Commit Baseline
+
+- Safe checkpoint commit created:
+  - `73ae96f Stabilize FT-710 USB TX path and debug cleanup`
+- Branch:
+  - `Feature/FT710Support`
+- Purpose:
+  - preserve the currently working FT-710 USB TX path before touching CQ state-machine behavior
+
+### Updated Current Conclusion
+
+- FT-710 `DATA-U` transmit is now considered basically repaired at the USB/CAT/audio boundary level.
+- The most credible working repair chain is:
+  - FT-710 dedicated rig branch
+  - FT-710 CAT write-only mode
+  - no USB serial background read loop
+  - no inherited DX10 polling behavior
+  - stable local USB audio playback path
+  - recorder pause/resume around TX
+- Remaining concern has shifted from “no RF output” to “post-QSO or CQ activation behavior may not match expectation”.
+
+### Important Timing Distinction
+
+- The FT-710 TX tail-hold is not the same thing as the user-configurable `PTT delay`.
+- Current timing concepts:
+  - `transmitDelay`
+    - cycle scheduling offset
+  - `pttDelay`
+    - wait after `PTT ON` before audio starts
+  - FT-710 TX tail-hold
+    - wait after audio ends before `PTT OFF`
+- Therefore:
+  - adjusting settings-page `PTT delay` does not change the FT-710 TX tail-hold behavior
+
+### New Behavior Risk To Evaluate
+
+- A new observation needs careful comparison with non-FT710 behavior:
+  - after the TX path became stable, the app may stay in activated `CQ` mode and continue transmitting `CQ`
+  - user screenshot characteristics:
+    - target callsign is `CQ`
+    - function order is `6`
+    - TX message is `CQ <MYCALL> <GRID>`
+- Current interpretation:
+  - this does not yet prove an FT-710-only bug
+  - this may be inherited shared behavior from the common transmit state machine
+  - the main logic is in `FT8TransmitSignal.parseMessageToFunction(...)` and `resetToCQ()`
+
+### Decision For The Next Round
+
+- Do not modify CQ auto-return logic blindly in the FT-710 branch.
+- First compare the current CQ/state-machine behavior with non-FT710 rigs.
+- Only after that comparison decide whether to:
+  - keep current behavior
+  - clear activation when the state machine automatically returns to `CQ`
+  - separate manual `resetToCQ()` behavior from automatic state-machine `resetToCQ()` behavior
+
+### Immediate Next Actions
+
+- Treat `73ae96f` as the new rollback-safe baseline.
+- Review shared CQ behavior in common transmit logic before making any functional change.
+- Keep the FT-710 USB TX path frozen while evaluating CQ/state behavior.
