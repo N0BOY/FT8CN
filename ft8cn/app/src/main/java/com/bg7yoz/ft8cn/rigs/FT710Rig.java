@@ -1,34 +1,23 @@
 package com.bg7yoz.ft8cn.rigs;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-
 import com.bg7yoz.ft8cn.GeneralVariables;
 
+/**
+ * FT-710 专用机型分支。
+ * 目前主要与 FTDX10 共用大部分 CAT 行为，但会显式关闭后台轮询，
+ * 并且不主动改写电台模式，把模式保持权交给用户和 USB 音频链路。
+ */
 public class FT710Rig extends YaesuDX10Rig {
     private static final String TAG = "FT710Rig";
-    private static final long DATA_MODE_SETTLE_DELAY_MS = 180L;
+
+    @Override
+    protected boolean shouldEnableBackgroundPolling() {
+        return false;
+    }
 
     @Override
     public void setUsbModeToRig() {
-        if (getConnector() == null) {
-            return;
-        }
-        Log.d(TAG, "setUsbModeToRig: switch FT-710 via RTTY-U -> DATA-U");
-        GeneralVariables.debugLog(TAG, "mode switch request: RTTY-U -> DATA-U");
-        getConnector().sendData(Yaesu3RigConstant.setOperationRTTY_U_Mode());
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (getConnector() == null || !isConnected()) {
-                    GeneralVariables.debugLog(TAG, "mode switch aborted before DATA-U");
-                    return;
-                }
-                getConnector().sendData(Yaesu3RigConstant.setOperationDATA_U_Mode());
-                GeneralVariables.debugLog(TAG, "mode switch settled to DATA-U");
-            }
-        }, DATA_MODE_SETTLE_DELAY_MS);
+        GeneralVariables.debugLog(TAG, "mode switch skipped for FT-710; preserve current rig mode");
     }
 
     @Override

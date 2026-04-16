@@ -83,7 +83,8 @@ public final class AudioRouteHelper {
                 .append('\n');
         if (audioTrack != null) {
             report.append("track state=").append(audioTrack.getState())
-                    .append(", playState=").append(audioTrack.getPlayState());
+                    .append(", playState=").append(audioTrack.getPlayState())
+                    .append(", routed=").append(describeDevice(audioTrack.getRoutedDevice()));
             if (bindResult != null) {
                 report.append(", preferredBound=").append(bindResult);
             }
@@ -99,13 +100,13 @@ public final class AudioRouteHelper {
 
         String result = report.toString();
         GeneralVariables.setAudioRouteReport(result);
-        Log.d(TAG, result);
         GeneralVariables.debugLog(TAG, "route " + reason
                 + " IN=" + describeDevice(preferredInput)
                 + " OUT=" + describeDevice(preferredOutput)
                 + (bindResult == null ? "" : " bind=" + bindResult));
 
-        if (GeneralVariables.connectMode == ConnectMode.USB_CABLE) {
+        if (GeneralVariables.connectMode == ConnectMode.USB_CABLE
+                && GeneralVariables.isDebugMode()) {
             ToastMessage.show(buildShortSummary(reason, preferredInput, preferredOutput), true);
         }
     }

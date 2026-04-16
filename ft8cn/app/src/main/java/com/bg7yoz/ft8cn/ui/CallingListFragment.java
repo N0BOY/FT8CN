@@ -87,6 +87,7 @@ public class CallingListFragment extends Fragment {
                 } else {
                     mainViewModel.hamRecorder.startRecord();
                 }
+                updateReceiveButtonUi(mainViewModel.hamRecorder.isRunning());
             }
         });
         //清除按钮
@@ -175,18 +176,13 @@ public class CallingListFragment extends Fragment {
         mainViewModel.mutableIsRecording.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                if (aBoolean) {
-                    binding.timerImageButton.setImageResource(R.drawable.ic_baseline_mic_red_48);
-                    binding.timerImageButton.setAnimation(AnimationUtils.loadAnimation(getContext()
-                            , R.anim.view_blink));
-                } else {
-                    if (mainViewModel.hamRecorder.isRunning()) {
-                        binding.timerImageButton.setImageResource(R.drawable.ic_baseline_mic_48);
-                    } else {
-                        binding.timerImageButton.setImageResource(R.drawable.ic_baseline_mic_off_48);
-                    }
-                    binding.timerImageButton.setAnimation(null);
-                }
+                updateReceiveButtonUi(Boolean.TRUE.equals(aBoolean));
+            }
+        });
+        mainViewModel.ft8TransmitSignal.mutableIsTransmitting.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                updateReceiveButtonUi(Boolean.TRUE.equals(mainViewModel.mutableIsRecording.getValue()));
             }
         });
 
@@ -206,12 +202,37 @@ public class CallingListFragment extends Fragment {
             }
         });
 
+        updateReceiveButtonUi(mainViewModel.hamRecorder.isRunning());
         return binding.getRoot();
     }
 
     /**
      * 设置列表滑动动作
      */
+    private void updateReceiveButtonUi(boolean isRecording) {
+        if (binding == null) {
+            return;
+        }
+
+        if (isRecording) {
+            binding.timerImageButton.setImageResource(R.drawable.ic_baseline_mic_red_48);
+            binding.timerImageButton.setAnimation(AnimationUtils.loadAnimation(getContext()
+                    , R.anim.view_blink));
+        } else {
+            if (mainViewModel.hamRecorder.isRunning()) {
+                binding.timerImageButton.setImageResource(R.drawable.ic_baseline_mic_48);
+            } else {
+                binding.timerImageButton.setImageResource(R.drawable.ic_baseline_mic_off_48);
+            }
+            binding.timerImageButton.setAnimation(null);
+        }
+
+        boolean enabled = !mainViewModel.ft8TransmitSignal.isTransmitting();
+        binding.timerImageButton.setEnabled(enabled);
+        binding.timerImageButton.setClickable(enabled);
+        binding.timerImageButton.setAlpha(enabled ? 1.0f : 0.45f);
+    }
+
     private void initRecyclerViewAction() {
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_DRAG
                 , ItemTouchHelper.START | ItemTouchHelper.END) {

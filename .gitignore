@@ -1,9 +1,11 @@
 .gradle-local/
+.gradle-user/
 ft8cn/.gradle/
 ft8cn/.gradle-user/
 ft8cn/build/
 ft8cn/app/build/
 ft8cn/local.properties
+ft8cn/.android-home/
 .idea/
 *.iml
 *.apk

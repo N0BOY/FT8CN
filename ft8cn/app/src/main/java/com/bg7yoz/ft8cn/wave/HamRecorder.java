@@ -44,7 +44,6 @@ public class HamRecorder {
         this.onVoiceMonitorChanged=onVoiceMonitorChanged;
     }
 
-
     public void setDataFromMic(){
         isMicRecord=true;
         startRecord();
@@ -97,8 +96,7 @@ public class HamRecorder {
                 }
             });
         }
-            isRunning=true;
-
+        isRunning = true;
     }
 
     private void doDataMonitorChanged(){

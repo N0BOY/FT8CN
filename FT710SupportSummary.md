@@ -110,3 +110,180 @@
 - `DATA-U` 下仍然可能出现 `ALC=0 / PO=0`
 - 根因尚未完全锁定
 - 下一阶段应优先利用新调试开关和 Debug 面板继续定位
+## Latest Findings 2026-04-15
+
+### Verified But Ineffective
+
+- Disabling FT-710 auto `RTTY-U -> DATA-U` switching did not change the symptom.
+- Fully releasing `AudioRecord` before TX did not change the symptom.
+- Switching FT-710 TX audio to a media-player-like path:
+  - `48kHz`
+  - `stereo`
+  - `16bit`
+  - `MODE_STREAM`
+  still did not produce RF output.
+
+### New Critical Log Evidence
+
+- Captured log:
+  - `FT8TransmitSignal partial write expected=1213456, actual=0, trackMode=1`
+- Conclusion:
+  - The failure has narrowed to the `AudioTrack` stream write stage
+  - Audio is not successfully entering the playback stream
+
+### Important Field Observation
+
+- Before FT8CN connects, `DATA-U + manual PTT + music player` works on FT-710.
+- After FT8CN connects to the serial interface, music playback disappears.
+- Killing FT8CN does not immediately restore playback.
+- Restarting the music player app restores playback.
+
+### Working Hypotheses
+
+- FT8CN serial connection may disturb the Android USB audio playback session on the FT-710 composite USB device.
+- `AudioTrack.write(...) == 0` is now the most direct technical failure point and should remain the top investigation target.
+
+## Latest Change 2026-04-15
+
+- Refocused debugging priority onto the observed symptom:
+  - after FT8CN connects CAT, even an external music player loses FT-710 audio
+- Implemented serial-side mitigation and instrumentation:
+  - `CableSerialPort` now matches the selected USB device by `deviceId/productId` before falling back
+  - `CableSerialPort` now logs full USB interface layout for the chosen device
+  - `CableSerialPort` now emits audio-route snapshots before and after serial open
+  - `CdcAcmSerialDriver` now prefers non-forced interface claims and only retries with forced claim when necessary
+- Reason:
+  - this symptom suggests the serial open path may be disturbing the FT-710 composite USB audio session at the Android USB layer
+
+## Added Observation 2026-04-16
+
+- The debug screenshots also show at least one TX sequence that starts and then cuts off roughly 1 second later.
+- Representative sequence:
+  - `15:46:15` TX start / `playFT8Signal`
+  - `15:46:16` `finishPlaybackOnce`
+  - `15:46:16` `afterPlayAudio release track`
+  - `15:46:16` `PTT OFF`
+- This is now considered a primary clue because it suggests early playback termination is part of the FT-710 failure path.
+
+## Breakthrough 2026-04-16
+
+### Confirmed Effective
+
+- Suspending the FT-710 CAT serial background read loop stops FT8CN from breaking the Android music player.
+- In the same diagnostic build, FT8 playback audio and external music playback can be heard together.
+
+### Confirmed Ineffective
+
+- Suspending only the FT-710 USB mic recorder did not solve the player breakage.
+
+### Current Best Interpretation
+
+- The dominant conflict is now believed to be on the USB serial read / polling side, not on the USB audio playback side alone.
+- For FT-710, the inherited DX10 CAT model is too aggressive for this CP2105 + USB audio coexistence scenario.
+
+### Formalized Code Direction
+
+- FT-710 should use a dedicated CAT behavior branch rather than only debug-time diagnostics.
+- FT-710 USB CAT now moves toward:
+  - write-only CAT behavior
+  - no `SerialInputOutputManager` background read loop
+  - no inherited DX10 background polling for read-frequency / read-meter traffic
+
+## End-of-Day Notes 2026-04-16
+
+### What We Believe Now
+
+- The FT-710 work has crossed an important boundary:
+  - FT8CN no longer appears to be destroying the external music player session in the latest write-only CAT direction
+  - FT8 audio can coexist with external music audio
+- Because of that, the remaining FT-710 transmit problem should now be narrowed toward radio-side `DATA-U` behavior instead of general Android playback failure.
+
+### Product Behavior Boundary
+
+- Merely opening FT8CN should not pause or damage existing media playback.
+- If FT8CN ever manages media focus, that should only happen during real TX and should ideally be optional.
+- Therefore, historical behavior where CAT connect broke the player was treated as a bug, not an acceptable UX tradeoff.
+
+### Planned Next Optimization Work
+
+- strengthen FT-710-only TX debug traces
+- reduce FT-710 TX flow to a minimal sequence
+- keep FT-710 isolated from FTDX10 behavior
+- postpone restoration of CAT readback / polling until RF output is stable
+- recover source files whose Chinese comments were corrupted by a past commit, using git history as the source of truth
+
+## Today Implementation 2026-04-16
+
+### Code Changes Added
+
+- stronger FT-710-only TX boundary logs in `MainViewModel`
+- stronger FT-710 TX lifecycle logs in `FT8TransmitSignal`
+- extra audio-route reports during FT-710 TX playback and cleanup
+- FT-710-only `250ms` PTT tail hold after playback completion and before `PTT OFF`
+
+### Intent Of This Round
+
+- make the FT-710 transmit path easier to reason about from a single log capture
+- keep using the FT-710 minimal USB TX direction:
+  - CAT write-only
+  - no read loop
+  - no DX10 polling
+  - local audio playback path
+- reduce the chance that the final part of USB audio is being cut off too early by an early `PTT OFF`
+
+## Code Hygiene Follow-up
+
+- Some files contain Chinese comment corruption introduced by an earlier commit.
+- Example already observed:
+  - `ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java`
+  - corrupted fragments such as `?????????`
+- This should be treated as a later cleanup task, not mixed into the current FT-710 TX debugging.
+- Expected cleanup approach:
+  - locate the last good version from git history
+  - restore only comments / human-readable text
+  - avoid changing active logic while doing the encoding cleanup
+
+## Latest Test Reading 2026-04-16
+
+### What The Log Now Confirms
+
+- FT-710 CAT write-only mode stays active without breaking USB audio routing.
+- During TX:
+  - preferred output remains `USB_HEADSET`
+  - `bind=true`
+  - audio stream writes through essentially completely
+- This is the strongest evidence so far that the Android-side playback chain is now working correctly.
+
+### New Follow-up Change
+
+- Added FT-710-only USB audio padding in `FT8TransmitSignal`:
+  - `250ms` silent pre-roll
+  - `250ms` silent post-roll
+- Rationale:
+  - if FT-710 `DATA-U` needs a stable USB stream before it starts accepting modulation, this is a better-targeted fix than only adjusting PTT timing
+
+## Confirmed Working State 2026-04-16
+
+### User Verification
+
+- FT-710 now produces RF power in `DATA-U`.
+- User verified that:
+  - the previous build produced RF power in `DATA-U`
+  - the newer build with USB audio padding also produces RF power in `DATA-U`
+
+### Interpretation
+
+- The decisive working change is currently believed to be the FT-710 USB/CAT architecture shift:
+  - CAT write-only mode
+  - no serial read loop
+  - no DX10 polling inheritance during CAT USB operation
+  - stable USB audio playback path
+- The added USB padding may still be beneficial, but it is not yet isolated as the root fix.
+
+### Practical Meaning
+
+- The project has now crossed from “unable to modulate in `DATA-U`” into “`DATA-U` TX works”.
+- Future work should prioritize:
+  - preserving this working baseline
+  - validating repeatability
+  - cautiously trimming non-essential debug or workaround layers only after A/B confirmation

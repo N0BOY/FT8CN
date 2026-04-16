@@ -161,8 +161,9 @@ public class MicRecorder {
     /**
      * 停止录音。这里只停止录音循环，实际资源会在录音线程退出后释放。
      */
-    public void stopRecord() {
+    public synchronized void stopRecord() {
         isRunning = false;
+        releaseAudioRecord();
     }
 
     public OnDataListener getOnDataListener() {
