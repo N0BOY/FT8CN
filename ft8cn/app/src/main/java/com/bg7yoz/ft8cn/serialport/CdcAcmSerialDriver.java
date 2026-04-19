@@ -109,15 +109,10 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
             if (usbInterface == null) {
                 throw new IOException("Interface is null: " + name);
             }
-            if (mConnection.claimInterface(usbInterface, false)) {
-                Log.d(TAG, "claimInterface(" + name + ") succeeded without force");
-                return;
-            }
-            Log.w(TAG, "claimInterface(" + name + ") failed without force, retrying with force");
             if (!mConnection.claimInterface(usbInterface, true)) {
                 throw new IOException("Could not claim " + name);
             }
-            Log.w(TAG, "claimInterface(" + name + ") succeeded with force");
+            Log.d(TAG, "claimInterface(" + name + ") succeeded with force");
         }
 
         private void openSingleInterface() throws IOException {

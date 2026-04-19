@@ -1,5 +1,7 @@
 .gradle-local/
 .gradle-user/
+.android-home/
+.gradle-home/
 ft8cn/.gradle/
 ft8cn/.gradle-user/
 ft8cn/build/

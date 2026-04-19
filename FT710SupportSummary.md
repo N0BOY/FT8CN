@@ -367,3 +367,235 @@
 - Until that comparison is complete:
   - avoid changing the FT-710 USB TX/audio chain
   - avoid removing the FT-710 write-only CAT architecture
+
+## Repair Thinking Snapshot 2026-04-17
+
+### Core Judgment
+
+- At this stage, the FT-710 repair should be understood as a layered fix, not a single magic parameter.
+- The strongest evidence points to USB coexistence as the real breakthrough:
+  - once FT8CN stopped disturbing the FT-710 composite USB serial/audio coexistence, the TX path became stable enough for `DATA-U` to produce RF
+- Because of that, sample rate, channel count, or one-off audio format tweaks should no longer be treated as the primary root cause.
+
+### What Currently Looks Like The Real Fix Path
+
+- FT-710 was split into its own rig branch instead of continuing to behave like a lightly modified FTDX10.
+- FT-710 stopped inheriting the DX10 background CAT polling model.
+- FT-710 USB CAT moved to a write-heavy / no background read-loop path.
+- FT-710 TX preparation stopped aggressively forcing a mode rewrite every time.
+- These items align best with the observed field behavior and should be treated as the protected baseline.
+
+### What Looks More Like Supportive Improvement
+
+- Recorder pause / resume around TX
+- safer `AudioRecord` reinitialization
+- route snapshots and richer debug traces
+- media-focus handling during TX
+- UI state/button refresh
+- FT-710 default `CAT` selection
+- These are still valuable, but they currently look more like stability and usability improvements than the root fix itself.
+
+### What Is Still In The Gray Zone
+
+- FT-710 pre-roll / post-roll padding
+- FT-710 tail-hold duration
+- `AudioRouteHelper.bindTrackToPreferredOutput(...)`
+- exact USB `deviceId/productId` match strategy
+- safer CDC ACM `claimInterface` fallback logic
+- These may help, but they are not yet proven to be indispensable. If we optimize further, they should be tested one by one with A/B comparison.
+
+### Practical Rule For Follow-up Work
+
+- Keep the proven FT-710 minimal path frozen.
+- Prefer subtraction over addition.
+- Touch only one uncertain variable per round.
+- Do not mix CQ behavior changes into FT-710 USB/TX work unless evidence shows they are directly linked.
+- Keep all verbose debug output strictly gated by the debug switch.
+
+## Subtraction Validation Checklist 2026-04-17
+
+### Verification Snapshot 2026-04-19
+
+- Verified normal after rollback:
+  - `TX_AUDIO_FOCUS_SETTLE_MS = 0`
+  - `FT710_USB_AUDIO_PREROLL_MS = 0`
+  - `FT710_USB_AUDIO_POSTROLL_MS = 0`
+  - `FT710_TX_TAIL_HOLD_MS = 0`
+  - FT-710 path skips `bindTrackToPreferredOutput(...)`
+  - rollback of exact `deviceId/productId` USB matching in `CableSerialPort`
+  - rollback of the non-forced-first `claimInterfaceSafely(...)` strategy in `CdcAcmSerialDriver`
+  - FT-710 local playback parameters rolled back to near-`main` behavior:
+    - sample rate follows `GeneralVariables.audioSampleRate`
+    - output bit depth follows `GeneralVariables.audioOutput32Bit`
+    - `trackMode = MODE_STATIC`
+    - mono `float2Short(...)` path
+- Current interpretation:
+  - the FT-710 working path does not currently appear to depend on the added timing compensations
+  - the FT-710 working path also does not currently appear to depend on explicit `AudioTrack.setPreferredDevice(...)` binding
+  - the FT-710 working path does not currently appear to depend on exact `deviceId/productId` matching
+  - the FT-710 working path does not currently appear to depend on the safer non-forced-first CDC ACM claim strategy
+  - the FT-710 working path also does not currently appear to depend on the previously added FT-710-specific local playback parameter bundle
+- Remaining high-confidence core path after subtraction:
+  - dedicated FT-710 rig branch
+  - no inherited DX10 background CAT polling
+  - FT-710 CAT write-only / no serial read loop
+  - preserve current rig mode instead of forcing a mode rewrite
+- Remaining work direction:
+  - summarize confirmed non-core changes that can likely be cleaned up
+  - re-check whether any FT-710-specific logic is still left in `FT8TransmitSignal` that is now effectively dead or redundant
+
+### Live Handoff Snapshot
+
+- Last user-confirmed normal build:
+  - rollback of FT-710 local playback parameter bundle to near-`main` behavior
+- Current build already field-verified:
+  - `app-debug.apk`
+  - build time: `2026-04-19 22:19:46`
+- Current code state under test:
+  - `FT710_TX_TAIL_HOLD_MS = 0`
+  - `TX_AUDIO_FOCUS_SETTLE_MS = 0`
+  - `FT710_USB_AUDIO_PREROLL_MS = 0`
+  - `FT710_USB_AUDIO_POSTROLL_MS = 0`
+  - sample rate follows `GeneralVariables.audioSampleRate`
+  - output bit depth follows `GeneralVariables.audioOutput32Bit`
+  - `trackMode = MODE_STATIC`
+  - FT-710 local PCM path changed from stereo duplication back to mono `float2Short(...)`
+  - FT-710 path still skips `bindTrackToPreferredOutput(...)`
+  - `CableSerialPort` currently uses relaxed vendor-only matching
+  - `CdcAcmSerialDriver` currently uses forced `claimInterface(..., true)`
+- Immediate next expected action:
+  - decide whether to stop subtraction and start cleanup / consolidation
+
+### Priority 1
+
+- `TX_AUDIO_FOCUS_SETTLE_MS`
+  - Why test first:
+    - compared with `main`, this is a newly introduced timing delay
+    - although it is not FT-710-only, it is large enough to materially affect TX start timing
+    - it should be validated before the FT-710-only timing compensations
+  - Code:
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L47)
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L605)
+  - A/B method:
+    - keep everything else fixed and reduce the settle delay to `0`
+  - Main observation:
+    - whether media pause behavior remains acceptable
+    - whether FT8 start timing becomes cleaner
+    - whether FT-710 RF output remains stable
+
+- FT-710 USB pre-roll
+  - Why test second:
+    - among the FT-710-only timing additions, this is the one most likely to shift the effective FT8 symbol start later inside the 15-second slot
+  - Code:
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L48)
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L471)
+  - A/B method:
+    - remove pre-roll only, leave post-roll and the rest unchanged
+  - Main observation:
+    - whether `DATA-U` still produces stable RF
+    - whether start-of-TX regresses to brief pulse / no power
+    - whether slot timing discipline improves
+
+- FT-710 USB post-roll
+  - Why test third:
+    - it does not move the FT8 symbol start, but it does extend occupied TX time and compress the return-to-RX margin
+  - Code:
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L49)
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L472)
+  - A/B method:
+    - remove post-roll only, leave pre-roll and the rest unchanged
+  - Main observation:
+    - whether RX recovery margin improves
+    - whether FT-710 still accepts modulation reliably
+
+- FT-710 TX tail-hold
+  - Why test fourth:
+    - it is still a local timing compensation, but it occurs after audio playback and is less likely than pre-roll to disturb FT8 slot discipline
+  - Code:
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L46)
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L133)
+  - A/B method:
+    - keep everything else fixed and reduce the FT-710 tail-hold to `0` or a much smaller value
+  - Main observation:
+    - whether the FT8 tail is cut off
+    - whether RF output changes
+    - whether TX ends too early
+
+- Preferred output binding
+  - Why test after timing items:
+    - this reinforces audio routing, but the main breakthrough currently looks serial-side rather than route-binding-side
+  - Code:
+    - [AudioRouteHelper.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/audio/AudioRouteHelper.java#L41)
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java#L769)
+  - A/B method:
+    - disable only the FT-710 `bindTrackToPreferredOutput(...)` call
+  - Main observation:
+    - whether USB headset routing remains stable
+    - whether RF output remains stable
+    - whether media coexistence regresses
+
+### Priority 2
+
+- Exact `deviceId/productId` USB matching
+  - Why test next:
+    - this is strong defensive matching logic, but it may be more robustness than root cause
+  - Code:
+    - [CableSerialPort.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/connector/CableSerialPort.java#L56)
+    - [CableSerialPort.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/connector/CableSerialPort.java#L107)
+    - [CableSerialPort.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/connector/CableSerialPort.java#L110)
+  - A/B method:
+    - relax the extra exact-match preference while preserving FT-710 write-only CAT behavior
+  - Main observation:
+    - whether device selection becomes unstable
+    - whether player breakage or CAT misbinding returns
+
+- Safe CDC ACM `claimInterface` fallback
+  - Why test after that:
+    - this could still matter for composite USB coexistence, but it is more invasive than tail-hold or padding
+  - Code:
+    - [CdcAcmSerialDriver.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/serialport/CdcAcmSerialDriver.java#L108)
+    - [CdcAcmSerialDriver.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/serialport/CdcAcmSerialDriver.java#L112)
+    - [CdcAcmSerialDriver.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/serialport/CdcAcmSerialDriver.java#L117)
+  - A/B method:
+    - revert only the claim strategy, keep the FT-710 no-read-loop architecture in place
+  - Main observation:
+    - whether CAT connect again disturbs USB audio
+    - whether headset icon or player behavior regresses
+
+### Priority 3
+
+- FT-710 local playback parameter tweaks
+  - Why test later:
+    - history already suggests isolated sample-format experimentation was not the decisive fix
+  - Code:
+    - [FT8TransmitSignal.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/ft8transmit/FT8TransmitSignal.java)
+  - A/B method:
+    - only after the higher-priority items are settled, compare the FT-710 playback path with the common path
+  - Main observation:
+    - whether `AudioTrack.write(...)` regressions or `0` RF output return
+
+### Do Not A-B First
+
+- FT-710 dedicated rig branch
+  - [YaesuFT710Rig.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/YaesuFT710Rig.java)
+- no inherited DX10 background polling
+  - [YaesuDX10Rig.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/YaesuDX10Rig.java#L29)
+  - [YaesuFT710Rig.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/YaesuFT710Rig.java#L14)
+- FT-710 CAT write-only / no serial read loop
+  - [CableSerialPort.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/connector/CableSerialPort.java#L161)
+  - [CableSerialPort.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/connector/CableSerialPort.java#L286)
+- preserve mode instead of forcing mode rewrite
+  - [YaesuFT710Rig.java](/d:/Workshop/FT8CN/ft8cn/app/src/main/java/com/bg7yoz/ft8cn/rigs/YaesuFT710Rig.java#L19)
+- These are the current best candidates for the real repair chain and should stay frozen while we test the secondary items.
+
+### Deferred Observation
+
+- Low-priority follow-up after current A-B convergence:
+  - review the user's subjective "timing still feels a bit off" observation against `main`
+  - separate two questions clearly:
+    - clock-sync / UTC offset behavior
+    - TX/RX micro-timing feel during the FT-710 transmit path
+  - current judgment:
+    - the core `UtcTimer.syncTime(...)` path is unchanged versus `main`
+    - the transmit execution path is not strictly identical to `main`
+  - therefore this should be revisited only after the higher-priority A-B rollback items are settled

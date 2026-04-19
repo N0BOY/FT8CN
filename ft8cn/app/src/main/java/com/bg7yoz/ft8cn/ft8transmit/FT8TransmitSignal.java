@@ -43,11 +43,7 @@ public class FT8TransmitSignal {
     private static final String TAG = "FT8TransmitSignal";
     // FT-710 USB 音频路径在播放结束边缘需要稍长一点的 PTT 尾巴，
     // 否则最后一小段 FT8 音频可能还没完全出线，电台就先退回 RX 了。
-    private static final long FT710_TX_TAIL_HOLD_MS = 450L;
-    private static final long TX_AUDIO_FOCUS_SETTLE_MS = 700L;
-    private static final int FT710_USB_AUDIO_PREROLL_MS = 250;
-    private static final int FT710_USB_AUDIO_POSTROLL_MS = 250;
-
+    private static final long FT710_TX_TAIL_HOLD_MS = 0L;
     private boolean transmitFreeText = false;
     private String freeText = "FREE TEXT";
 
@@ -115,22 +111,14 @@ public class FT8TransmitSignal {
         System.loadLibrary("ft8cn");
     }
 
-    private boolean isFt710TxCompatibilityMode() {
-        return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710;
-    }
-
     /**
      * 这里只控制“本地音频如何送进 FT-710”这一条最小输出路径，
      * 不负责 PTT、串口读写或录音暂停等外围行为。
      */
     private boolean shouldUseFt710MinimalUsbTxPath() {
-        return isFt710TxCompatibilityMode()
+        return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
                 && GeneralVariables.connectMode == ConnectMode.USB_CABLE
                 && GeneralVariables.controlMode == ControlMode.CAT;
-    }
-
-    private long getFt710TxTailHoldMillis() {
-        return shouldUseFt710MinimalUsbTxPath() ? FT710_TX_TAIL_HOLD_MS : 0L;
     }
 
     private long txLifecycleStartElapsedRealtime = 0L;
@@ -156,47 +144,13 @@ public class FT8TransmitSignal {
                 + ", ft710Minimal=" + shouldUseFt710MinimalUsbTxPath());
     }
 
-    private int getTxSampleRate() {
-        if (isFt710TxCompatibilityMode()) {
-            return 48000;
-        }
-        return GeneralVariables.audioSampleRate;
-    }
-
-    private boolean useFloatAudioOutput() {
-        if (isFt710TxCompatibilityMode()) {
-            return false;
-        }
-        return GeneralVariables.audioOutput32Bit;
-    }
-
-    private int getTrackMode() {
-        if (isFt710TxCompatibilityMode()) {
-            return AudioTrack.MODE_STREAM;
-        }
-        return AudioTrack.MODE_STATIC;
-    }
-
-    private int getChannelMask() {
-        if (isFt710TxCompatibilityMode()) {
-            return AudioFormat.CHANNEL_OUT_STEREO;
-        }
-        return AudioFormat.CHANNEL_OUT_MONO;
-    }
-
-    private int getChannelCount() {
-        if (isFt710TxCompatibilityMode()) {
-            return 2;
-        }
-        return 1;
-    }
-
     private int getTrackBufferSizeInBytes(int sampleRate, int channelMask,
-                                          boolean useFloatOutput, int requiredDataBytes) {
+                                          int channelCount, boolean useFloatOutput,
+                                          int requiredDataBytes) {
         int encoding = useFloatOutput ? AudioFormat.ENCODING_PCM_FLOAT : AudioFormat.ENCODING_PCM_16BIT;
         int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelMask, encoding);
         int bytesPerSample = useFloatOutput ? 4 : 2;
-        int fallbackSize = sampleRate * getChannelCount() * bytesPerSample;
+        int fallbackSize = sampleRate * channelCount * bytesPerSample;
         int targetSize = Math.max(fallbackSize, requiredDataBytes);
         if (minBufferSize > 0) {
             return Math.max(minBufferSize, targetSize);
@@ -446,78 +400,6 @@ public class FT8TransmitSignal {
         return temp;
     }
 
-    private short[] floatMonoToStereoShort(float[] buffer, float gain) {
-        short[] temp = new short[buffer.length * 2 + 16];
-        int outIndex = 0;
-        for (float sample : buffer) {
-            float x = sample * gain;
-            if (x > 1.0f) {
-                x = 1.0f;
-            } else if (x < -1.0f) {
-                x = -1.0f;
-            }
-            short pcm = (short) (x * 32767.0f);
-            temp[outIndex++] = pcm;
-            temp[outIndex++] = pcm;
-        }
-        return temp;
-    }
-
-    private short[] addFt710UsbAudioPadding(short[] audioData, int sampleRate) {
-        if (!shouldUseFt710MinimalUsbTxPath() || audioData == null || audioData.length == 0) {
-            return audioData;
-        }
-        int channelCount = getChannelCount();
-        int preRollFrames = Math.max(1, sampleRate * FT710_USB_AUDIO_PREROLL_MS / 1000);
-        int postRollFrames = Math.max(1, sampleRate * FT710_USB_AUDIO_POSTROLL_MS / 1000);
-        int preRollShorts = preRollFrames * channelCount;
-        int postRollShorts = postRollFrames * channelCount;
-        short[] padded = new short[preRollShorts + audioData.length + postRollShorts];
-        System.arraycopy(audioData, 0, padded, preRollShorts, audioData.length);
-        GeneralVariables.debugLog(TAG, "FT-710 USB audio padding preMs="
-                + FT710_USB_AUDIO_PREROLL_MS + ", postMs=" + FT710_USB_AUDIO_POSTROLL_MS
-                + ", preShorts=" + preRollShorts + ", postShorts=" + postRollShorts);
-        return padded;
-    }
-
-    private int getFrameCountForShorts(short[] audioData) {
-        if (audioData == null || audioData.length == 0) {
-            return 0;
-        }
-        return audioData.length / getChannelCount();
-    }
-
-    private int writeAllShorts(short[] audioData, int chunkShorts) {
-        int totalWritten = 0;
-        int zeroWriteCount = 0;
-        while (audioTrack != null && totalWritten < audioData.length) {
-            int writeLen = Math.min(audioData.length - totalWritten, chunkShorts);
-            int written = audioTrack.write(audioData, totalWritten, writeLen,
-                    AudioTrack.WRITE_BLOCKING);
-            if (written < 0) {
-                return written;
-            }
-            if (written == 0) {
-                zeroWriteCount++;
-                GeneralVariables.debugLog(TAG, "stream write returned 0 at offset="
-                        + totalWritten + ", chunk=" + writeLen + ", retry=" + zeroWriteCount);
-                if (zeroWriteCount >= 8) {
-                    return totalWritten;
-                }
-                try {
-                    Thread.sleep(20);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    return totalWritten;
-                }
-                continue;
-            }
-            zeroWriteCount = 0;
-            totalWritten += written;
-        }
-        return totalWritten;
-    }
-
     private long getAudioDurationMillis(int frameCount, int sampleRate) {
         if (frameCount <= 0 || sampleRate <= 0) {
             return 0;
@@ -601,11 +483,6 @@ public class FT8TransmitSignal {
         txAudioFocusHeld = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         GeneralVariables.debugLog(TAG, "request TX audio focus granted=" + txAudioFocusHeld
                 + ", result=" + result);
-        if (txAudioFocusHeld) {
-            SystemClock.sleep(TX_AUDIO_FOCUS_SETTLE_MS);
-            GeneralVariables.debugLog(TAG, "TX audio focus settle "
-                    + TX_AUDIO_FOCUS_SETTLE_MS + "ms");
-        }
     }
 
     private void abandonTxAudioFocus() {
@@ -643,7 +520,7 @@ public class FT8TransmitSignal {
         traceTxPhase("play-start");
         GeneralVariables.debugLog(TAG, "playFT8Signal msg=" + msg.getMessageText()
                 + ", baseHz=" + Math.round(GeneralVariables.getBaseFrequency())
-                + ", ft710=" + isFt710TxCompatibilityMode()
+                + ", ft710Minimal=" + shouldUseFt710MinimalUsbTxPath()
                 + ", session=" + playbackSession);
 
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {// 网络方式不在本地播放音频
@@ -706,10 +583,11 @@ public class FT8TransmitSignal {
         // 进入声卡播放模式
         float[] buffer;
         short[] shortAudioData = null;
-        int txSampleRate = getTxSampleRate();
-        boolean useFloatOutput = useFloatAudioOutput();
-        int trackMode = getTrackMode();
-        int channelMask = getChannelMask();
+        int txSampleRate = GeneralVariables.audioSampleRate;
+        boolean useFloatOutput = GeneralVariables.audioOutput32Bit;
+        int trackMode = AudioTrack.MODE_STATIC;
+        int channelMask = AudioFormat.CHANNEL_OUT_MONO;
+        int channelCount = 1;
         buffer = GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency()
                 , txSampleRate);
         if (buffer == null) {
@@ -723,25 +601,18 @@ public class FT8TransmitSignal {
         GeneralVariables.debugLog(TAG, "generated samples=" + buffer.length
                 + ", sampleRate=" + txSampleRate
                 + ", trackMode=" + trackMode);
-        if (!useFloatOutput || trackMode == AudioTrack.MODE_STREAM) {
-            shortAudioData = isFt710TxCompatibilityMode()
-                    ? floatMonoToStereoShort(buffer, 1.0f)
-                    : float2Short(buffer);
-            if (shouldUseFt710MinimalUsbTxPath()) {
-                shortAudioData = addFt710UsbAudioPadding(shortAudioData, txSampleRate);
-            }
+        if (!useFloatOutput) {
+            shortAudioData = float2Short(buffer);
         }
         int requiredDataBytes;
-        if (trackMode == AudioTrack.MODE_STREAM) {
-            requiredDataBytes = 0;
-        } else if (useFloatOutput) {
+        if (useFloatOutput) {
             requiredDataBytes = buffer.length * 4;
         } else {
             requiredDataBytes = shortAudioData == null ? 0 : shortAudioData.length * 2;
         }
         GeneralVariables.debugLog(TAG, "track buffer bytes required=" + requiredDataBytes);
         GeneralVariables.debugLog(TAG, "tx format sr=" + txSampleRate
-                + ", channels=" + getChannelCount()
+                + ", channels=" + channelCount
                 + ", float=" + useFloatOutput
                 + ", mode=" + trackMode
                 + ", volume=" + GeneralVariables.volumePercent);
@@ -761,12 +632,16 @@ public class FT8TransmitSignal {
                 .setChannelMask(channelMask).build();
         int mySession = 0;
         int trackBufferSizeBytes = getTrackBufferSizeInBytes(txSampleRate, channelMask,
-                useFloatOutput, requiredDataBytes);
+                channelCount, useFloatOutput, requiredDataBytes);
         audioTrack = new AudioTrack(attributes, myFormat
                 , trackBufferSizeBytes
                 , trackMode
                 , mySession);
-        AudioRouteHelper.bindTrackToPreferredOutput(audioTrack, "TX track created default");
+        if (shouldUseFt710MinimalUsbTxPath()) {
+            AudioRouteHelper.publishDeviceReport("TX track created default (bind skipped)");
+        } else {
+            AudioRouteHelper.bindTrackToPreferredOutput(audioTrack, "TX track created default");
+        }
         if (audioTrack.getState() == AudioTrack.STATE_UNINITIALIZED) {
             Log.e(TAG, "playFT8Signal: AudioTrack init failed.");
             AudioRouteHelper.publishDeviceReport("TX track init failed");
@@ -778,30 +653,7 @@ public class FT8TransmitSignal {
         int expectedWriteLength;
         int markerPosition;
         long durationMillis;
-        if (trackMode == AudioTrack.MODE_STREAM) {
-            expectedWriteLength = shortAudioData.length;
-            markerPosition = getFrameCountForShorts(shortAudioData);
-            int streamChunkShorts = Math.max(getChannelCount() * 2048,
-                    (trackBufferSizeBytes / 8 / 2) * getChannelCount());
-            GeneralVariables.debugLog(TAG, "stream chunk shorts=" + streamChunkShorts
-                    + ", trackBufferBytes=" + trackBufferSizeBytes);
-            audioTrack.setVolume(GeneralVariables.volumePercent);
-            long playStartAt = SystemClock.elapsedRealtime();
-            audioTrack.play();
-            if (shouldUseFt710MinimalUsbTxPath()) {
-                AudioRouteHelper.publishDeviceReport("FT710 TX stream started");
-            }
-            writeResult = writeAllShorts(shortAudioData, streamChunkShorts);
-            int writtenFrames = Math.max(0, writeResult / getChannelCount());
-            long actualDurationMillis = getAudioDurationMillis(writtenFrames, txSampleRate);
-            long elapsedSincePlay = Math.max(0, SystemClock.elapsedRealtime() - playStartAt);
-            durationMillis = Math.max(200, actualDurationMillis - elapsedSincePlay);
-            GeneralVariables.debugLog(TAG, "stream write summary writtenFrames="
-                    + writtenFrames + ", actualDurationMs=" + actualDurationMillis
-                    + ", elapsedMs=" + elapsedSincePlay
-                    + ", remainingMs=" + durationMillis
-                    + ", session=" + playbackSession);
-        } else if (useFloatOutput) {
+        if (useFloatOutput) {
             expectedWriteLength = buffer.length;
             markerPosition = buffer.length;
             durationMillis = getAudioDurationMillis(markerPosition, txSampleRate);
@@ -809,7 +661,7 @@ public class FT8TransmitSignal {
                     , AudioTrack.WRITE_NON_BLOCKING);
         } else {
             expectedWriteLength = shortAudioData.length;
-            markerPosition = getFrameCountForShorts(shortAudioData);
+            markerPosition = shortAudioData.length / channelCount;
             durationMillis = getAudioDurationMillis(markerPosition, txSampleRate);
             writeResult = audioTrack.write(shortAudioData, 0, shortAudioData.length
                     , AudioTrack.WRITE_NON_BLOCKING);
@@ -832,27 +684,24 @@ public class FT8TransmitSignal {
             finishPlaybackOnce(playbackSession, "write-error:" + writeResult);
             return;
         }
-        schedulePlaybackFinishFallback(durationMillis, playbackSession,
-                trackMode == AudioTrack.MODE_STREAM ? "stream" : "track");
+        schedulePlaybackFinishFallback(durationMillis, playbackSession, "track");
         if (audioTrack != null) {
-            if (trackMode != AudioTrack.MODE_STREAM) {
-                audioTrack.setNotificationMarkerPosition(markerPosition);
-                audioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener() {
-                    @Override
-                    public void onMarkerReached(AudioTrack audioTrack) {
-                        finishPlaybackOnce(playbackSession, "marker");
-                    }
-
-                    @Override
-                    public void onPeriodicNotification(AudioTrack audioTrack) {
-
-                    }
-                });
-                audioTrack.setVolume(GeneralVariables.volumePercent);
-                audioTrack.play();
-                if (shouldUseFt710MinimalUsbTxPath()) {
-                    AudioRouteHelper.publishDeviceReport("FT710 TX track playback started");
+            audioTrack.setNotificationMarkerPosition(markerPosition);
+            audioTrack.setPlaybackPositionUpdateListener(new AudioTrack.OnPlaybackPositionUpdateListener() {
+                @Override
+                public void onMarkerReached(AudioTrack audioTrack) {
+                    finishPlaybackOnce(playbackSession, "marker");
                 }
+
+                @Override
+                public void onPeriodicNotification(AudioTrack audioTrack) {
+
+                }
+            });
+            audioTrack.setVolume(GeneralVariables.volumePercent);
+            audioTrack.play();
+            if (shouldUseFt710MinimalUsbTxPath()) {
+                AudioRouteHelper.publishDeviceReport("FT710 TX track playback started");
             }
         }
     }
@@ -860,16 +709,6 @@ public class FT8TransmitSignal {
     private void afterPlayAudio() {
         traceTxPhase("play-finished");
         GeneralVariables.debugLog(TAG, "afterPlayAudio release track");
-        long tailHoldMillis = getFt710TxTailHoldMillis();
-        if (tailHoldMillis > 0L) {
-            GeneralVariables.debugLog(TAG, "hold FT-710 PTT tail " + tailHoldMillis + "ms");
-            AudioRouteHelper.publishDeviceReport("FT710 before PTT tail hold");
-            try {
-                Thread.sleep(tailHoldMillis);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
         if (onDoTransmitted != null) {
             onDoTransmitted.onAfterTransmit(getFunctionCommand(functionOrder), functionOrder);
         }

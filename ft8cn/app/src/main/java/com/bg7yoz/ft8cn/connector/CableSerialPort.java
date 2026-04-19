@@ -104,14 +104,6 @@ public class CableSerialPort {
         if (usbDevice == null) {
             return false;
         }
-        if (deviceId != 0 && usbDevice.getDeviceId() == deviceId) {
-            return true;
-        }
-        if (vendorId != 0 && productId != 0
-                && usbDevice.getVendorId() == vendorId
-                && usbDevice.getProductId() == productId) {
-            return true;
-        }
         return vendorId != 0 && usbDevice.getVendorId() == vendorId;
     }
 
@@ -182,9 +174,6 @@ public class CableSerialPort {
         for (UsbDevice v : usbManager.getDeviceList().values()) {
             if (matchesSelectedDevice(v)) {
                 device = v;
-                if (deviceId != 0 && v.getDeviceId() == deviceId) {
-                    break;
-                }
             }
         }
         if (device == null) {
