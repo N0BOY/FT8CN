@@ -590,3 +590,141 @@
 - Priority:
   - keep this item at the tail of the current to-do list
   - do not interrupt the ongoing A-B rollback convergence for it
+
+## Minimal Core Fix A-B Plan 2026-04-19
+
+### Goal
+
+- After the previous subtraction work, most FT-710 timing / local playback experiments have already been proven removable.
+- The next step is to verify the remaining likely core fixes one at a time instead of adding more new logic.
+
+### Remaining Core Candidates
+
+- dedicated `YaesuFT710Rig`
+- no inherited DX10 background polling
+- FT-710 CAT write-only / no serial read loop
+- preserve current rig mode instead of forcing rewrite
+
+### Unified Field Checklist
+
+- CAT connect must not break the music player
+- `DATA-U` must still produce RF power during FT8 TX
+- no unintended `RTTY-U` switch
+- no headset icon loss / USB audio collapse
+- TX must return to RX normally
+
+### Planned Order
+
+- Round A:
+  - only restore FT-710 serial read loop in `CableSerialPort`
+- Round B:
+  - if needed, restore FT-710 background polling
+- Round C:
+  - if needed, restore FT-710 mode rewrite behavior
+- Round D:
+  - only as a last resort, compare against a DX10-like rig path
+
+### Round A Status
+
+- completed
+- single-variable scope:
+  - `CableSerialPort` only
+- specific rollback:
+  - let `usbIoManager.start()` run again even for FT-710
+- frozen items during Round A:
+  - dedicated FT-710 rig branch
+  - no DX10 polling inheritance
+  - preserve current mode behavior
+
+### Round A Result
+
+- User verification:
+  - problem reproduced again
+  - after TX starts, there is still no audio / no RF power output
+- Current interpretation:
+  - re-enabling the FT-710 serial read loop is now a high-confidence regression trigger
+  - this strongly supports treating `FT-710 CAT write-only / no serial read loop` as a true core fix rather than an optional workaround
+- Immediate action:
+  - restore the no-read-loop baseline before continuing with the next core-path comparison
+
+### Round B Status
+
+- completed
+- single-variable scope:
+  - `YaesuFT710Rig` only
+- specific rollback:
+  - restore DX10-like background CAT polling for FT-710
+- frozen items during Round B:
+  - FT-710 serial read loop remains disabled
+  - dedicated FT-710 rig branch remains
+  - preserve current mode behavior remains
+
+### Round B Result
+
+- User verification:
+  - RF power output is normal
+  - music player remains healthy
+  - headset icon / USB audio state remains stable
+  - no serial disconnect / TX stuck / mode anomaly observed
+- Current interpretation:
+  - re-enabling FT-710 background polling alone does not immediately bring back the `0` power symptom
+  - this makes `background polling disabled` look less likely to be the single decisive fix
+- Interim conclusion:
+  - `FT-710 CAT write-only / no serial read loop` remains the strongest confirmed core fix candidate
+  - `no inherited DX10 background polling` now looks more like a secondary safeguard or optional preference than a strict minimum requirement
+
+### Round C Status
+
+- completed
+- single-variable scope:
+  - `YaesuFT710Rig` only
+- specific rollback:
+  - restore DX10-like USB mode rewrite behavior for FT-710
+- frozen items during Round C:
+  - FT-710 serial read loop remains disabled
+  - dedicated FT-710 rig branch remains
+  - background polling remains enabled as in Round B
+
+### Round C Result
+
+- User verification:
+  - operation remains normal after restoring mode rewrite behavior
+  - RF power output remains normal
+  - no additional player / USB audio / serial stability issue reported
+  - no mode anomaly reported in this round
+- Current interpretation:
+  - re-enabling FT-710 USB mode rewrite behavior alone does not bring the issue back
+  - this makes `preserve current mode instead of forcing rewrite` look less likely to be a strict minimum requirement
+- Updated conclusion:
+  - the strongest confirmed core candidate still remains `FT-710 CAT write-only / no serial read loop`
+  - background polling disable and preserve-mode behavior both now look more like optional safeguards than minimum required fixes
+
+### Round D Status
+
+- completed
+- single-variable scope:
+  - `MainViewModel` only
+- specific rollback:
+  - FT-710 selection still exists, but the rig instance is switched from `YaesuFT710Rig` to `YaesuDX10Rig`
+- frozen items during Round D:
+  - FT-710 serial read loop remains disabled
+  - background polling remains enabled
+  - mode rewrite remains enabled
+
+### Round D Result
+
+- User verification:
+  - all checks are normal
+  - RF power output remains normal
+  - player / USB audio / serial stability remain normal
+  - no mode anomaly observed
+- Current interpretation:
+  - removing the dedicated `YaesuFT710Rig` instance does not bring the issue back
+  - this strongly lowers the likelihood that the dedicated FT-710 rig branch is a strict minimum requirement
+- Final convergence:
+  - the strongest confirmed minimum core candidate remains `FT-710 CAT write-only / no serial read loop`
+  - dedicated rig split, background polling disable, and preserve-mode behavior now all look more like optional isolation or safety preferences than required fixes
+- Final cleanup direction:
+  - keep FT-710 selection / instruction set
+  - but allow rig behavior to reuse `YaesuDX10Rig`
+  - keep the decisive FT-710 fix in the serial path only

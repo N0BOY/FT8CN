@@ -89,7 +89,6 @@ import com.bg7yoz.ft8cn.rigs.Yaesu38Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu38_450Rig;
 import com.bg7yoz.ft8cn.rigs.Yaesu39Rig;
 import com.bg7yoz.ft8cn.rigs.YaesuDX10Rig;
-import com.bg7yoz.ft8cn.rigs.YaesuFT710Rig;
 import com.bg7yoz.ft8cn.spectrum.SpectrumListener;
 import com.bg7yoz.ft8cn.timer.OnUtcTimer;
 import com.bg7yoz.ft8cn.timer.UtcTimer;
@@ -384,8 +383,7 @@ public class MainViewModel extends ViewModel {
             private boolean recorderPausedForUsbTx = false;
 
             private boolean isFt710WorkaroundEnabled() {
-                return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
-                        || baseRig instanceof YaesuFT710Rig;
+                return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710;
             }
             private boolean needControlSco() {//根据控制模式，确定是不是需要开启SCO
                 if (GeneralVariables.connectMode != ConnectMode.BLUE_TOOTH) {
@@ -789,7 +787,7 @@ public class MainViewModel extends ViewModel {
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
-        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710 || baseRig instanceof YaesuFT710Rig) {
+        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710) {
             stopSco();
         }
         AudioRouteHelper.publishDeviceReport("USB cable connected");
@@ -992,7 +990,7 @@ public class MainViewModel extends ViewModel {
                 baseRig = new YaesuDX10Rig();//YAESU DX10 DX101
                 break;
             case InstructionSet.YAESU_FT710:
-                baseRig = new YaesuFT710Rig();//YAESU FT-710
+                baseRig = new YaesuDX10Rig();//YAESU FT-710 uses DX10 CAT behavior; FT-710-specific fix stays in serial path
                 break;
             case InstructionSet.KENWOOD_TS590:
                 baseRig = new KenwoodTS590Rig();//KENWOOD TS590
