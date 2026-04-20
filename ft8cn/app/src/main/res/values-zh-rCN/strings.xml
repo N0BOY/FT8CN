@@ -50,9 +50,6 @@
     <string name="close">关闭</string>
     <string name="rig_name">电台型号</string>
     <string name="debug">除错</string>
-    <string name="debug_mode_on">调试开启</string>
-    <string name="debug_mode_off">调试关闭</string>
-    <string name="debug_mode_help">开启后会在应用内 Debug 面板和日志中输出更详细的 FT-710 调试信息。</string>
     <string name="logo_image">FT8CN</string>
     <string name="RTS">RTS</string>
     <string name="FAQ">有问题要吐槽</string>

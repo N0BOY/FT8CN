@@ -13,10 +13,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.util.Log;
@@ -24,7 +22,6 @@ import android.util.Log;
 import com.bg7yoz.ft8cn.BuildConfig;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
-import com.bg7yoz.ft8cn.audio.AudioRouteHelper;
 import com.bg7yoz.ft8cn.connector.ConnectMode;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.rigs.InstructionSet;
@@ -107,49 +104,6 @@ public class CableSerialPort {
         return vendorId != 0 && usbDevice.getVendorId() == vendorId;
     }
 
-    private void logUsbDeviceInfo(String stage, UsbDevice usbDevice) {
-        if (usbDevice == null) {
-            GeneralVariables.debugLog(TAG, stage + " device=null");
-            return;
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append(stage)
-                .append(" deviceId=").append(usbDevice.getDeviceId())
-                .append(", vendor=0x").append(String.format("%04X", usbDevice.getVendorId()))
-                .append(", product=0x").append(String.format("%04X", usbDevice.getProductId()))
-                .append(", name=").append(usbDevice.getDeviceName())
-                .append(", interfaceCount=").append(usbDevice.getInterfaceCount());
-        for (int i = 0; i < usbDevice.getInterfaceCount(); i++) {
-            UsbInterface usbInterface = usbDevice.getInterface(i);
-            builder.append(" | if").append(i)
-                    .append(":class=").append(usbInterface.getInterfaceClass())
-                    .append("(").append(interfaceClassToString(usbInterface.getInterfaceClass())).append(")")
-                    .append(",sub=").append(usbInterface.getInterfaceSubclass())
-                    .append(",proto=").append(usbInterface.getInterfaceProtocol())
-                    .append(",ep=").append(usbInterface.getEndpointCount());
-        }
-        GeneralVariables.debugLog(TAG, builder.toString());
-    }
-
-    private String interfaceClassToString(int interfaceClass) {
-        switch (interfaceClass) {
-            case UsbConstants.USB_CLASS_AUDIO:
-                return "AUDIO";
-            case UsbConstants.USB_CLASS_COMM:
-                return "COMM";
-            case UsbConstants.USB_CLASS_CDC_DATA:
-                return "CDC_DATA";
-            case UsbConstants.USB_CLASS_HID:
-                return "HID";
-            case UsbConstants.USB_CLASS_MASS_STORAGE:
-                return "MASS_STORAGE";
-            case UsbConstants.USB_CLASS_VENDOR_SPEC:
-                return "VENDOR";
-            default:
-                return "CLASS_" + interfaceClass;
-        }
-    }
-
     private boolean shouldUseFt710WriteOnlyCatMode() {
         // FT-710 在 USB CAT 模式下更适合走“只写不读”的保守路径，
         // 避免轮询读取影响同一条 USB 复合设备上的音频链路。
@@ -180,7 +134,6 @@ public class CableSerialPort {
             Log.e(TAG, String.format("串口设备打开失败: 没有找到设备0x%04x", vendorId));
             return false;
         }
-        logUsbDeviceInfo("prepare selected", device);
         driver = UsbSerialProber.getDefaultProber().probeDevice(device);
         if (driver == null) {
             //试着把未知的设备加入到cdc驱动上
@@ -190,7 +143,6 @@ public class CableSerialPort {
             Log.e(TAG, "串口号不存在，无法打开。");
             return false;
         }
-        GeneralVariables.debugLog(TAG, "connect: port size:" + driver.getPorts().size());
         usbSerialPort = driver.getPorts().get(portNum);
         usbConnection = usbManager.openDevice(driver.getDevice());
 
@@ -201,7 +153,6 @@ public class CableSerialPort {
     //@RequiresApi(api = Build.VERSION_CODES.S)
     public boolean connect() {
         connected = false;
-        AudioRouteHelper.publishDeviceReport("Before USB serial open");
         if (!prepare()) {
             //return false;
         }
@@ -244,10 +195,6 @@ public class CableSerialPort {
         }
         try {
             usbSerialPort.open(usbConnection);
-            GeneralVariables.debugLog(TAG, "serial port opened deviceId=" + deviceId
-                    + ", vendor=0x" + String.format("%04X", vendorId)
-                    + ", product=0x" + String.format("%04X", productId)
-                    + ", port=" + portNum);
             //波特率、停止位
             //usbSerialPort.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE);
             GeneralVariables.debugLog(TAG, String.format("serial:baud rate：%d,data bits:%d,stop bits:%d,parity bit:%d"
@@ -280,8 +227,6 @@ public class CableSerialPort {
             }
             GeneralVariables.debugLog(TAG, "串口打开成功！");
             connected = true;
-            AudioRouteHelper.publishDeviceReport("After USB serial open");
-
             if (onStateChanged!=null){
                 onStateChanged.onConnected();
             }

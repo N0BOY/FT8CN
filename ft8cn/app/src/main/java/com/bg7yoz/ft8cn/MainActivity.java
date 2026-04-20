@@ -145,25 +145,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         //观察DEBUG信息
-        GeneralVariables.mutableDebugMessage.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                if (s.length() > 1) {
-                    binding.debugLayout.setVisibility(View.VISIBLE);
-                } else {
-                    binding.debugLayout.setVisibility(View.GONE);
-                }
-                binding.debugMessageTextView.setText(s);
-            }
-        });
-        binding.debugLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                binding.debugLayout.setVisibility(View.GONE);
-            }
-        });
-
-
         mainViewModel.mutableIsRecording.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {

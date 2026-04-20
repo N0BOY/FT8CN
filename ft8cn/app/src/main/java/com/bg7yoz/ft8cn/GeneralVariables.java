@@ -85,6 +85,9 @@ public class GeneralVariables {
         }
     }
 
+    public static void debugLog(String tag, String message) {
+    }
+
     /**
      * 查找是否含有排除的字头
      *
@@ -143,12 +146,6 @@ public class GeneralVariables {
     }
 
 
-    public static MutableLiveData<String> mutableDebugMessage = new MutableLiveData<>();
-    public static boolean debugMode = false;
-    public static String audioRouteReport = "";
-    private static final ArrayList<String> debugTraceLines = new ArrayList<>();
-    private static final int MAX_DEBUG_TRACE_LINES = 18;
-    private static String toastDebugMessage = "";
     public static int QUERY_FREQ_TIMEOUT = 2000;//轮询频率变化的时间间隔。2秒
     public static int START_QUERY_FREQ_DELAY = 2000;//开始轮询频率的时间延迟
 
@@ -504,75 +501,6 @@ public class GeneralVariables {
             return "";
         }
     }
-
-    public static synchronized void setAudioRouteReport(String report) {
-        audioRouteReport = report == null ? "" : report;
-    }
-
-    public static synchronized String getAudioRouteReport() {
-        return audioRouteReport;
-    }
-
-    public static synchronized void setDebugMode(boolean enabled) {
-        debugMode = enabled;
-        if (!enabled) {
-            debugTraceLines.clear();
-            toastDebugMessage = "";
-        }
-        publishDebugMessageLocked();
-    }
-
-    public static synchronized boolean isDebugMode() {
-        return debugMode;
-    }
-
-    public static synchronized void setToastDebugMessage(String message) {
-        toastDebugMessage = message == null ? "" : message;
-        publishDebugMessageLocked();
-    }
-
-    public static synchronized void appendDebugTrace(String tag, String message) {
-        if (!debugMode) {
-            return;
-        }
-        String safeTag = tag == null ? "DEBUG" : tag;
-        String safeMessage = message == null ? "" : message;
-        String line = UtcTimer.getTimeHHMMSS(UtcTimer.getSystemTime())
-                + " " + safeTag + " " + safeMessage;
-        if (debugTraceLines.size() >= MAX_DEBUG_TRACE_LINES) {
-            debugTraceLines.remove(0);
-        }
-        debugTraceLines.add(line);
-        publishDebugMessageLocked();
-    }
-
-    public static void debugLog(String tag, String message) {
-        if (!debugMode) {
-            return;
-        }
-        Log.d(tag, message);
-        appendDebugTrace(tag, message);
-    }
-
-    private static synchronized void publishDebugMessageLocked() {
-        StringBuilder builder = new StringBuilder();
-        if (debugMode && !debugTraceLines.isEmpty()) {
-            for (int i = 0; i < debugTraceLines.size(); i++) {
-                if (i > 0) {
-                    builder.append("\n");
-                }
-                builder.append(debugTraceLines.get(i));
-            }
-        }
-        if (toastDebugMessage != null && toastDebugMessage.length() > 0) {
-            if (builder.length() > 0) {
-                builder.append("\n");
-            }
-            builder.append(toastDebugMessage);
-        }
-        mutableDebugMessage.postValue(builder.toString());
-    }
-
 
     /**
      * 把已经通联的DXCC分区添加到集合中

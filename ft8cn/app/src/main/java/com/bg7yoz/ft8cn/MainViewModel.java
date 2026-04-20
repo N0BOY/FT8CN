@@ -37,7 +37,6 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
-import com.bg7yoz.ft8cn.audio.AudioRouteHelper;
 import com.bg7yoz.ft8cn.callsign.CallsignDatabase;
 import com.bg7yoz.ft8cn.callsign.CallsignInfo;
 import com.bg7yoz.ft8cn.callsign.OnAfterQueryCallsignLocation;
@@ -413,30 +412,11 @@ public class MainViewModel extends ViewModel {
                 return isConnectedFt710UsbRig();
             }
 
-            private boolean isFt710MinimalUsbTxPath() {
-                // MainViewModel 里的这个判断用于 PTT 边界、录音暂停和调试跟踪；
-                // 真正决定 AudioTrack 输出参数的是 FT8TransmitSignal 里的同名思路分支。
-                return isConnectedFt710UsbRig()
-                        && GeneralVariables.controlMode == ControlMode.CAT;
-            }
-
-            private void traceFt710TxBoundary(String phase, Ft8Message message, int functionOder) {
-                if (!isFt710MinimalUsbTxPath()) {
-                    return;
-                }
-                String messageText = message == null ? "-" : message.getMessageText();
-                GeneralVariables.debugLog(TAG, "FT710 TX " + phase
-                        + ", function=" + functionOder
-                        + ", msg=" + messageText
-                        + ", baseHz=" + Math.round(GeneralVariables.getBaseFrequency()));
-            }
-
             private void pauseRecorderForUsbTx() {
                 recorderPausedForUsbTx = false;
                 if (!needPauseRecorderForUsbTx() || !hamRecorder.isRunning()) {
                     return;
                 }
-                GeneralVariables.debugLog(TAG, "pause recorder before USB TX");
                 hamRecorder.stopRecord();
                 recorderPausedForUsbTx = true;
                 try {
@@ -461,7 +441,6 @@ public class MainViewModel extends ViewModel {
                             return;
                         }
                         if (!hamRecorder.isRunning()) {
-                            GeneralVariables.debugLog(TAG, "resume recorder after USB TX");
                             hamRecorder.startRecord();
                         }
                     }
@@ -470,21 +449,14 @@ public class MainViewModel extends ViewModel {
 
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
-                traceFt710TxBoundary("before-transmit-entry", message, functionOder);
                 pauseRecorderForUsbTx();
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
-                        AudioRouteHelper.publishDeviceReport("Before TX");
                         //if (GeneralVariables.connectMode != ConnectMode.NETWORK) stopSco();
                         if (needControlSco()) stopSco();
-                        GeneralVariables.debugLog(TAG, "PTT ON controlMode="
-                                + ControlMode.getControlModeStr(GeneralVariables.controlMode));
                         baseRig.setPTT(true);
-                        if (isFt710MinimalUsbTxPath()) {
-                            AudioRouteHelper.publishDeviceReport("After PTT ON");
-                        }
                     }
                 }
                 if (ft8TransmitSignal.isActivated()) {
@@ -496,17 +468,11 @@ public class MainViewModel extends ViewModel {
 
             @Override
             public void onAfterTransmit(Ft8Message message, int functionOder) {
-                traceFt710TxBoundary("after-transmit-entry", message, functionOder);
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
                     if (baseRig != null) {
-                        GeneralVariables.debugLog(TAG, "PTT OFF controlMode="
-                                + ControlMode.getControlModeStr(GeneralVariables.controlMode));
                         baseRig.setPTT(false);
-                        if (isFt710MinimalUsbTxPath()) {
-                            AudioRouteHelper.publishDeviceReport("After PTT OFF");
-                        }
                         //if (GeneralVariables.connectMode != ConnectMode.NETWORK) startSco();
                         if (needControlSco()) startSco();
                     }
@@ -615,7 +581,6 @@ public class MainViewModel extends ViewModel {
      * @param messages 消息
      */
     private synchronized void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
-        GeneralVariables.debugLog(TAG, "findIncludedCallsigns: 查找关注的呼号");
         if (ft8TransmitSignal.isActivated() && ft8TransmitSignal.sequential != UtcTimer.getNowSequential()) {
             return;
         }
@@ -790,7 +755,6 @@ public class MainViewModel extends ViewModel {
         if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710) {
             stopSco();
         }
-        AudioRouteHelper.publishDeviceReport("USB cable connected");
 
         //晚1秒钟设置模式，防止有的电台反应不过来
         new Handler().postDelayed(new Runnable() {

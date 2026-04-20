@@ -24,7 +24,6 @@ import com.bg7yoz.ft8cn.FT8Common;
 import com.bg7yoz.ft8cn.Ft8Message;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
-import com.bg7yoz.ft8cn.audio.AudioRouteHelper;
 import com.bg7yoz.ft8cn.connector.ConnectMode;
 import com.bg7yoz.ft8cn.database.ControlMode;
 import com.bg7yoz.ft8cn.database.DatabaseOpr;
@@ -637,14 +636,8 @@ public class FT8TransmitSignal {
                 , trackBufferSizeBytes
                 , trackMode
                 , mySession);
-        if (shouldUseFt710MinimalUsbTxPath()) {
-            AudioRouteHelper.publishDeviceReport("TX track created default (bind skipped)");
-        } else {
-            AudioRouteHelper.bindTrackToPreferredOutput(audioTrack, "TX track created default");
-        }
         if (audioTrack.getState() == AudioTrack.STATE_UNINITIALIZED) {
             Log.e(TAG, "playFT8Signal: AudioTrack init failed.");
-            AudioRouteHelper.publishDeviceReport("TX track init failed");
             finishPlaybackOnce(playbackSession, "track-init-failed");
             return;
         }
@@ -680,7 +673,6 @@ public class FT8TransmitSignal {
                 || writeResult == AudioTrack.ERROR_DEAD_OBJECT
                 || writeResult == AudioTrack.ERROR) {
             Log.e(TAG, String.format("播放出错：%d", writeResult));
-            AudioRouteHelper.publishDeviceReport("TX write failed:" + writeResult);
             finishPlaybackOnce(playbackSession, "write-error:" + writeResult);
             return;
         }
@@ -700,9 +692,6 @@ public class FT8TransmitSignal {
             });
             audioTrack.setVolume(GeneralVariables.volumePercent);
             audioTrack.play();
-            if (shouldUseFt710MinimalUsbTxPath()) {
-                AudioRouteHelper.publishDeviceReport("FT710 TX track playback started");
-            }
         }
     }
 
@@ -728,9 +717,6 @@ public class FT8TransmitSignal {
             audioTrack = null;
         }
         abandonTxAudioFocus();
-        if (shouldUseFt710MinimalUsbTxPath()) {
-            AudioRouteHelper.publishDeviceReport("FT710 after TX cleanup");
-        }
         txLifecycleStartElapsedRealtime = 0L;
         traceTxPhase("cleanup-complete");
     }

@@ -369,7 +369,6 @@ public class ConfigFragment extends Fragment {
         setDecodeMode();
 
         //设置调试模式
-        setDebugMode();
 
         //设置音频输出的位数
         setAudioOutputBitsMode();
@@ -530,21 +529,6 @@ public class ConfigFragment extends Fragment {
                     mainViewModel.databaseOpr.writeConfig("autoFollowCQ", "0", null);
                 }
                 setAutoFollowCQText();
-            }
-        });
-
-        binding.debugModeSwitch.setOnCheckedChangeListener(null);
-        binding.debugModeSwitch.setChecked(GeneralVariables.isDebugMode());
-        setDebugModeSwitchText();
-        binding.debugModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                GeneralVariables.setDebugMode(binding.debugModeSwitch.isChecked());
-                writeConfig("debugMode", binding.debugModeSwitch.isChecked() ? "1" : "0");
-                setDebugModeSwitchText();
-                if (binding.debugModeSwitch.isChecked()) {
-                    GeneralVariables.appendDebugTrace(TAG, "Debug mode enabled");
-                }
             }
         });
 
@@ -917,14 +901,6 @@ public class ConfigFragment extends Fragment {
         }
     }
 
-    private void setDebugModeSwitchText() {
-        if (binding.debugModeSwitch.isChecked()) {
-            binding.debugModeSwitch.setText(R.string.debug_mode_on);
-        } else {
-            binding.debugModeSwitch.setText(R.string.debug_mode_off);
-        }
-    }
-
     /**
      * 设置alc告警开关文本
      */
@@ -1144,12 +1120,6 @@ public class ConfigFragment extends Fragment {
         binding.deepDecodeRadioButton.setOnClickListener(listener);
 
     }
-
-    private void setDebugMode() {
-        binding.debugModeSwitch.setChecked(GeneralVariables.isDebugMode());
-        setDebugModeSwitchText();
-    }
-
 
     /**
      * 设置音频输出的位数
@@ -1574,15 +1544,6 @@ public class ConfigFragment extends Fragment {
                 new HelpDialog(requireContext(),requireActivity()
                         ,GeneralVariables.getStringFromResource(R.string.deep_mode_help)
                         ,true).show();
-            }
-        });
-
-        binding.debugModeHelpButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new HelpDialog(requireContext(), requireActivity()
-                        , GeneralVariables.getStringFromResource(R.string.debug_mode_help)
-                        , true).show();
             }
         });
 

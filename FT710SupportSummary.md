@@ -243,6 +243,31 @@
   - restore only comments / human-readable text
   - avoid changing active logic while doing the encoding cleanup
 
+## Cleanup Plan 2026-04-20
+
+### Goal
+
+- Compare strictly against `main`
+- Keep only changes that are clearly required for FT-710 stability
+- Remove debug and diagnostic additions that are not part of the proven fix path
+
+### This Round
+
+- Remove the in-app debug switch and its config persistence
+- Remove debug trace aggregation and route-report presentation
+- Remove `AudioRouteHelper` and all related route-report / preferred-device calls
+- Keep the verified FT-710 core path:
+  - write-only CAT over USB
+  - no serial read loop for FT-710 CAT
+  - TX-time recorder pause / resume
+  - current TX stop / cleanup lifecycle
+
+### Intent
+
+- Bring the branch closer to `main`
+- Reduce leftover diagnostic behavior
+- Leave a smaller, more defensible FT-710 repair set
+
 ## Latest Test Reading 2026-04-16
 
 ### What The Log Now Confirms
