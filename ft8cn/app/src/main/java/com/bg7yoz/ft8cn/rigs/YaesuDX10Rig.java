@@ -26,10 +26,6 @@ public class YaesuDX10Rig extends BaseRig {
 
     private Timer readFreqTimer = new Timer();
 
-    protected boolean shouldEnableBackgroundPolling() {
-        return true;
-    }
-
     private TimerTask readTask() {
         return new TimerTask() {
             @Override
@@ -193,11 +189,6 @@ public class YaesuDX10Rig extends BaseRig {
     }
 
     public YaesuDX10Rig() {
-        if (shouldEnableBackgroundPolling()) {
-            readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY, QUERY_FREQ_TIMEOUT);
-        } else {
-            readFreqTimer.cancel();
-            readFreqTimer.purge();
-        }
+        readFreqTimer.schedule(readTask(), START_QUERY_FREQ_DELAY, QUERY_FREQ_TIMEOUT);
     }
 }

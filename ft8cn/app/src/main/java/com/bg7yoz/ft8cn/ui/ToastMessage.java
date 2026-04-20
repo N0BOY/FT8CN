@@ -46,6 +46,7 @@ public class ToastMessage {
         }
         final String info=s;
         debugList.add(info);
+        GeneralVariables.mutableDebugMessage.postValue(getDebugMessage());
 
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -53,6 +54,7 @@ public class ToastMessage {
                 for (int i = 0; i <debugList.size() ; i++) {
                     if (debugList.get(i).equals(info)){
                         debugList.remove(i);
+                        GeneralVariables.mutableDebugMessage.postValue(getDebugMessage());
                         break;
                     }
                 }

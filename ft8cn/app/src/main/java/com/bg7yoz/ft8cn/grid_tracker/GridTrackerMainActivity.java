@@ -235,6 +235,17 @@ public class GridTrackerMainActivity extends AppCompatActivity {
 
 
         //观察DEBUG信息
+        GeneralVariables.mutableDebugMessage.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                if (s.length() > 1) {
+                    binding.trackerDebugLayout.setVisibility(View.VISIBLE);
+                } else {
+                    binding.trackerDebugLayout.setVisibility(View.GONE);
+                }
+                binding.debugMessageTextView.setText(s);
+            }
+        });
         //设置发射消息框的动画
         binding.transmittingMessageTextView.setAnimation(AnimationUtils.loadAnimation(this
                 , R.anim.view_blink));

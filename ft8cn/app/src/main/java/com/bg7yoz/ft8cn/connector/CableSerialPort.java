@@ -50,9 +50,6 @@ public class CableSerialPort {
     private BroadcastReceiver broadcastReceiver;
     private final Context context;
 
-    private int deviceId = 0;
-    private int productId = 0;
-
     private int vendorId = 0x0c26;//设备号
     private int portNum = 0;//端口号
     private int baudRate = 19200;//波特率
@@ -69,9 +66,7 @@ public class CableSerialPort {
     private boolean connected = false;//是否处于连接状态
 
     public CableSerialPort(Context mContext, SerialPort serialPort, int baud, OnConnectorStateChanged connectorStateChanged) {
-        deviceId = serialPort.deviceId;
         vendorId = serialPort.vendorId;
-        productId = serialPort.productId;
         portNum = serialPort.portNum;
         baudRate = baud;
         context = mContext;
@@ -97,16 +92,7 @@ public class CableSerialPort {
         };
     }
 
-    private boolean matchesSelectedDevice(UsbDevice usbDevice) {
-        if (usbDevice == null) {
-            return false;
-        }
-        return vendorId != 0 && usbDevice.getVendorId() == vendorId;
-    }
-
     private boolean shouldUseFt710WriteOnlyCatMode() {
-        // FT-710 在 USB CAT 模式下更适合走“只写不读”的保守路径，
-        // 避免轮询读取影响同一条 USB 复合设备上的音频链路。
         return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
                 && GeneralVariables.connectMode == ConnectMode.USB_CABLE
                 && GeneralVariables.controlMode == ControlMode.CAT;
@@ -126,7 +112,7 @@ public class CableSerialPort {
 
 
         for (UsbDevice v : usbManager.getDeviceList().values()) {
-            if (matchesSelectedDevice(v)) {
+            if (v.getVendorId() == vendorId) {
                 device = v;
             }
         }
@@ -139,10 +125,11 @@ public class CableSerialPort {
             //试着把未知的设备加入到cdc驱动上
             driver = new CdcAcmSerialDriver(device);
         }
-        if (driver.getPorts().size() <= portNum) {
+        if (driver.getPorts().size() < portNum) {
             Log.e(TAG, "串口号不存在，无法打开。");
             return false;
         }
+        Log.d(TAG, "connect: port size:" + String.valueOf(driver.getPorts().size()));
         usbSerialPort = driver.getPorts().get(portNum);
         usbConnection = usbManager.openDevice(driver.getDevice());
 
@@ -197,6 +184,10 @@ public class CableSerialPort {
             usbSerialPort.open(usbConnection);
             //波特率、停止位
             //usbSerialPort.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE);
+            Log.d(TAG,String.format("serial:baud rate：%d,data bits:%d,stop bits:%d,parity bit:%d"
+                    ,baudRate,GeneralVariables.serialDataBits
+                    ,GeneralVariables.serialStopBits
+                    ,GeneralVariables.serialParity));
             usbSerialPort.setParameters(baudRate, GeneralVariables.serialDataBits
                     , GeneralVariables.serialStopBits, GeneralVariables.serialParity);
             usbIoManager = new SerialInputOutputManager(usbSerialPort, new SerialInputOutputManager.Listener() {
@@ -218,7 +209,9 @@ public class CableSerialPort {
             if (!shouldUseFt710WriteOnlyCatMode()) {
                 usbIoManager.start();
             }
+            Log.d(TAG, "串口打开成功！");
             connected = true;
+
             if (onStateChanged!=null){
                 onStateChanged.onConnected();
             }
@@ -273,10 +266,12 @@ public class CableSerialPort {
     }
 
     public void registerRigSerialPort(Context context) {
+        Log.d(TAG, "registerRigSerialPort: registered!");
         context.registerReceiver(broadcastReceiver, new IntentFilter(INTENT_ACTION_GRANT_USB));
     }
 
     public void unregisterRigSerialPort(Activity activity) {
+        Log.d(TAG, "unregisterRigSerialPort: unregistered!");
         activity.unregisterReceiver(broadcastReceiver);
     }
 

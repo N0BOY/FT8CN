@@ -168,9 +168,6 @@ public class MainViewModel extends ViewModel {
         @Override
         public void onDisconnected() {
             //与电台连接中断
-            if (ft8TransmitSignal != null) {
-                ft8TransmitSignal.stopCurrentTransmission();
-            }
             ToastMessage.show(getStringFromResource(R.string.disconnect_rig));
         }
 
@@ -379,13 +376,8 @@ public class MainViewModel extends ViewModel {
 
         //创建发射对象，回调：发射前，发射后、QSL成功后。
         ft8TransmitSignal = new FT8TransmitSignal(databaseOpr, new OnDoTransmitted() {
-            private boolean recorderPausedForUsbTx = false;
-
-            private boolean isFt710WorkaroundEnabled() {
-                return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710;
-            }
             private boolean needControlSco() {//根据控制模式，确定是不是需要开启SCO
-                if (GeneralVariables.connectMode != ConnectMode.BLUE_TOOTH) {
+                if (GeneralVariables.connectMode == ConnectMode.NETWORK) {
                     return false;
                 }
                 if (GeneralVariables.controlMode != ControlMode.CAT) {
@@ -394,62 +386,8 @@ public class MainViewModel extends ViewModel {
                 return baseRig != null && !baseRig.supportWaveOverCAT();
             }
 
-            /**
-             * FT-710 的 USB 特殊分支是否处于“已连接且需要本地音频发送”的状态。
-             * 这个判断只描述 USB 音频/PTT 周边边界，不涉及 AudioTrack 输出格式本身。
-             */
-            private boolean isConnectedFt710UsbRig() {
-                if (!isFt710WorkaroundEnabled()) {
-                    return false;
-                }
-                if (GeneralVariables.connectMode != ConnectMode.USB_CABLE) {
-                    return false;
-                }
-                return baseRig != null && baseRig.isConnected() && !baseRig.supportWaveOverCAT();
-            }
-
-            private boolean needPauseRecorderForUsbTx() {
-                return isConnectedFt710UsbRig();
-            }
-
-            private void pauseRecorderForUsbTx() {
-                recorderPausedForUsbTx = false;
-                if (!needPauseRecorderForUsbTx() || !hamRecorder.isRunning()) {
-                    return;
-                }
-                hamRecorder.stopRecord();
-                recorderPausedForUsbTx = true;
-                try {
-                    Thread.sleep(150);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-
-            private void resumeRecorderAfterUsbTx() {
-                if (!recorderPausedForUsbTx) {
-                    return;
-                }
-                recorderPausedForUsbTx = false;
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Thread.sleep(800);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            return;
-                        }
-                        if (!hamRecorder.isRunning()) {
-                            hamRecorder.startRecord();
-                        }
-                    }
-                }).start();
-            }
-
             @Override
             public void onBeforeTransmit(Ft8Message message, int functionOder) {
-                pauseRecorderForUsbTx();
                 if (GeneralVariables.controlMode == ControlMode.CAT
                         || GeneralVariables.controlMode == ControlMode.RTS
                         || GeneralVariables.controlMode == ControlMode.DTR) {
@@ -477,7 +415,6 @@ public class MainViewModel extends ViewModel {
                         if (needControlSco()) startSco();
                     }
                 }
-                resumeRecorderAfterUsbTx();
             }
 
             @Override
@@ -581,6 +518,7 @@ public class MainViewModel extends ViewModel {
      * @param messages 消息
      */
     private synchronized void findIncludedCallsigns(ArrayList<Ft8Message> messages) {
+        Log.d(TAG, "findIncludedCallsigns: 查找关注的呼号");
         if (ft8TransmitSignal.isActivated() && ft8TransmitSignal.sequential != UtcTimer.getNowSequential()) {
             return;
         }
@@ -752,9 +690,6 @@ public class MainViewModel extends ViewModel {
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
-        if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710) {
-            stopSco();
-        }
 
         //晚1秒钟设置模式，防止有的电台反应不过来
         new Handler().postDelayed(new Runnable() {

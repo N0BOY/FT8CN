@@ -143,6 +143,7 @@ public class GeneralVariables {
     }
 
 
+    public static MutableLiveData<String> mutableDebugMessage = new MutableLiveData<>();
     public static int QUERY_FREQ_TIMEOUT = 2000;//轮询频率变化的时间间隔。2秒
     public static int START_QUERY_FREQ_DELAY = 2000;//开始轮询频率的时间延迟
 
@@ -498,6 +499,7 @@ public class GeneralVariables {
             return "";
         }
     }
+
 
     /**
      * 把已经通联的DXCC分区添加到集合中

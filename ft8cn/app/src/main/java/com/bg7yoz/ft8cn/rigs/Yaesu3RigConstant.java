@@ -104,10 +104,6 @@ public class Yaesu3RigConstant {
         return DATA_U_MODE.getBytes();
     }
 
-    public static byte[] setOperationRTTY_U_Mode() {
-        return USB_MODE_DATA.getBytes();
-    }
-
     @SuppressLint("DefaultLocale")
     public static byte[] setOperationFreq11Byte(long freq) {//用于KENWOOD TS590
         return String.format("FA%011d;",freq).getBytes();

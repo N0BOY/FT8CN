@@ -368,8 +368,6 @@ public class ConfigFragment extends Fragment {
         //设置解码模式
         setDecodeMode();
 
-        //设置调试模式
-
         //设置音频输出的位数
         setAudioOutputBitsMode();
 
@@ -750,7 +748,6 @@ public class ConfigFragment extends Fragment {
 
                         //指令集
                         GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
-                        GeneralVariables.instructionSet = rigNameSpinnerAdapter.getRigName(i).instructionSet;
                         writeConfig("instruction", String.valueOf(GeneralVariables.instructionSet));
                         if (GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
                                 && GeneralVariables.controlMode != ControlMode.CAT) {
@@ -1120,6 +1117,7 @@ public class ConfigFragment extends Fragment {
         binding.deepDecodeRadioButton.setOnClickListener(listener);
 
     }
+
 
     /**
      * 设置音频输出的位数

@@ -259,31 +259,12 @@ public class MyCallingFragment extends Fragment {
         //显示发射状态
         mainViewModel.ft8TransmitSignal.mutableIsTransmitting.observe(getViewLifecycleOwner(), transmittingObserver);
         mainViewModel.ft8TransmitSignal.mutableIsActivated.observe(getViewLifecycleOwner(), transmittingObserver);
-        mainViewModel.ft8TransmitSignal.mutableIsTransmitting.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                updateTransmitButtonUi();
-            }
-        });
-        mainViewModel.ft8TransmitSignal.mutableIsActivated.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                updateTransmitButtonUi();
-            }
-        });
-        mainViewModel.mutableHamRecordIsRunning.observe(getViewLifecycleOwner(), new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                updateTransmitButtonUi();
-            }
-        });
 
         //暂停按钮
         binding.pauseTransmittingImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mainViewModel.ft8TransmitSignal.stopCurrentTransmission();
-                updateTransmitButtonUi();
+                mainViewModel.ft8TransmitSignal.setTransmitting(false);
                 GeneralVariables.resetLaunchSupervision();//复位自动监管
             }
         });
@@ -358,15 +339,10 @@ public class MyCallingFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 //如果
-                if (mainViewModel.ft8TransmitSignal.isTransmitting()) {
-                    mainViewModel.ft8TransmitSignal.stopCurrentTransmission();
-                } else {
-                    if (!mainViewModel.ft8TransmitSignal.isActivated()) {
-                        mainViewModel.ft8TransmitSignal.restTransmitting();
-                    }
-                    mainViewModel.ft8TransmitSignal.setActivated(!mainViewModel.ft8TransmitSignal.isActivated());
+                if (!mainViewModel.ft8TransmitSignal.isActivated()) {
+                    mainViewModel.ft8TransmitSignal.restTransmitting();
                 }
-                updateTransmitButtonUi();
+                mainViewModel.ft8TransmitSignal.setActivated(!mainViewModel.ft8TransmitSignal.isActivated());
                 GeneralVariables.resetLaunchSupervision();//复位自动监管
             }
         });
@@ -457,7 +433,6 @@ public class MyCallingFragment extends Fragment {
 
 
         showFreeTextEdit();
-        updateTransmitButtonUi();
         return binding.getRoot();
     }
 
@@ -474,39 +449,6 @@ public class MyCallingFragment extends Fragment {
     /**
      * 设置列表滑动动作
      */
-    private void updateTransmitButtonUi() {
-        if (binding == null) {
-            return;
-        }
-
-        if (mainViewModel.ft8TransmitSignal.isTransmitting()) {
-            binding.setTransmitImageButton.setImageResource(R.drawable.ic_baseline_send_red_48);
-            binding.setTransmitImageButton.setAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.view_blink));
-        } else {
-            if (mainViewModel.ft8TransmitSignal.isActivated() && mainViewModel.hamRecorder.isRunning()) {
-                binding.setTransmitImageButton.setImageResource(R.drawable.ic_baseline_send_white_48);
-            } else {
-                binding.setTransmitImageButton.setImageResource(R.drawable.ic_baseline_cancel_schedule_send_off);
-            }
-            binding.setTransmitImageButton.setAnimation(null);
-        }
-
-        if (mainViewModel.ft8TransmitSignal.isTransmitting()) {
-            binding.pauseTransmittingImageButton.setImageResource(R.drawable.ic_baseline_pause_circle_outline_24);
-            binding.pauseTransmittingImageButton.setVisibility(View.VISIBLE);
-        } else {
-            binding.pauseTransmittingImageButton.setVisibility(View.GONE);
-            binding.pauseTransmittingImageButton.setImageResource(R.drawable.ic_baseline_pause_disable_circle_outline_24);
-        }
-
-        boolean enabled = mainViewModel.ft8TransmitSignal.isTransmitting()
-                || mainViewModel.hamRecorder.isRunning()
-                || mainViewModel.ft8TransmitSignal.isActivated();
-        binding.setTransmitImageButton.setEnabled(enabled);
-        binding.setTransmitImageButton.setClickable(enabled);
-        binding.setTransmitImageButton.setAlpha(enabled ? 1.0f : 0.45f);
-    }
-
     private void initRecyclerViewAction() {
         new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(ItemTouchHelper.ANIMATION_TYPE_DRAG
                 , ItemTouchHelper.START | ItemTouchHelper.END) {
