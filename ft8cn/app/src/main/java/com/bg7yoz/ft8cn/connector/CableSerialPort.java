@@ -197,10 +197,6 @@ public class CableSerialPort {
             usbSerialPort.open(usbConnection);
             //波特率、停止位
             //usbSerialPort.setParameters(baudRate, 8, 1, UsbSerialPort.PARITY_NONE);
-            GeneralVariables.debugLog(TAG, String.format("serial:baud rate：%d,data bits:%d,stop bits:%d,parity bit:%d"
-                    ,baudRate,GeneralVariables.serialDataBits
-                    ,GeneralVariables.serialStopBits
-                    ,GeneralVariables.serialParity));
             usbSerialPort.setParameters(baudRate, GeneralVariables.serialDataBits
                     , GeneralVariables.serialStopBits, GeneralVariables.serialParity);
             usbIoManager = new SerialInputOutputManager(usbSerialPort, new SerialInputOutputManager.Listener() {
@@ -219,13 +215,9 @@ public class CableSerialPort {
                     disconnect();
                 }
             });
-            if (shouldUseFt710WriteOnlyCatMode()) {
-                GeneralVariables.debugLog(TAG,
-                        "enable FT-710 CAT write-only mode; serial read loop disabled");
-            } else {
+            if (!shouldUseFt710WriteOnlyCatMode()) {
                 usbIoManager.start();
             }
-            GeneralVariables.debugLog(TAG, "串口打开成功！");
             connected = true;
             if (onStateChanged!=null){
                 onStateChanged.onConnected();
@@ -281,12 +273,10 @@ public class CableSerialPort {
     }
 
     public void registerRigSerialPort(Context context) {
-        GeneralVariables.debugLog(TAG, "registerRigSerialPort: registered!");
         context.registerReceiver(broadcastReceiver, new IntentFilter(INTENT_ACTION_GRANT_USB));
     }
 
     public void unregisterRigSerialPort(Activity activity) {
-        GeneralVariables.debugLog(TAG, "unregisterRigSerialPort: unregistered!");
         activity.unregisterReceiver(broadcastReceiver);
     }
 

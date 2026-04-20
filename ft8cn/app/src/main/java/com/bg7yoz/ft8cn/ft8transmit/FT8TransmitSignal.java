@@ -14,7 +14,6 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
-import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
@@ -91,8 +90,6 @@ public class FT8TransmitSignal {
             new AudioManager.OnAudioFocusChangeListener() {
                 @Override
                 public void onAudioFocusChange(int focusChange) {
-                    GeneralVariables.debugLog(TAG, "audio focus change=" + focusChange
-                            + ", transmitting=" + isTransmitting);
                 }
             };
 
@@ -118,29 +115,6 @@ public class FT8TransmitSignal {
         return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
                 && GeneralVariables.connectMode == ConnectMode.USB_CABLE
                 && GeneralVariables.controlMode == ControlMode.CAT;
-    }
-
-    private long txLifecycleStartElapsedRealtime = 0L;
-
-    private void beginTxLifecycle(Ft8Message msg) {
-        txLifecycleStartElapsedRealtime = SystemClock.elapsedRealtime();
-        GeneralVariables.debugLog(TAG, "TX lifecycle begin msg=" + msg.getMessageText()
-                + ", strategy="
-                + (shouldUseFt710MinimalUsbTxPath() ? "FT710_MIN_USB" : "DEFAULT")
-                + ", baseHz=" + Math.round(GeneralVariables.getBaseFrequency()));
-    }
-
-    private long getTxElapsedMillis() {
-        if (txLifecycleStartElapsedRealtime <= 0L) {
-            return 0L;
-        }
-        return Math.max(0L, SystemClock.elapsedRealtime() - txLifecycleStartElapsedRealtime);
-    }
-
-    private void traceTxPhase(String phase) {
-        GeneralVariables.debugLog(TAG, "TX phase=" + phase
-                + ", elapsedMs=" + getTxElapsedMillis()
-                + ", ft710Minimal=" + shouldUseFt710MinimalUsbTxPath());
     }
 
     private int getTrackBufferSizeInBytes(int sampleRate, int channelMask,
@@ -251,7 +225,6 @@ public class FT8TransmitSignal {
             setActivated(false);
             return;
         }
-        GeneralVariables.debugLog(TAG, "doTransmit: 开始发射...");
         doTransmitThreadPool.execute(doTransmitRunnable);
 
         mutableFunctions.postValue(functionList);
@@ -271,7 +244,6 @@ public class FT8TransmitSignal {
 
         messageStartTime = 0;//复位起始时间
 
-        GeneralVariables.debugLog(TAG, "准备发射数据...");
         if (GeneralVariables.checkFun1(toMaidenheadGrid)) {
             this.toMaidenheadGrid = toMaidenheadGrid;
         } else {
@@ -421,8 +393,6 @@ public class FT8TransmitSignal {
             }
             audioFinished = true;
         }
-        GeneralVariables.debugLog(TAG, "finishPlaybackOnce reason=" + reason
-                + ", session=" + playbackSession);
         afterPlayAudio();
     }
 
@@ -431,8 +401,6 @@ public class FT8TransmitSignal {
         if (durationMillis <= 0) {
             return;
         }
-        GeneralVariables.debugLog(TAG, "schedule finish fallback " + durationMillis
-                + "ms, reason=" + reason + ", session=" + playbackSession);
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -480,8 +448,6 @@ public class FT8TransmitSignal {
                     AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE);
         }
         txAudioFocusHeld = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
-        GeneralVariables.debugLog(TAG, "request TX audio focus granted=" + txAudioFocusHeld
-                + ", result=" + result);
     }
 
     private void abandonTxAudioFocus() {
@@ -497,7 +463,6 @@ public class FT8TransmitSignal {
             audioManager.abandonAudioFocus(txAudioFocusChangeListener);
         }
         txAudioFocusHeld = false;
-        GeneralVariables.debugLog(TAG, "abandon TX audio focus");
     }
 
     private boolean shouldPrepareTxAudioFocusEarly() {
@@ -516,14 +481,8 @@ public class FT8TransmitSignal {
 
     private void playFT8Signal(Ft8Message msg) {
         int playbackSession = beginPlaybackSession();
-        traceTxPhase("play-start");
-        GeneralVariables.debugLog(TAG, "playFT8Signal msg=" + msg.getMessageText()
-                + ", baseHz=" + Math.round(GeneralVariables.getBaseFrequency())
-                + ", ft710Minimal=" + shouldUseFt710MinimalUsbTxPath()
-                + ", session=" + playbackSession);
 
         if (GeneralVariables.connectMode == ConnectMode.NETWORK) {// 网络方式不在本地播放音频
-            GeneralVariables.debugLog(TAG, "playFT8Signal: 进入网络发射流程，等待音频发送。");
 
 
             if (onDoTransmitted != null) {// 处理音频数据，供 ICOM 网络模式发送
@@ -544,7 +503,6 @@ public class FT8TransmitSignal {
                     e.printStackTrace();
                 }
             }
-            GeneralVariables.debugLog(TAG, "playFT8Signal: 网络音频发送结束。");
             finishPlaybackOnce(playbackSession, "network");
             return;
         }
@@ -552,7 +510,6 @@ public class FT8TransmitSignal {
         // 进入 CAT 串口传输音频方式
         // 2023-08-16 由 DS1UFX 提交修改（基于 0.9 版），用于支持 (tr)uSDX audio over CAT
         if (GeneralVariables.controlMode == ControlMode.CAT) {
-            GeneralVariables.debugLog(TAG, "playFT8Signal: try to transmit over CAT");
 
             if (onDoTransmitted != null) {// 处理音频数据，供 truSDX 的 CAT 模式发送
                 if (onDoTransmitted.supportTransmitOverCAT()) {
@@ -571,7 +528,6 @@ public class FT8TransmitSignal {
                             e.printStackTrace();
                         }
                     }
-                    GeneralVariables.debugLog(TAG, "playFT8Signal: transmitting over CAT is finished.");
                     finishPlaybackOnce(playbackSession, "cat-wave");
                     return;
                 }
@@ -590,16 +546,11 @@ public class FT8TransmitSignal {
         buffer = GenerateFT8.generateFt8(msg, GeneralVariables.getBaseFrequency()
                 , txSampleRate);
         if (buffer == null) {
-            GeneralVariables.debugLog(TAG, "generateFt8 returned null");
             finishPlaybackOnce(playbackSession, "generate-null");
             return;
         }
         if (shouldUseFt710MinimalUsbTxPath()) {
-            GeneralVariables.debugLog(TAG, "FT-710 minimal USB TX path active");
         }
-        GeneralVariables.debugLog(TAG, "generated samples=" + buffer.length
-                + ", sampleRate=" + txSampleRate
-                + ", trackMode=" + trackMode);
         if (!useFloatOutput) {
             shortAudioData = float2Short(buffer);
         }
@@ -609,16 +560,7 @@ public class FT8TransmitSignal {
         } else {
             requiredDataBytes = shortAudioData == null ? 0 : shortAudioData.length * 2;
         }
-        GeneralVariables.debugLog(TAG, "track buffer bytes required=" + requiredDataBytes);
-        GeneralVariables.debugLog(TAG, "tx format sr=" + txSampleRate
-                + ", channels=" + channelCount
-                + ", float=" + useFloatOutput
-                + ", mode=" + trackMode
-                + ", volume=" + GeneralVariables.volumePercent);
 
-        GeneralVariables.debugLog(TAG, String.format("playFT8Signal: 准备声卡播放....位数：%s,采样率：%d"
-                , useFloatOutput ? "Float32" : "Int16"
-                , txSampleRate));
         requestTxAudioFocus();
         attributes = new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -662,10 +604,6 @@ public class FT8TransmitSignal {
 
         if (expectedWriteLength > writeResult) {
             Log.e(TAG, String.format("播放缓冲区不足：%d--->%d", expectedWriteLength, writeResult));
-            GeneralVariables.debugLog(TAG, "partial write expected=" + expectedWriteLength
-                    + ", actual=" + writeResult
-                    + ", trackMode=" + trackMode
-                    + ", requiredBytes=" + requiredDataBytes);
         }
 
         if (writeResult == AudioTrack.ERROR_INVALID_OPERATION
@@ -696,8 +634,6 @@ public class FT8TransmitSignal {
     }
 
     private void afterPlayAudio() {
-        traceTxPhase("play-finished");
-        GeneralVariables.debugLog(TAG, "afterPlayAudio release track");
         if (onDoTransmitted != null) {
             onDoTransmitted.onAfterTransmit(getFunctionCommand(functionOrder), functionOrder);
         }
@@ -711,14 +647,11 @@ public class FT8TransmitSignal {
                 }
                 audioTrack.flush();
             } catch (Exception e) {
-                GeneralVariables.debugLog(TAG, "afterPlayAudio cleanup: " + e.getMessage());
             }
             audioTrack.release();
             audioTrack = null;
         }
         abandonTxAudioFocus();
-        txLifecycleStartElapsedRealtime = 0L;
-        traceTxPhase("cleanup-complete");
     }
 
     // 当通联成功时的动作
@@ -1331,9 +1264,6 @@ public class FT8TransmitSignal {
                 msg = transmitSignal.getFunctionCommand(transmitSignal.functionOrder);
             }
             msg.modifier = GeneralVariables.toModifier;
-            transmitSignal.beginTxLifecycle(msg);
-            GeneralVariables.debugLog(TAG, "DoTransmit msg=" + msg.getMessageText()
-                    + ", pttDelay=" + GeneralVariables.pttDelay);
 
             if (transmitSignal.shouldPrepareTxAudioFocusEarly()) {
                 transmitSignal.requestTxAudioFocus();

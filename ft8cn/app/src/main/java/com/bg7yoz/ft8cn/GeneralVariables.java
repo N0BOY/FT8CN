@@ -85,9 +85,6 @@ public class GeneralVariables {
         }
     }
 
-    public static void debugLog(String tag, String message) {
-    }
-
     /**
      * 查找是否含有排除的字头
      *

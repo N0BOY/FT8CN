@@ -198,7 +198,6 @@ public class YaesuDX10Rig extends BaseRig {
         } else {
             readFreqTimer.cancel();
             readFreqTimer.purge();
-            GeneralVariables.debugLog(TAG, "background CAT polling disabled for current rig");
         }
     }
 }
