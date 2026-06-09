@@ -60,6 +60,9 @@ public class FlexRadioInfoFragment extends Fragment {
                 }
             });
         }
+        if (connector == null) {
+            return binding.getRoot();
+        }
 
 
         binding.sMeterRulerView.initVal(-150f, -72f, 10f, 9, 3);
@@ -176,6 +179,9 @@ public class FlexRadioInfoFragment extends Fragment {
     }
 
     private void setTuneProgress() {
+        if (binding == null || connector == null) {
+            return;
+        }
         //binding.tunePowerSeekBar.setProgress(connector.maxRfPower);
         if (connector.maxTunePower>connector.maxRfPower) {
             connector.maxTunePower =connector.maxRfPower;
@@ -192,6 +198,12 @@ public class FlexRadioInfoFragment extends Fragment {
                 ,String.valueOf(connector.maxRfPower),null);
         mainViewModel.databaseOpr.writeConfig("flexMaxTunePower"
                 ,String.valueOf(connector.maxTunePower),null);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
 }

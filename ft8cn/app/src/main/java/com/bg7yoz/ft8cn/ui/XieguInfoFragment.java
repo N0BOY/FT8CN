@@ -95,6 +95,9 @@ public class XieguInfoFragment extends Fragment {
             });
 
         }
+        if (connector == null || xieguRadio == null) {
+            return binding.getRoot();
+        }
         //binding.xieguSMeterRulerView.initVal(-150f, -75f, 0f, 9, 3);
         binding.xieguSMeterRulerView.initVal(0f, 120f, 242f, 9, 3);
         binding.xieguSMeterRulerView.initLabels("S.Po", "dBm"
@@ -190,5 +193,11 @@ public class XieguInfoFragment extends Fragment {
 
 
         return binding.getRoot();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

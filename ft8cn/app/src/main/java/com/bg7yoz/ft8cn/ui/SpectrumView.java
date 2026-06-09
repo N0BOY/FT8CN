@@ -56,7 +56,7 @@ public class SpectrumView extends ConstraintLayout {
 
     @SuppressLint("ClickableViewAccessibility")
     public void run(MainViewModel mainViewModel , Fragment fragment){
-        this.mainViewModel = MainViewModel.getInstance(null);
+        this.mainViewModel = mainViewModel;
         this.fragment=fragment;
         columnarView=findViewById(R.id.controlColumnarView);
         controlDeNoiseSwitch=findViewById(R.id.controlDeNoiseSwitch);
@@ -131,14 +131,11 @@ public class SpectrumView extends ConstraintLayout {
 
                     rulerFrequencyView.setFreq(waterfallView.getFreq_hz());
 
-                    fragment.requireActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastMessage.show(String.format(
-                                    GeneralVariables.getStringFromResource(R.string.sound_frequency_is_set_to)
-                                    , waterfallView.getFreq_hz()),true);
-                        }
-                    });
+                    if (isUiReady()) {
+                        ToastMessage.show(String.format(
+                                GeneralVariables.getStringFromResource(R.string.sound_frequency_is_set_to)
+                                , waterfallView.getFreq_hz()), true);
+                    }
                 }
                 return false;
             }
@@ -170,6 +167,9 @@ public class SpectrumView extends ConstraintLayout {
 
 
     public void drawSpectrum(float[] buffer) {
+        if (!isUiReady()) {
+            return;
+        }
         if (buffer.length <= 0) {
             return;
         }
@@ -202,6 +202,10 @@ public class SpectrumView extends ConstraintLayout {
 
     public native void getFFTDataRaw(int[] data, int fftData[]);
     public native void getFFTDataRawFloat(float[] data, int fftData[]);
+
+    private boolean isUiReady() {
+        return fragment != null && fragment.isAdded() && fragment.getView() != null;
+    }
 
 
 }

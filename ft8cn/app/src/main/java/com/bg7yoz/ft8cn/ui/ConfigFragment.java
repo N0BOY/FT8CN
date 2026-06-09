@@ -48,6 +48,7 @@ public class ConfigFragment extends Fragment {
     private static final String TAG = "ConfigFragment";
     private MainViewModel mainViewModel;
     private FragmentConfigBinding binding;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private BandsSpinnerAdapter bandsSpinnerAdapter;
     private BauRateSpinnerAdapter bauRateSpinnerAdapter;
     private SerialDataBitsSpinnerAdapter dataBitsSpinnerAdapter;
@@ -396,7 +397,7 @@ public class ConfigFragment extends Fragment {
         setSpinnerOnItemSelected();
 
         //显示滚动箭头
-        new Handler().postDelayed(new Runnable() {
+        postDelayedIfUiReady(new Runnable() {
             @Override
             public void run() {
                 setScrollImageVisible();
@@ -701,9 +702,12 @@ public class ConfigFragment extends Fragment {
      * 设置各个spinner的OnItemSelected事件，防止在进入主界面时，重复向数据库写入配置信息
      */
     private void setSpinnerOnItemSelected(){
-        new Handler().postDelayed(new Runnable() {
+        postDelayedIfUiReady(new Runnable() {
             @Override
             public void run() {
+                if (!isUiReady()) {
+                    return;
+                }
                 binding.pttDelayOffsetSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -937,7 +941,7 @@ public class ConfigFragment extends Fragment {
     private void setUtcTimeOffsetSpinner() {
         UtcOffsetSpinnerAdapter adapter = new UtcOffsetSpinnerAdapter(requireContext());
 
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 binding.utcTimeOffsetSpinner.setAdapter(adapter);
@@ -972,7 +976,7 @@ public class ConfigFragment extends Fragment {
 
         bandsSpinnerAdapter = new BandsSpinnerAdapter(requireContext());
         binding.operationBandSpinner.setAdapter(bandsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 bandsSpinnerAdapter.notifyDataSetChanged();
@@ -987,7 +991,7 @@ public class ConfigFragment extends Fragment {
     private void setBauRateSpinner() {
         bauRateSpinnerAdapter = new BauRateSpinnerAdapter(requireContext());
         binding.baudRateSpinner.setAdapter(bauRateSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 bauRateSpinnerAdapter.notifyDataSetChanged();
@@ -1001,7 +1005,7 @@ public class ConfigFragment extends Fragment {
     private void setDataBitsSpinner(){
         dataBitsSpinnerAdapter = new SerialDataBitsSpinnerAdapter(requireContext());
         binding.dataBitsSpinner.setAdapter(dataBitsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 dataBitsSpinnerAdapter.notifyDataSetChanged();
@@ -1015,7 +1019,7 @@ public class ConfigFragment extends Fragment {
     private void setParityBitsSpinner(){
         parityBitsSpinnerAdapter = new SerialParityBitsSpinnerAdapter(requireContext());
         binding.parityBitsSpinner.setAdapter(parityBitsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 parityBitsSpinnerAdapter.notifyDataSetChanged();
@@ -1028,7 +1032,7 @@ public class ConfigFragment extends Fragment {
     private void setStopBitsSpinner(){
         stopBitsSpinnerAdapter = new SerialStopBitsSpinnerAdapter(requireContext());
         binding.stopBitsSpinner.setAdapter(stopBitsSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 stopBitsSpinnerAdapter.notifyDataSetChanged();
@@ -1044,7 +1048,7 @@ public class ConfigFragment extends Fragment {
     private void setNoReplyLimitSpinner() {
         noReplyLimitSpinnerAdapter = new NoReplyLimitSpinnerAdapter(requireContext());
         binding.noResponseCountSpinner.setAdapter(noReplyLimitSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 noReplyLimitSpinnerAdapter.notifyDataSetChanged();
@@ -1058,7 +1062,7 @@ public class ConfigFragment extends Fragment {
     private void setLaunchSupervision() {
         launchSupervisionSpinnerAdapter = new LaunchSupervisionSpinnerAdapter(requireContext());
         binding.launchSupervisionSpinner.setAdapter(launchSupervisionSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 launchSupervisionSpinnerAdapter.notifyDataSetChanged();
@@ -1072,7 +1076,7 @@ public class ConfigFragment extends Fragment {
     private void setRigNameSpinner() {
         rigNameSpinnerAdapter = new RigNameSpinnerAdapter(requireContext());
         binding.rigNameSpinner.setAdapter(rigNameSpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 rigNameSpinnerAdapter.notifyDataSetChanged();
@@ -1087,7 +1091,7 @@ public class ConfigFragment extends Fragment {
     private void setPttDelaySpinner() {
         pttDelaySpinnerAdapter = new PttDelaySpinnerAdapter(requireContext());
         binding.pttDelayOffsetSpinner.setAdapter(pttDelaySpinnerAdapter);
-        requireActivity().runOnUiThread(new Runnable() {
+        postIfUiReady(new Runnable() {
             @Override
             public void run() {
                 pttDelaySpinnerAdapter.notifyDataSetChanged();
@@ -1575,7 +1579,7 @@ public class ConfigFragment extends Fragment {
                     @Override
                     public void run() {
                         boolean result = ThirdPartyService.CheckCloudlogConnection();
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        postIfUiReady(new Runnable() {
                             @Override
                             public void run() {
                                 if (result) {
@@ -1584,7 +1588,7 @@ public class ConfigFragment extends Fragment {
                                     binding.testCloudlogButton.setText(getResources().getString(R.string.fail));
                                 }
                                 // 清空文本
-                                new Handler().postDelayed(new Runnable() {
+                                postDelayedIfUiReady(new Runnable() {
                                     @Override
                                     public void run() {
                                         binding.testCloudlogButton.setEnabled(true);
@@ -1606,7 +1610,7 @@ public class ConfigFragment extends Fragment {
                     @Override
                     public void run() {
                         boolean result = ThirdPartyService.CheckQRZConnection();
-                        new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        postIfUiReady(new Runnable() {
                             @Override
                             public void run() {
                                 if (result) {
@@ -1615,7 +1619,7 @@ public class ConfigFragment extends Fragment {
                                     binding.testQrzButton.setText(getResources().getString(R.string.fail));
                                 }
                                 // 清空文本
-                                new Handler().postDelayed(new Runnable() {
+                                postDelayedIfUiReady(new Runnable() {
                                     @Override
                                     public void run() {
                                         binding.testQrzButton.setEnabled(true);
@@ -1699,6 +1703,9 @@ public class ConfigFragment extends Fragment {
      * 设置界面的上下滚动的图标
      */
     private void setScrollImageVisible() {
+        if (!isUiReady()) {
+            return;
+        }
 
         if (binding.scrollView3.getScrollY() == 0) {
             binding.configScrollUpImageView.setVisibility(View.GONE);
@@ -1712,6 +1719,38 @@ public class ConfigFragment extends Fragment {
         } else {
             binding.configScrollDownImageView.setVisibility(View.GONE);
         }
+    }
+
+    private boolean isUiReady() {
+        return isAdded() && binding != null && getActivity() != null;
+    }
+
+    private void postIfUiReady(Runnable runnable) {
+        mainHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (isUiReady()) {
+                    runnable.run();
+                }
+            }
+        });
+    }
+
+    private void postDelayedIfUiReady(Runnable runnable, long delayMillis) {
+        mainHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (isUiReady()) {
+                    runnable.run();
+                }
+            }
+        }, delayMillis);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
 

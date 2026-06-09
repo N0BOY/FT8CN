@@ -65,4 +65,15 @@ public class QRZ_Fragment extends Fragment {
         binding.qrzWebView.loadUrl(url);
         return binding.getRoot();
     }
+
+    @Override
+    public void onDestroyView() {
+        if (binding != null) {
+            binding.qrzWebView.stopLoading();
+            binding.qrzWebView.setWebViewClient(null);
+            binding.qrzWebView.destroy();
+            binding = null;
+        }
+        super.onDestroyView();
+    }
 }

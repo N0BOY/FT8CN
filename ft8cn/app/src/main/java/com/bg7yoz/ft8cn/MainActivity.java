@@ -210,10 +210,17 @@ public class MainActivity extends AppCompatActivity {
         binding.navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                //Log.e(TAG, "onNavigationItemSelected: "+item.toString() );
-                navController.navigate(item.getItemId());
-                //binding.navView.setLabelFor(item.getItemId());
-                return true;
+                if (navController.getCurrentDestination() != null
+                        && navController.getCurrentDestination().getId() == item.getItemId()) {
+                    return true;
+                }
+                try {
+                    return NavigationUI.onNavDestinationSelected(item, navController);
+                } catch (IllegalArgumentException e) {
+                    Log.w(TAG, "onNavigationItemSelected: ignored invalid destination "
+                            + item.getItemId(), e);
+                    return false;
+                }
             }
         });
 
