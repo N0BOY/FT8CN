@@ -1,11 +1,39 @@
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Properties
 
 plugins {
     id 'com.android.application'
 }
 
 def currentTime = getCurrentTime()
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+}
+
+def envOrProperty = { envName, propertyName ->
+    def envValue = System.getenv(envName)
+    if (envValue != null && !envValue.trim().isEmpty()) {
+        return envValue
+    }
+    return keystoreProperties[propertyName]
+}
+
+def releaseStoreFile = envOrProperty("FT8CN_RELEASE_STORE_FILE", "storeFile")
+def releaseStorePassword = envOrProperty("FT8CN_RELEASE_STORE_PASSWORD", "storePassword")
+def releaseKeyAlias = envOrProperty("FT8CN_RELEASE_KEY_ALIAS", "keyAlias")
+def releaseKeyPassword = envOrProperty("FT8CN_RELEASE_KEY_PASSWORD", "keyPassword")
+def hasReleaseSigning = [
+        releaseStoreFile,
+        releaseStorePassword,
+        releaseKeyAlias,
+        releaseKeyPassword
+].every { it != null && !it.toString().trim().isEmpty() }
 
 static def getCurrentTime() {
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd")
@@ -16,6 +44,17 @@ static def getCurrentTime() {
 android {
 
     compileSdk 33
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile rootProject.file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
 
     defaultConfig {
         applicationId "com.bg7yoz.ft8cn"
@@ -35,15 +74,19 @@ android {
 
             }
         }
-        signingConfig signingConfigs.debug
     }
 
     buildTypes {
 
         debug{
+            signingConfig signingConfigs.debug
             buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")
         }
         release {
+            if (!hasReleaseSigning) {
+                throw new GradleException("Missing release signing config. Set FT8CN_RELEASE_* environment variables or create keystore.properties.")
+            }
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("String", "apkBuildTime", "\"${currentTime}\"")

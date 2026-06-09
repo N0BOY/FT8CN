@@ -11,4 +11,7 @@ ft8cn/.android-home/
 .idea/
 *.iml
 *.apk
+ft8cn/keystore.properties
+ft8cn/*.jks
+ft8cn/*.keystore
 /.vs
