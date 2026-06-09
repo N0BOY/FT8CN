@@ -3,16 +3,13 @@ import android.util.Log;
 
 import com.bg7yoz.ft8cn.GeneralVariables;
 
-import org.json.JSONObject;
 import org.json.JSONStringer;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -24,6 +21,9 @@ enum ServiceType{
 
 public class ThirdPartyService {
     public static String TAG = "ThirdPartyService";
+
+    // Cloudlog API基准路径
+    private static final String CLOUDLOG_API_PATH = "index.php/api/qso";
 
     private static String QSLRecordToADIF(QSLRecord qslRecord, ServiceType serv){
         StringBuilder logStr = new StringBuilder();
@@ -111,55 +111,63 @@ public class ThirdPartyService {
 
         String comment = qslRecord.getComment();
 
-        //<comment:15>Distance: 99 km <eor>
-        //在写库的时候，一定要加" km"
+        // 写库的时候，一定要加" km"
         logStr.append(String.format("<comment:%d>%s <eor>\n"
                 , comment.length()
                 , comment));
         return logStr.toString();
     }
-    public static void UploadToCloudLog(QSLRecord qslRecord){
-        // 转换为adif格式
-        String logStr = QSLRecordToADIF(qslRecord,ServiceType.Cloudlog);
-        Log.d(TAG,logStr);
-        String address = GeneralVariables.getCloudlogServerAddress();
-        if (!address.endsWith("/")){
-            address+="/";
-        }
-        HashMap<String,String> json = new HashMap<>();
-        json.put("key", GeneralVariables.getCloudlogServerApiKey());
-        json.put("station_profile_id", GeneralVariables.getCloudlogStationID());
-        json.put("type","adif");
-        json.put("string", logStr);
 
-        JSONStringer js = new JSONStringer();
+    public static void UploadToCloudLog(QSLRecord qslRecord) {
+        // 转换为ADIF格式
+        String logStr = QSLRecordToADIF(qslRecord, ServiceType.Cloudlog);
+        Log.d(TAG, logStr);
+        String address = GeneralVariables.getCloudlogServerAddress();
+        if (!address.endsWith("/")) {
+            address += "/";
+        }
         try {
-            String result = js.object().key("key").value(GeneralVariables.getCloudlogServerApiKey()).key("station_profile_id").value(GeneralVariables.getCloudlogStationID())
-                    .key("type").value("adif").key("string").value(logStr).endObject().toString();
-            String clRes = sendPostRequest(address+"api/qso/",result);
-            Log.d(TAG,"Updated to Cloudlog successfully. result:"+clRes);
-        }catch (Exception k){
-            Log.d(TAG, k.toString());
+            JSONStringer js = new JSONStringer();
+            String result = js.object()
+                    .key("key").value(GeneralVariables.getCloudlogServerApiKey())
+                    .key("station_profile_id").value(GeneralVariables.getCloudlogStationID())
+                    .key("type").value("adif")
+                    .key("string").value(logStr)
+                    .endObject().toString();
+            // 使用正确的Cloudlog API路径
+            String clRes = sendPostRequest(address + CLOUDLOG_API_PATH, result);
+            Log.d(TAG, "Updated to Cloudlog successfully. result:" + clRes);
+        } catch (Exception k) {
+            Log.d(TAG, "Cloudlog upload failed: " + k.toString());
         }
     }
-    public static boolean CheckCloudlogConnection(){
+
+    public static boolean CheckCloudlogConnection() {
         String address = GeneralVariables.getCloudlogServerAddress();
         String apiKey = GeneralVariables.getCloudlogServerApiKey();
         // 检查地址末尾是否含有 /
-        if (!address.endsWith("/")){
-            address+="/";
+        if (!address.endsWith("/")) {
+            address += "/";
         }
-        try{
-            String url = address + "api/auth/"+ apiKey;
-            Log.d(TAG, "URL: "+url);
-            String result = sendGetRequest(url);
-            Log.d(TAG, result);
-            if (!result.equals("<auth><status>Valid</status><rights>rw</rights></auth>")){
-                return false;
-            }
-            return true;
-        }catch (Exception e){
-            Log.d(TAG, e.toString());
+        try {
+            String url = address + CLOUDLOG_API_PATH;
+            Log.d(TAG, "URL: " + url);
+            // 构建测试ADIF记录，用POST请求测试 /index.php/api/qso 接口
+            // Cloudlog返回2xx说明成功，返回4xx说明测试QSO被拒绝但连接正常
+            // 只有5xx或网络错误才说明连接失败
+            String testAdif = "<CALL:6>TEST01 <BAND:3>20m <MODE:4>FT8 <QSO_DATE:8>20260101 <TIME_ON:6>000000 <RST_SENT:3>599 <RST_RCVD:3>599 <EOR>";
+            JSONStringer js = new JSONStringer();
+            String json = js.object()
+                    .key("key").value(apiKey)
+                    .key("type").value("adif")
+                    .key("string").value(testAdif)
+                    .endObject().toString();
+            int responseCode = sendPostRequestAndGetCode(url, json);
+            Log.d(TAG, "Cloudlog test response code: " + responseCode);
+            // 2xx-4xx都说明服务器可达且API Key有效，5xx或网络错误说明连接失败
+            return responseCode >= 200 && responseCode < 500;
+        } catch (Exception e) {
+            Log.d(TAG, "Cloudlog connection check error: " + e.toString());
             return false;
         }
     }
@@ -188,7 +196,7 @@ public class ThirdPartyService {
     }
 
     public static void UploadToQRZ(QSLRecord qslRecord){
-        // 转换为adif格式
+        // 转换为ADIF格式
         String logStr = QSLRecordToADIF(qslRecord, ServiceType.QRZ);
         Log.d(TAG,logStr);
         String apikey = GeneralVariables.getQrzApiKey();
@@ -214,19 +222,35 @@ public class ThirdPartyService {
 
             // 设置请求方法为POST
             conn.setRequestMethod("POST");
-            // 设置请求的头部信息
+            // 设置请求头部信息
             conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+            // 设置超时时间
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(15000);
+            conn.setDoOutput(true);
 
-            // 获取OutputStream，将请求的数据写入流中
+            // 写入请求数据
             OutputStream os = conn.getOutputStream();
-            os.write(json.getBytes());
+            os.write(json.getBytes("UTF-8"));
             os.flush();
+            os.close();
 
-            // 获取服务器的响应结果
+            // 获取服务器响应
             int responseCode = conn.getResponseCode();
-            // cloudlog使用HTTP_CREATED作为创建记录成功的响应
-            if (responseCode == HttpURLConnection.HTTP_OK || responseCode==HttpURLConnection.HTTP_CREATED) {
+            Log.d(TAG, "Response code: " + responseCode);
+
+            // 2xx从正常流读取，其他从错误流读取（避免IOException）
+            if (responseCode >= 200 && responseCode < 300) {
                 reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            } else {
+                InputStream errorStream = conn.getErrorStream();
+                if (errorStream != null) {
+                    reader = new BufferedReader(new InputStreamReader(errorStream));
+                }
+            }
+
+            if (reader != null) {
                 StringBuilder response = new StringBuilder();
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -234,17 +258,43 @@ public class ThirdPartyService {
                 }
                 return response.toString();
             }
+            return "";
+        } finally {
+            if (reader != null) {
+                reader.close();
+            }
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+    }
+
+    // 发送POST请求并返回HTTP状态码，用于连接测试
+    private static int sendPostRequestAndGetCode(String url, String json) throws IOException {
+        HttpURLConnection conn = null;
+        try {
+            URL urlObj = new URL(url);
+            conn = (HttpURLConnection) urlObj.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            conn.setDoOutput(true);
+
+            OutputStream os = conn.getOutputStream();
+            os.write(json.getBytes("UTF-8"));
+            os.flush();
+            os.close();
+
+            return conn.getResponseCode();
         } finally {
             if (conn != null) {
                 conn.disconnect();
             }
-            if (reader != null) {
-                reader.close();
-            }
         }
-
-        return null;
     }
+
     public static String sendGetRequest(String url) throws IOException {
         HttpURLConnection conn = null;
         BufferedReader reader = null;
@@ -253,9 +303,9 @@ public class ThirdPartyService {
             URL urlObj = new URL(url);
             conn = (HttpURLConnection) urlObj.openConnection();
 
-            // 设置请求方法为POST
+            // 设置请求方法为GET
             conn.setRequestMethod("GET");
-            // 设置请求的头部信息
+            // 设置请求头部信息
             conn.setRequestProperty("Content-Type", "application/json");
 
             // 获取服务器的响应结果
