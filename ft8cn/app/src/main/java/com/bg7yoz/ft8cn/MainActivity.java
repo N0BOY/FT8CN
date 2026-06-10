@@ -215,9 +215,10 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 }
                 try {
-                    return NavigationUI.onNavDestinationSelected(item, navController);
-                } catch (IllegalArgumentException e) {
-                    Log.w(TAG, "onNavigationItemSelected: ignored invalid destination "
+                    navController.navigate(item.getItemId());
+                    return true;
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    Log.w(TAG, "onNavigationItemSelected: ignored navigation to "
                             + item.getItemId(), e);
                     return false;
                 }
