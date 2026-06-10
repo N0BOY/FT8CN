@@ -105,15 +105,23 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
             }
         }
 
+        private void claimInterfaceSafely(UsbInterface usbInterface, String name) throws IOException {
+            if (usbInterface == null) {
+                throw new IOException("Interface is null: " + name);
+            }
+            if (!mConnection.claimInterface(usbInterface, true)) {
+                throw new IOException("Could not claim " + name);
+            }
+            Log.d(TAG, "claimInterface(" + name + ") succeeded with force");
+        }
+
         private void openSingleInterface() throws IOException {
             // the following code is inspired by the cdc-acm driver in the linux kernel
 
             mControlIndex = 0;
             mControlInterface = mDevice.getInterface(0);
             mDataInterface = mDevice.getInterface(0);
-            if (!mConnection.claimInterface(mControlInterface, true)) {
-                throw new IOException("Could not claim shared control/data interface");
-            }
+            claimInterfaceSafely(mControlInterface, "shared control/data interface");
 
             for (int i = 0; i < mControlInterface.getEndpointCount(); ++i) {
                 UsbEndpoint ep = mControlInterface.getEndpoint(i);
@@ -159,9 +167,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
             }
             Log.d(TAG, "Control iface=" + mControlInterface);
 
-            if (!mConnection.claimInterface(mControlInterface, true)) {
-                throw new IOException("Could not claim control interface");
-            }
+            claimInterfaceSafely(mControlInterface, "control interface");
 
             mControlEndpoint = mControlInterface.getEndpoint(0);
             if (mControlEndpoint.getDirection() != UsbConstants.USB_DIR_IN || mControlEndpoint.getType() != UsbConstants.USB_ENDPOINT_XFER_INT) {
@@ -173,9 +179,7 @@ public class CdcAcmSerialDriver implements UsbSerialDriver {
             }
             Log.d(TAG, "data iface=" + mDataInterface);
 
-            if (!mConnection.claimInterface(mDataInterface, true)) {
-                throw new IOException("Could not claim data interface");
-            }
+            claimInterfaceSafely(mDataInterface, "data interface");
 
             for (int i = 0; i < mDataInterface.getEndpointCount(); i++) {
                 UsbEndpoint ep = mDataInterface.getEndpoint(i);

@@ -163,11 +163,18 @@ public class MainViewModel extends ViewModel {
 
     public MutableLiveData<ArrayList<CableSerialPort.SerialPort>> mutableSerialPorts = new MutableLiveData<>();
     private ArrayList<CableSerialPort.SerialPort> serialPorts;//串口列表
+    private CableSerialPort.SerialPort lastCableSerialPort = null;
     public BaseRig baseRig;//电台
+    private void stopTransmitForRigDisconnect() {
+        if (ft8TransmitSignal != null) {
+            ft8TransmitSignal.stopCurrentTransmission();
+        }
+    }
     private final OnRigStateChanged onRigStateChanged = new OnRigStateChanged() {
         @Override
         public void onDisconnected() {
             //与电台连接中断
+            stopTransmitForRigDisconnect();
             ToastMessage.show(getStringFromResource(R.string.disconnect_rig));
         }
 
@@ -199,6 +206,7 @@ public class MainViewModel extends ViewModel {
         @Override
         public void onRunError(String message) {
             //与电台通讯出现错误，
+            stopTransmitForRigDisconnect();
             ToastMessage.show(String.format(getStringFromResource(R.string.radio_communication_error)
                     , message));
         }
@@ -690,6 +698,7 @@ public class MainViewModel extends ViewModel {
         baseRig.setOnRigStateChanged(onRigStateChanged);
         baseRig.setConnector(connector);
         connector.connect();
+        lastCableSerialPort = port;
 
         //晚1秒钟设置模式，防止有的电台反应不过来
         new Handler().postDelayed(new Runnable() {
@@ -888,6 +897,9 @@ public class MainViewModel extends ViewModel {
             case InstructionSet.YAESU_DX10:
                 baseRig = new YaesuDX10Rig();//YAESU DX10 DX101
                 break;
+            case InstructionSet.YAESU_FT710:
+                baseRig = new YaesuDX10Rig();//YAESU FT-710 uses DX10 CAT behavior; FT-710-specific fix stays in serial path
+                break;
             case InstructionSet.KENWOOD_TS590:
                 baseRig = new KenwoodTS590Rig();//KENWOOD TS590
                 break;
@@ -974,6 +986,40 @@ public class MainViewModel extends ViewModel {
         serialPorts =
                 CableSerialPort.listSerialPorts(GeneralVariables.getMainContext());
         mutableSerialPorts.postValue(serialPorts);
+    }
+
+    private boolean isSameSerialPort(CableSerialPort.SerialPort a, CableSerialPort.SerialPort b) {
+        if (a == null || b == null) {
+            return false;
+        }
+        if (a.deviceId != 0 && b.deviceId != 0 && a.deviceId == b.deviceId) {
+            return a.portNum == b.portNum;
+        }
+        return a.vendorId == b.vendorId
+                && a.productId == b.productId
+                && a.portNum == b.portNum;
+    }
+
+    public boolean tryReconnectLastCableRig(Context context) {
+        if (lastCableSerialPort == null) {
+            return false;
+        }
+        if (GeneralVariables.connectMode != ConnectMode.USB_CABLE) {
+            return false;
+        }
+        if (serialPorts == null || serialPorts.size() == 0) {
+            return false;
+        }
+        if (isRigConnected()) {
+            return false;
+        }
+        for (CableSerialPort.SerialPort serialPort : serialPorts) {
+            if (isSameSerialPort(lastCableSerialPort, serialPort)) {
+                connectCableRig(context, serialPort);
+                return true;
+            }
+        }
+        return false;
     }
 
 

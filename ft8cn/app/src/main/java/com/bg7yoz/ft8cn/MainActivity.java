@@ -210,10 +210,18 @@ public class MainActivity extends AppCompatActivity {
         binding.navView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                //Log.e(TAG, "onNavigationItemSelected: "+item.toString() );
-                navController.navigate(item.getItemId());
-                //binding.navView.setLabelFor(item.getItemId());
-                return true;
+                if (navController.getCurrentDestination() != null
+                        && navController.getCurrentDestination().getId() == item.getItemId()) {
+                    return true;
+                }
+                try {
+                    navController.navigate(item.getItemId());
+                    return true;
+                } catch (IllegalArgumentException | IllegalStateException e) {
+                    Log.w(TAG, "onNavigationItemSelected: ignored navigation to "
+                            + item.getItemId(), e);
+                    return false;
+                }
             }
         });
 
@@ -661,6 +669,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         if ("android.hardware.usb.action.USB_DEVICE_ATTACHED".equals(intent.getAction())) {
             mainViewModel.getUsbDevice();
+            mainViewModel.tryReconnectLastCableRig(getApplicationContext());
         }else {
             setIntent(intent);//因为处于单例模式，所以要更新一下intent
             doReceiveShareFile(getIntent());

@@ -22,6 +22,9 @@ import android.util.Log;
 import com.bg7yoz.ft8cn.BuildConfig;
 import com.bg7yoz.ft8cn.GeneralVariables;
 import com.bg7yoz.ft8cn.R;
+import com.bg7yoz.ft8cn.connector.ConnectMode;
+import com.bg7yoz.ft8cn.database.ControlMode;
+import com.bg7yoz.ft8cn.rigs.InstructionSet;
 import com.bg7yoz.ft8cn.serialport.CdcAcmSerialDriver;
 import com.bg7yoz.ft8cn.serialport.UsbSerialDriver;
 import com.bg7yoz.ft8cn.serialport.UsbSerialPort;
@@ -47,6 +50,9 @@ public class CableSerialPort {
     private BroadcastReceiver broadcastReceiver;
     private final Context context;
 
+    private int deviceId = 0;
+    private int productId = 0;
+
     private int vendorId = 0x0c26;//设备号
     private int portNum = 0;//端口号
     private int baudRate = 19200;//波特率
@@ -59,11 +65,15 @@ public class CableSerialPort {
     private UsbDeviceConnection usbConnection;
     private UsbSerialDriver driver;
 
+    private boolean receiverRegistered = false;
+
 
     private boolean connected = false;//是否处于连接状态
 
     public CableSerialPort(Context mContext, SerialPort serialPort, int baud, OnConnectorStateChanged connectorStateChanged) {
+        deviceId = serialPort.deviceId;
         vendorId = serialPort.vendorId;
+        productId = serialPort.productId;
         portNum = serialPort.portNum;
         baudRate = baud;
         context = mContext;
@@ -80,13 +90,40 @@ public class CableSerialPort {
         broadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if (INTENT_ACTION_GRANT_USB.equals(intent.getAction())) {
+                String action = intent.getAction();
+                if (INTENT_ACTION_GRANT_USB.equals(action)) {
                     usbPermission = intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
                             ? UsbPermission.Granted : UsbPermission.Denied;
                     connect();
+                    return;
+                }
+                if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                    UsbDevice detachedDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+                    if (isCurrentUsbDevice(detachedDevice)) {
+                        disconnect();
+                    }
                 }
             }
         };
+    }
+
+    private boolean isCurrentUsbDevice(UsbDevice device) {
+        if (device == null) {
+            return false;
+        }
+        if (deviceId != 0) {
+            return device.getDeviceId() == deviceId;
+        }
+        if (vendorId != 0 && productId != 0) {
+            return device.getVendorId() == vendorId && device.getProductId() == productId;
+        }
+        return vendorId != 0 && device.getVendorId() == vendorId;
+    }
+
+    private boolean shouldUseFt710WriteOnlyCatMode() {
+        return GeneralVariables.instructionSet == InstructionSet.YAESU_FT710
+                && GeneralVariables.connectMode == ConnectMode.USB_CABLE
+                && GeneralVariables.controlMode == ControlMode.CAT;
     }
 
     private boolean prepare() {
@@ -197,7 +234,9 @@ public class CableSerialPort {
                     disconnect();
                 }
             });
-            usbIoManager.start();
+            if (!shouldUseFt710WriteOnlyCatMode()) {
+                usbIoManager.start();
+            }
             Log.d(TAG, "串口打开成功！");
             connected = true;
 
@@ -225,6 +264,7 @@ public class CableSerialPort {
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.e(TAG, "发送数据出错：" + e.getMessage());
+                disconnect();
                 return false;
             }
             return true;
@@ -255,13 +295,23 @@ public class CableSerialPort {
     }
 
     public void registerRigSerialPort(Context context) {
+        if (receiverRegistered) {
+            return;
+        }
         Log.d(TAG, "registerRigSerialPort: registered!");
-        context.registerReceiver(broadcastReceiver, new IntentFilter(INTENT_ACTION_GRANT_USB));
+        IntentFilter intentFilter = new IntentFilter(INTENT_ACTION_GRANT_USB);
+        intentFilter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        context.registerReceiver(broadcastReceiver, intentFilter);
+        receiverRegistered = true;
     }
 
     public void unregisterRigSerialPort(Activity activity) {
+        if (!receiverRegistered) {
+            return;
+        }
         Log.d(TAG, "unregisterRigSerialPort: unregistered!");
-        activity.unregisterReceiver(broadcastReceiver);
+        context.unregisterReceiver(broadcastReceiver);
+        receiverRegistered = false;
     }
 
 

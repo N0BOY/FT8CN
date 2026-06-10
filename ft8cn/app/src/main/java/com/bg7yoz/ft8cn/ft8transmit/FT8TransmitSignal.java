@@ -945,13 +945,20 @@ public class FT8TransmitSignal {
     public void setActivated(boolean activated) {
         this.activated = activated;
         if (!this.activated) {//强制关闭发射
-            setTransmitting(false);
+            stopCurrentTransmission();
+            return;
         }
         mutableIsActivated.postValue(activated);
     }
 
     public boolean isTransmitting() {
         return isTransmitting;
+    }
+
+    public void stopCurrentTransmission() {
+        activated = false;
+        setTransmitting(false);
+        mutableIsActivated.postValue(false);
     }
 
     public void setTransmitting(boolean transmitting) {
@@ -961,13 +968,26 @@ public class FT8TransmitSignal {
         }
 
         if (!transmitting) {//停止发射
+            boolean hadActiveTransmission = isTransmitting || audioTrack != null;
             if (audioTrack != null) {
-                if (audioTrack.getState() != AudioTrack.STATE_UNINITIALIZED) {
-                    audioTrack.pause();
+                try {
+                    if (audioTrack.getState() != AudioTrack.STATE_UNINITIALIZED) {
+                        audioTrack.pause();
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "setTransmitting pause: " + e.getMessage());
                 }
-                if (onDoTransmitted != null) {//通知一下，已经不发射了
-                    onDoTransmitted.onAfterTransmit(getFunctionCommand(functionOrder), functionOrder);
+            }
+            if (hadActiveTransmission && onDoTransmitted != null) {//通知一下，已经不发射了
+                onDoTransmitted.onAfterTransmit(getFunctionCommand(functionOrder), functionOrder);
+            }
+            if (audioTrack != null) {
+                try {
+                    audioTrack.release();
+                } catch (Exception e) {
+                    Log.d(TAG, "setTransmitting release: " + e.getMessage());
                 }
+                audioTrack = null;
             }
         }
 

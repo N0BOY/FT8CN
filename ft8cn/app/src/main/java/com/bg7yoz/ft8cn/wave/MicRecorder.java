@@ -35,46 +35,123 @@ public class MicRecorder {
     public MicRecorder(){
         //计算最小缓冲区
         bufferSize = AudioRecord.getMinBufferSize(sampleRateInHz, channelConfig, audioFormat);
-//        audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC, sampleRateInHz
-        audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRateInHz
-                , channelConfig, audioFormat, bufferSize);//创建AudioRecorder对象
+        if (bufferSize <= 0) {
+            bufferSize = sampleRateInHz;
+        }
     }
 
-    public void start(){
-        if (isRunning) return;
+    @SuppressLint("MissingPermission")
+    private synchronized boolean ensureAudioRecord() {
+        if (audioRecord != null && audioRecord.getState() == AudioRecord.STATE_INITIALIZED) {
+            return true;
+        }
+        releaseAudioRecord();
+        try {
+            audioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRateInHz,
+                    channelConfig, audioFormat, bufferSize);
+        } catch (Exception e) {
+            Log.d(TAG, "ensureAudioRecord: " + e.getMessage());
+            audioRecord = null;
+        }
+        return audioRecord != null && audioRecord.getState() == AudioRecord.STATE_INITIALIZED;
+    }
 
-        float[] buffer = new float[bufferSize];
+    private synchronized void releaseAudioRecord() {
+        if (audioRecord == null) {
+            return;
+        }
+        try {
+            if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                audioRecord.stop();
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "releaseAudioRecord stop: " + e.getMessage());
+        }
+        try {
+            audioRecord.release();
+        } catch (Exception e) {
+            Log.d(TAG, "releaseAudioRecord release: " + e.getMessage());
+        }
+        audioRecord = null;
+    }
+
+    @SuppressLint("MissingPermission")
+    private boolean startRecordingInternal() {
+        if (!ensureAudioRecord()) {
+            return false;
+        }
+
         try {
             audioRecord.startRecording();//开始录音
-        }catch (Exception e){
+            if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                return true;
+            }
+        } catch (Exception e) {
+            Log.d(TAG, "startRecord: " + e.getMessage());
+        }
+
+        releaseAudioRecord();
+        if (!ensureAudioRecord()) {
+            return false;
+        }
+
+        try {
+            audioRecord.startRecording();
+            return audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING;
+        } catch (Exception e) {
+            Log.d(TAG, "startRecord retry: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public synchronized void start(){
+        if (isRunning) return;
+
+        if (!startRecordingInternal()) {
             ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
-                    R.string.recorder_cannot_record),e.getMessage()));
-            Log.d(TAG, "startRecord: "+e.getMessage() );
+                    R.string.recorder_cannot_record), "AudioRecord is not initialized"));
+            Log.d(TAG, "startRecord: AudioRecord is not initialized");
+            return;
         }
 
         isRunning = true;
+        float[] buffer = new float[bufferSize];
 
         new Thread(new Runnable() {
             @Override
             public void run() {
                 while (isRunning) {
-                    //判断是否处于录音状态，state!=3，说明没有处于录音的状态
-                    if (audioRecord.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
+                    AudioRecord currentRecord = audioRecord;
+                    if (currentRecord == null
+                            || currentRecord.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING) {
                         isRunning = false;
-                        Log.d(TAG, String.format("录音失败，状态码：%d", audioRecord.getRecordingState()));
+                        Log.d(TAG, String.format("录音失败，状态码：%d",
+                                currentRecord == null ? -1 : currentRecord.getRecordingState()));
                         break;
                     }
 
                     //读录音的数据
-                    int bufferReadResult = audioRecord.read(buffer, 0, bufferSize,AudioRecord.READ_BLOCKING);
+                    int bufferReadResult = currentRecord.read(buffer, 0, bufferSize, AudioRecord.READ_BLOCKING);
+                    if (bufferReadResult <= 0) {
+                        Log.d(TAG, "record loop read error: " + bufferReadResult);
+                        if (bufferReadResult == AudioRecord.ERROR_DEAD_OBJECT
+                                || bufferReadResult == AudioRecord.ERROR_INVALID_OPERATION
+                                || bufferReadResult == AudioRecord.ERROR_BAD_VALUE) {
+                            isRunning = false;
+                            break;
+                        }
+                        continue;
+                    }
 
                     if (onDataListener!=null){
                         onDataListener.onDataReceived(buffer,bufferReadResult);
                     }
                 }
                 try {
-                    if (audioRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-                        audioRecord.stop();//停止录音
+                    AudioRecord currentRecord = audioRecord;
+                    if (currentRecord != null
+                            && currentRecord.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+                        currentRecord.stop();//停止录音
                     }
                 }catch (Exception e){
                     ToastMessage.show(String.format(GeneralVariables.getStringFromResource(
@@ -88,8 +165,9 @@ public class MicRecorder {
     /**
      * 停止录音。当录音停止后，监听列表中的监听器全部删除。
      */
-    public void stopRecord() {
+    public synchronized void stopRecord() {
         isRunning = false;
+        releaseAudioRecord();
     }
 
     public OnDataListener getOnDataListener() {

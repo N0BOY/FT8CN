@@ -534,4 +534,12 @@ public class MyCallingFragment extends Fragment {
             }
         }).attachToRecyclerView(binding.transmitRecycleView);
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+        transmitRecycleView = null;
+        transmitCallListAdapter = null;
+    }
 }

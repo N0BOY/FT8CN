@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -81,13 +82,28 @@ public class CountFragment extends Fragment {
 
 
 
-        mutableInfoList.observe(requireActivity(), new Observer<ArrayList<CountDbOpr.CountInfo>>() {
+        return binding.getRoot();
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mutableInfoList.observe(getViewLifecycleOwner(), new Observer<ArrayList<CountDbOpr.CountInfo>>() {
             @Override
             public void onChanged(ArrayList<CountDbOpr.CountInfo> countInfos) {
-                countInfoAdapter.notifyDataSetChanged();
+                if (countInfoAdapter != null) {
+                    countInfoAdapter.notifyDataSetChanged();
+                }
             }
         });
+    }
 
-        return binding.getRoot();
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+        countInfoListRecyclerView = null;
+        countInfoAdapter = null;
     }
 }
