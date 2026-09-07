@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">활성화 공유</string>
+    <string name="pota_social_caption">공원에서 전 세계로. ft8af와 함께. %1$s</string>
+    <string name="pota_social_failed">활성화를 공유하지 못했습니다. 다시 시도해 주세요.</string>
+</resources>

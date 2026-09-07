@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -885,6 +886,7 @@ private fun HistoryRow(
     row: PotaActivation,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -928,6 +930,13 @@ private fun HistoryRow(
         if (!row.notes.isNullOrBlank()) {
             Spacer(Modifier.height(2.dp))
             Text(stringResource(R.string.pota_notes_quote, row.notes), color = TextMuted, fontSize = 11.sp)
+        }
+        if (!row.isActive) {
+            TextButton(onClick = { PotaShareActivity.open(context, row) }) {
+                Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp), tint = Accent)
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.pota_social_share), color = Accent, fontSize = 12.sp)
+            }
         }
     }
 }
@@ -1066,6 +1075,17 @@ private fun ActivationDetailScreen(
                 }
             }
             item(key = "actions") {
+                if (!activation.isActive) {
+                    OutlinedButton(
+                        onClick = { PotaShareActivity.open(context, activation) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp), tint = Accent)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.pota_social_share), color = Accent)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                }
                 if (activation.qsoCount > 0) {
                     Button(
                         onClick = {

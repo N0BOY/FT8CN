@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">Aktivasyonu paylaş</string>
+    <string name="pota_social_caption">Parktan dünyaya. ft8af ile. %1$s</string>
+    <string name="pota_social_failed">Bu aktivasyon paylaşılamadı. Lütfen tekrar deneyin.</string>
+</resources>

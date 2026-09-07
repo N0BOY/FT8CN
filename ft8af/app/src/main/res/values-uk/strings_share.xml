@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">Поділитися активацією</string>
+    <string name="pota_social_caption">З парку — до всього світу. За допомогою ft8af. %1$s</string>
+    <string name="pota_social_failed">Не вдалося поділитися активацією. Спробуйте ще раз.</string>
+</resources>

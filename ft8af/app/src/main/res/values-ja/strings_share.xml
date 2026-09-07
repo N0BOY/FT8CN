@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">アクティベーションを共有</string>
+    <string name="pota_social_caption">公園から世界へ。ft8afで。%1$s</string>
+    <string name="pota_social_failed">このアクティベーションを共有できませんでした。もう一度お試しください。</string>
+</resources>

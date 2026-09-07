@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">分享激活记录</string>
+    <string name="pota_social_caption">从公园联通世界。由 ft8af 提供支持。%1$s</string>
+    <string name="pota_social_failed">无法分享此激活记录。请重试。</string>
+</resources>

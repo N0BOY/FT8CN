@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">Activatie delen</string>
+    <string name="pota_social_caption">Van het park naar de wereld. Met ft8af. %1$s</string>
+    <string name="pota_social_failed">Deze activatie kon niet worden gedeeld. Probeer het opnieuw.</string>
+</resources>
