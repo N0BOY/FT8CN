@@ -131,9 +131,11 @@
       if(!land){const response=await fetch(new URL('world_land.json',assetRoot));if(!response.ok)throw Error();land=await response.json();}
       await Promise.all([document.fonts.load('600 24px Geist'),document.fonts.load('600 24px "Geist Mono"')]);
       if(!brandIcon)brandIcon=await new Promise((resolve,reject)=>{const icon=new Image();icon.onload=()=>resolve(icon);icon.onerror=reject;icon.src=new URL('icon.svg',assetRoot).href;});
-      draw();log();$('summary').hidden=false;$('status').hidden=true;
+      draw();if(!$('activation-data'))log();$('summary').hidden=false;$('status').hidden=true;
+      if($('export-actions'))$('export-actions').hidden=false;
+      setBusy(false);
     }
-    catch{error('The map could not be loaded. Reopen this summary to try again.');}
+    catch{error('The share image could not be prepared. Reopen this summary to try again.');}
   }
   async function imageFile(){const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('Could not create image');return new File([blob],`ft8af-${data.parks[0]}.png`,{type:'image/png'});}
   async function save(){try{const file=await imageFile(),url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}catch{error('Could not save the image. Please try again.');}}
@@ -148,7 +150,11 @@
   globalThis.shareFailed=()=>error('Could not share this activation. Check your connection and try again.');
   globalThis.sharePublished=url=>{publicUrl=url;try{draw();FT8Share.image(canvas.toDataURL('image/png'));}catch{shareFailed();}};
   globalThis.shareFinished=()=>{$('status').hidden=true;setBusy(false);};
-  if(native){$('save').hidden=true;$('disclosure').textContent='Sharing publishes your callsign, parks, dates and contact log at ft8af.app. Anyone with the link can view it. Notes are not included.';FT8Share.ready();}
+  if(native){$('save').hidden=true;$('disclosure').textContent='Sharing publishes your callsign, parks, dates and contact log at ft8af.app. The page is public and may appear in search engines. Notes are not included.';FT8Share.ready();}
+  else if($('activation-data')){
+    const id=new URLSearchParams(location.search).get('id');
+    show(JSON.parse($('activation-data').textContent),`https://ft8af.app/activation?id=${id}`);
+  }
   else{
     const id=new URLSearchParams(location.search).get('id');
     if(!/^[a-f0-9]{32}$/.test(id||''))error('This share link is incomplete or invalid.');
