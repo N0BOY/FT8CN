@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">مشاركة التفعيل</string>
+    <string name="pota_social_caption">من الحديقة إلى العالم. بدعم من ft8af. %1$s</string>
+    <string name="pota_social_failed">تعذرت مشاركة هذا التفعيل. حاول مرة أخرى.</string>
+</resources>

@@ -151,6 +151,10 @@
             </intent-filter>
         </service>
 
+        <activity
+            android:name="radio.ks3ckc.ft8af.ui.pota.PotaShareActivity"
+            android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="radio.ks3ckc.ft8af.fileprovider"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">Bagikan aktivasi</string>
+    <string name="pota_social_caption">Dari taman ke seluruh dunia. Didukung ft8af. %1$s</string>
+    <string name="pota_social_failed">Tidak dapat membagikan aktivasi ini. Coba lagi.</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pota_social_share">Udostępnij aktywację</string>
+    <string name="pota_social_caption">Z parku na cały świat. Dzięki ft8af. %1$s</string>
+    <string name="pota_social_failed">Nie udało się udostępnić tej aktywacji. Spróbuj ponownie.</string>
+</resources>

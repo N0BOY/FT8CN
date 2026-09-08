@@ -580,4 +580,7 @@
     <string name="alc_switch_on" translatable="false">ALC On</string>
     <string name="alc_switch_off" translatable="false">ALC Off</string>
 
+    <string name="pota_social_share">Share activation</string>
+    <string name="pota_social_caption">From a park to the world. Powered by ft8af. %1$s</string>
+    <string name="pota_social_failed">Could not share this activation. Please try again.</string>
 </resources>

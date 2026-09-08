@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="ic-bg" cx="50%" cy="42%" r="60%">
+      <stop offset="0%" stop-color="#1a2238"></stop>
+      <stop offset="55%" stop-color="#0a1020"></stop>
+      <stop offset="100%" stop-color="#04070e"></stop>
+    </radialGradient>
+    <radialGradient id="ic-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(255,200,120,0.55)"></stop>
+      <stop offset="35%" stop-color="rgba(255,175,94,0.30)"></stop>
+      <stop offset="70%" stop-color="rgba(255,175,94,0.08)"></stop>
+      <stop offset="100%" stop-color="rgba(255,175,94,0)"></stop>
+    </radialGradient>
+    <linearGradient id="ic-beam" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffd7a0"></stop>
+      <stop offset="50%" stop-color="#ffaf5e"></stop>
+      <stop offset="100%" stop-color="#ff8a2c"></stop>
+    </linearGradient>
+    <linearGradient id="ic-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,215,160,0.95)"></stop>
+      <stop offset="50%" stop-color="rgba(255,175,94,0.85)"></stop>
+      <stop offset="100%" stop-color="rgba(255,138,44,0.65)"></stop>
+    </linearGradient>
+    <linearGradient id="ic-scan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(92,214,232,0)"></stop>
+      <stop offset="50%" stop-color="rgba(92,214,232,0.10)"></stop>
+      <stop offset="100%" stop-color="rgba(92,214,232,0)"></stop>
+    </linearGradient>
+    <linearGradient id="ic-shine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.12)"></stop>
+      <stop offset="40%" stop-color="rgba(255,255,255,0)"></stop>
+    </linearGradient>
+    <radialGradient id="ic-vig" cx="50%" cy="50%" r="65%">
+      <stop offset="60%" stop-color="rgba(0,0,0,0)"></stop>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.45)"></stop>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#ic-bg)"></rect>
+  <rect x="0" y="380" width="1024" height="260" fill="url(#ic-scan)" opacity="0.7"></rect>
+  <circle cx="512" cy="540" r="420" fill="url(#ic-glow)"></circle>
+  <circle cx="512" cy="540" r="170" fill="none" stroke="rgba(148,175,220,0.18)" stroke-width="2" stroke-dasharray="2 8"></circle>
+  <circle cx="512" cy="540" r="280" fill="none" stroke="rgba(148,175,220,0.18)" stroke-width="2" stroke-dasharray="2 8"></circle>
+  <circle cx="512" cy="540" r="390" fill="none" stroke="rgba(148,175,220,0.18)" stroke-width="2" stroke-dasharray="2 8"></circle>
+  <path d="M 489.4 411.9 A 130 130 0 0 1 534.6 411.9" fill="none" stroke="url(#ic-ring)" stroke-width="14" stroke-linecap="round" opacity="0.95"></path>
+  <path d="M 432.1 313.7 A 230 230 0 0 1 591.9 313.7" fill="none" stroke="url(#ic-ring)" stroke-width="12" stroke-linecap="round" opacity="0.75"></path>
+  <path d="M 364.9 215.6 A 340 340 0 0 1 659.1 215.6" fill="none" stroke="url(#ic-ring)" stroke-width="10" stroke-linecap="round" opacity="0.5"></path>
+  <path d="M 297.6 117.4 A 450 450 0 0 1 726.4 117.4" fill="none" stroke="url(#ic-ring)" stroke-width="8" stroke-linecap="round" opacity="0.25"></path>
+  <circle cx="68" cy="540" r="6" fill="#ffd7a0" opacity="0.5"></circle>
+  <circle cx="956" cy="540" r="6" fill="#ffd7a0" opacity="0.5"></circle>
+  <circle cx="179" cy="500" r="6" fill="#ffd7a0" opacity="0.5"></circle>
+  <circle cx="845" cy="500" r="6" fill="#ffd7a0" opacity="0.5"></circle>
+  <circle cx="512" cy="540" r="78" fill="url(#ic-beam)" stroke="rgba(255,230,190,0.6)" stroke-width="3"></circle>
+  <ellipse cx="490" cy="510" rx="36" ry="22" fill="rgba(255,245,220,0.55)"></ellipse>
+  <rect x="0" y="0" width="1024" height="240" fill="url(#ic-shine)"></rect>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#ic-vig)" opacity="0.6"></rect>
+</svg>
