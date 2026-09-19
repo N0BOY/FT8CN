@@ -152,8 +152,12 @@ public class GeneralVariables {
     public static MutableLiveData<String> mutableMyMaidenheadGrid = new MutableLiveData<>();
 
     public static int connectMode = ConnectMode.USB_CABLE;//连接方式USB==0,BLUE_TOOTH==1
+    public static final int BLUETOOTH_ROLE_CONTROL = 0;
+    public static final int BLUETOOTH_ROLE_AUDIO = 1;
+    public static int bluetoothSelectionRole = BLUETOOTH_ROLE_CONTROL;//当前蓝牙选择角色：控制或音频
 
-    //public static String bluetoothDeviceAddress=null;//可以用于连接的蓝牙设备地址
+    public static String bluetoothControlDeviceAddress = "";//用于控制的蓝牙串口设备
+    public static String bluetoothAudioDeviceAddress = "";//用于音频的蓝牙耳机设备
 
 
     //用于记录呼号于网格的对应关系 todo---应当把此处列表也放到后台追踪信息里

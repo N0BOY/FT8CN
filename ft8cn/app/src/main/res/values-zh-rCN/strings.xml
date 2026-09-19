@@ -70,6 +70,9 @@
     <string name="filter_none_qsl">只显示未确认的</string>
     <string name="cable_connect">有线连接</string>
     <string name="bluetooth_connect">蓝牙连接</string>
+    <string name="bluetooth_role">蓝牙角色</string>
+    <string name="bluetooth_control">控制</string>
+    <string name="bluetooth_audio">音频</string>
     <string name="cable_mode">连接方式</string>
     <string name="pl_select_bluetooth">请选择可用的蓝牙设备</string>
     <string name="bluetooth_set">蓝牙设置</string>

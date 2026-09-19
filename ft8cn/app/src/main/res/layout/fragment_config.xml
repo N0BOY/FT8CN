@@ -1234,6 +1234,60 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
                     <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/bluetoothRoleLayout"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@drawable/editor_layout_style"
+                        android:visibility="gone"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/connectModeLayout">
+
+                        <TextView
+                            android:id="@+id/bluetoothRoleTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/bluetooth_role"
+                            android:textColor="@color/text_view_color"
+                            android:textSize="14sp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <com.bg7yoz.ft8cn.ui.RadioGroupFt8cn
+                            android:id="@+id/bluetoothRoleRadioGroup"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:orientation="horizontal"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/bluetoothRoleTextView"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <RadioButton
+                                android:id="@+id/bluetoothControlRoleRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/bluetooth_control"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp" />
+
+                            <RadioButton
+                                android:id="@+id/bluetoothAudioRoleRadioButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:buttonTint="?attr/colorPrimary"
+                                android:text="@string/bluetooth_audio"
+                                android:textColor="@color/text_view_color"
+                                android:textSize="12sp" />
+                        </com.bg7yoz.ft8cn.ui.RadioGroupFt8cn>
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                    <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/serialLayout"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -1241,7 +1295,7 @@
                         android:background="@drawable/editor_layout_style"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/connectModeLayout">
+                        app:layout_constraintTop_toBottomOf="@+id/bluetoothRoleLayout">
 
 
                         <TextView
