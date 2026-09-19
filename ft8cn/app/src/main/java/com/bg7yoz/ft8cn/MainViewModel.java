@@ -703,6 +703,9 @@ public class MainViewModel extends ViewModel {
 
     public void connectBluetoothRig(Context context, BluetoothDevice device) {
         GeneralVariables.controlMode = ControlMode.CAT;//蓝牙控制模式，只能是CAT控制
+        if (device != null && device.getAddress() != null) {
+            GeneralVariables.bluetoothControlDeviceAddress = device.getAddress();
+        }
         connectRig();
         if (baseRig == null) {
             return;
@@ -719,6 +722,14 @@ public class MainViewModel extends ViewModel {
                 setOperationBand();//设置载波频率
             }
         }, 5000);
+    }
+
+    public void selectBluetoothAudioDevice(BluetoothDevice device) {
+        if (device == null || device.getAddress() == null) {
+            return;
+        }
+        GeneralVariables.bluetoothAudioDeviceAddress = device.getAddress();
+        setBlueToothOn();
     }
 
     /**

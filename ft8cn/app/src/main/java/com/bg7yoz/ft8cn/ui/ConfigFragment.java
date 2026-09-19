@@ -3,6 +3,7 @@ package com.bg7yoz.ft8cn.ui;
  * 设置界面。
  * @author BGY70Z
  * @date 2023-03-20
+ * 蓝牙角色（控制/音频）分离选择，由 BG7RHK 提供修改，2026-09
  */
 
 import android.annotation.SuppressLint;
@@ -1282,6 +1283,17 @@ public class ConfigFragment extends Fragment {
                 binding.networkConnectRadioButton.setChecked(true);
                 break;
         }
+        if (GeneralVariables.connectMode == ConnectMode.BLUE_TOOTH) {
+            binding.bluetoothRoleLayout.setVisibility(View.VISIBLE);
+        } else {
+            binding.bluetoothRoleLayout.setVisibility(View.GONE);
+        }
+        binding.bluetoothRoleRadioGroup.clearCheck();
+        if (GeneralVariables.bluetoothSelectionRole == GeneralVariables.BLUETOOTH_ROLE_CONTROL) {
+            binding.bluetoothControlRoleRadioButton.setChecked(true);
+        } else {
+            binding.bluetoothAudioRoleRadioButton.setChecked(true);
+        }
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -1295,12 +1307,20 @@ public class ConfigFragment extends Fragment {
                 }
                 //------显示蓝牙列表，并选择，然后建立蓝牙连接
                 if (GeneralVariables.connectMode == ConnectMode.BLUE_TOOTH) {
+                    binding.bluetoothRoleLayout.setVisibility(View.VISIBLE);
                     //根据安卓12，要判断一下蓝牙权限：
-                    new SelectBluetoothDialog(requireContext(), mainViewModel).show();
+                    if (GeneralVariables.bluetoothSelectionRole == GeneralVariables.BLUETOOTH_ROLE_AUDIO) {
+                        new SelectBluetoothDialog(requireContext(), mainViewModel,
+                                SelectBluetoothDialog.DeviceSelectionMode.AUDIO).show();
+                    } else {
+                        new SelectBluetoothDialog(requireContext(), mainViewModel,
+                                SelectBluetoothDialog.DeviceSelectionMode.CONTROL).show();
+                    }
                 }
 
                 //-----显示网络上的电台，目前是flex电台，-------------------
                 if (GeneralVariables.connectMode==ConnectMode.NETWORK){
+                    binding.bluetoothRoleLayout.setVisibility(View.GONE);
                     //打开网络电台列表对话框
                     if (GeneralVariables.instructionSet== InstructionSet.FLEX_NETWORK) {
                         new SelectFlexRadioDialog(requireContext(), mainViewModel).show();
@@ -1321,6 +1341,28 @@ public class ConfigFragment extends Fragment {
         binding.cableConnectRadioButton.setOnClickListener(listener);
         binding.bluetoothConnectRadioButton.setOnClickListener(listener);
         binding.networkConnectRadioButton.setOnClickListener(listener);
+
+        View.OnClickListener bluetoothRoleListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (view.getId() == binding.bluetoothControlRoleRadioButton.getId()) {
+                    GeneralVariables.bluetoothSelectionRole = GeneralVariables.BLUETOOTH_ROLE_CONTROL;
+                } else if (view.getId() == binding.bluetoothAudioRoleRadioButton.getId()) {
+                    GeneralVariables.bluetoothSelectionRole = GeneralVariables.BLUETOOTH_ROLE_AUDIO;
+                }
+                if (GeneralVariables.connectMode == ConnectMode.BLUE_TOOTH) {
+                    if (GeneralVariables.bluetoothSelectionRole == GeneralVariables.BLUETOOTH_ROLE_AUDIO) {
+                        new SelectBluetoothDialog(requireContext(), mainViewModel,
+                                SelectBluetoothDialog.DeviceSelectionMode.AUDIO).show();
+                    } else {
+                        new SelectBluetoothDialog(requireContext(), mainViewModel,
+                                SelectBluetoothDialog.DeviceSelectionMode.CONTROL).show();
+                    }
+                }
+            }
+        };
+        binding.bluetoothControlRoleRadioButton.setOnClickListener(bluetoothRoleListener);
+        binding.bluetoothAudioRoleRadioButton.setOnClickListener(bluetoothRoleListener);
     }
 
 

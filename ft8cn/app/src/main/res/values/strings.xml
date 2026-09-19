@@ -72,6 +72,9 @@
     <string name="filter_none_qsl">Show unconfirmed</string>
     <string name="cable_connect">USB</string>
     <string name="bluetooth_connect">Bluetooth</string>
+    <string name="bluetooth_role">Bluetooth role</string>
+    <string name="bluetooth_control">Control</string>
+    <string name="bluetooth_audio">Audio</string>
     <string name="cable_mode">Connection type</string>
     <string name="pl_select_bluetooth">Please select an available Bluetooth device</string>
     <string name="bluetooth_set">Bluetooth Settings</string>

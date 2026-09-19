@@ -3,6 +3,7 @@ package com.bg7yoz.ft8cn.ui;
  * 蓝牙设备选择对话框。
  * @author BGY70Z
  * @date 2023-03-20
+ * 控制蓝牙与音频蓝牙分离选择、BLE 设备扫描，由 BG7RHK 提供修改，2026-09
  */
 
 import android.annotation.SuppressLint;
@@ -30,34 +31,78 @@ import com.bg7yoz.ft8cn.R;
 import com.bg7yoz.ft8cn.bluetooth.BluetoothConstants;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SelectBluetoothDialog extends Dialog {
+    public enum DeviceSelectionMode {
+        CONTROL,
+        AUDIO
+    }
+
     class BluetoothDeviceInfo {
         BluetoothDevice device;
-        boolean isSPP;
+        boolean supportsSerial;
         boolean isHeadSet;
 
-        public BluetoothDeviceInfo(BluetoothDevice device, boolean isSPP,boolean isHeadSet) {
+        public BluetoothDeviceInfo(BluetoothDevice device, boolean supportsSerial,boolean isHeadSet) {
             this.device = device;
-            this.isSPP = isSPP;
+            this.supportsSerial = supportsSerial;
             this.isHeadSet=isHeadSet;
         }
     }
 
+    private final DeviceSelectionMode selectionMode;
     private MainViewModel mainViewModel;
     private BluetoothAdapter bluetoothAdapter;
     private final ArrayList<BluetoothDeviceInfo> devices = new ArrayList<>();
+    private final Set<String> seenDeviceAddresses = new HashSet<>();
     private RecyclerView devicesRecyclerView;
     private BluetoothDevicesAdapter blueToothListAdapter;
 
     private ImageView upImage;
     private ImageView downImage;
+    private final BluetoothAdapter.LeScanCallback leScanCallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            if (device == null || device.getAddress() == null) {
+                return;
+            }
+            final String address = device.getAddress();
+            if (seenDeviceAddresses.contains(address)) {
+                return;
+            }
+            seenDeviceAddresses.add(address);
+            boolean isAudioDevice = BluetoothConstants.checkIsHeadSet(device) || !BluetoothConstants.isSerialDevice(device);
+            boolean supportsSerial = BluetoothConstants.isSerialDevice(device)
+                    || device.getType() == BluetoothDevice.DEVICE_TYPE_LE
+                    || device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL;
+            if (selectionMode == DeviceSelectionMode.AUDIO && !isAudioDevice) {
+                return;
+            }
+            if (selectionMode == DeviceSelectionMode.CONTROL && !supportsSerial) {
+                return;
+            }
+            devices.add(new BluetoothDeviceInfo(device, supportsSerial, BluetoothConstants.checkIsHeadSet(device)));
+            if (devices.size() > 1) {
+                devices.sort((a, b) -> Boolean.compare(b.supportsSerial, a.supportsSerial));
+            }
+            if (blueToothListAdapter != null) {
+                blueToothListAdapter.notifyDataSetChanged();
+            }
+        }
+    };
 
 
     public SelectBluetoothDialog(@NonNull Context context, MainViewModel mainViewModel) {
+        this(context, mainViewModel, DeviceSelectionMode.CONTROL);
+    }
+
+    public SelectBluetoothDialog(@NonNull Context context, MainViewModel mainViewModel,
+                                @NonNull DeviceSelectionMode selectionMode) {
         super(context);
         this.mainViewModel = mainViewModel;
-
+        this.selectionMode = selectionMode;
     }
 
 
@@ -65,17 +110,40 @@ public class SelectBluetoothDialog extends Dialog {
     @SuppressLint({"MissingPermission", "NotifyDataSetChanged"})
     private void getBluetoothDevice() {
         devices.clear();
+        seenDeviceAddresses.clear();
         if (bluetoothAdapter == null) {
             return;
         }
         for (BluetoothDevice device : bluetoothAdapter.getBondedDevices()) {
-            if (BluetoothConstants.checkIsSpp(device)){//spp设备放前面
+            if (device == null || device.getAddress() == null) {
+                continue;
+            }
+            seenDeviceAddresses.add(device.getAddress());
+            if (selectionMode == DeviceSelectionMode.AUDIO) {
+                if (BluetoothConstants.checkIsHeadSet(device) || !BluetoothConstants.isSerialDevice(device)) {
+                    devices.add(new BluetoothDeviceInfo(device, false, BluetoothConstants.checkIsHeadSet(device)));
+                }
+                continue;
+            }
+            if (BluetoothConstants.isSerialDevice(device)) {//spp/ble串口设备放前面
                 devices.add(0,new BluetoothDeviceInfo(device,true,BluetoothConstants.checkIsHeadSet(device)));
                 continue;
             }
             if (BluetoothConstants.checkIsHeadSet(device)){//headset设备放后面
                 devices.add(new BluetoothDeviceInfo(device, false,BluetoothConstants.checkIsHeadSet(device)));
                 continue;
+            }
+        }
+
+        if (bluetoothAdapter.isEnabled()) {
+            try {
+                bluetoothAdapter.startLeScan(leScanCallback);
+                new Handler().postDelayed(() -> {
+                    if (bluetoothAdapter != null) {
+                        bluetoothAdapter.stopLeScan(leScanCallback);
+                    }
+                }, 10000);
+            } catch (Exception ignored) {
             }
         }
 
@@ -164,7 +232,7 @@ public class SelectBluetoothDialog extends Dialog {
         public void onBindViewHolder(@NonNull BluetoothHolder holder, int position) {
             holder.device = devices.get(position);
             holder.bluetoothNameTextView.setText(holder.device.device.getName());
-            if (holder.device.isSPP){
+            if (holder.device.supportsSerial){
                 holder.bluetoothNameTextView.setTextColor(getContext().getResources().getColor(
                         R.color.bluetooth_device_enable_color));
             }else {
@@ -176,7 +244,7 @@ public class SelectBluetoothDialog extends Dialog {
             }else {
                 holder.headsetImageView.setVisibility(View.GONE);
             }
-            if (BluetoothConstants.checkIsSpp(holder.device.device)){
+            if (BluetoothConstants.isSerialDevice(holder.device.device)){
                 holder.sppDeviceImageView.setVisibility(View.VISIBLE);
             }else {
                 holder.sppDeviceImageView.setVisibility(View.GONE);
@@ -189,8 +257,11 @@ public class SelectBluetoothDialog extends Dialog {
                     ToastMessage.show(String.format(
                             GeneralVariables.getStringFromResource(R.string.select_bluetooth_device)
                             ,holder.device.device.getName()));
-                    mainViewModel.connectBluetoothRig(GeneralVariables.getMainContext(), holder.device.device);
-
+                    if (selectionMode == DeviceSelectionMode.AUDIO) {
+                        mainViewModel.selectBluetoothAudioDevice(holder.device.device);
+                    } else {
+                        mainViewModel.connectBluetoothRig(GeneralVariables.getMainContext(), holder.device.device);
+                    }
                     dismiss();
                 }
             });
